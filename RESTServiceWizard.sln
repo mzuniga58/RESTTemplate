@@ -1,0 +1,40 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32228.430
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectTemplate", "ProjectTemplate\ProjectTemplate.csproj", "{087C77D4-05E3-43D4-82D3-1CD749E2F018}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WizardInstaller", "WizardInstaller\WizardInstaller.csproj", "{3285505D-D23D-4F6D-A758-2C2C46019172}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{087C77D4-05E3-43D4-82D3-1CD749E2F018}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{087C77D4-05E3-43D4-82D3-1CD749E2F018}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{087C77D4-05E3-43D4-82D3-1CD749E2F018}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{087C77D4-05E3-43D4-82D3-1CD749E2F018}.Debug|x86.Build.0 = Debug|Any CPU
+		{087C77D4-05E3-43D4-82D3-1CD749E2F018}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{087C77D4-05E3-43D4-82D3-1CD749E2F018}.Release|Any CPU.Build.0 = Release|Any CPU
+		{087C77D4-05E3-43D4-82D3-1CD749E2F018}.Release|x86.ActiveCfg = Release|Any CPU
+		{087C77D4-05E3-43D4-82D3-1CD749E2F018}.Release|x86.Build.0 = Release|Any CPU
+		{3285505D-D23D-4F6D-A758-2C2C46019172}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3285505D-D23D-4F6D-A758-2C2C46019172}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3285505D-D23D-4F6D-A758-2C2C46019172}.Debug|x86.ActiveCfg = Debug|x86
+		{3285505D-D23D-4F6D-A758-2C2C46019172}.Debug|x86.Build.0 = Debug|x86
+		{3285505D-D23D-4F6D-A758-2C2C46019172}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3285505D-D23D-4F6D-A758-2C2C46019172}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3285505D-D23D-4F6D-A758-2C2C46019172}.Release|x86.ActiveCfg = Release|x86
+		{3285505D-D23D-4F6D-A758-2C2C46019172}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {ACF88103-7C8B-4957-8DBF-19CDDB11D8E7}
+	EndGlobalSection
+EndGlobal

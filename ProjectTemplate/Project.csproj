@@ -1,0 +1,53 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+	<PropertyGroup>
+		<TargetFramework>$framework$</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<DocumentationFile>./$safeprojectname$.xml</DocumentationFile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="AutoMapper" Version="11.0.1" />
+		$if$ ($userql$ == True)<PackageReference Include ="RqlEngine" Version="0.0.4-alpha" />
+		$endif$$if$ ($databasetechnology$ == SQLServer)$if$ ($userql$ == True)<PackageReference Include ="RqlSqlServer" Version="0.0.4-alpha" />
+		$endif$$endif$$if$ ($databasetechnology$ == Postgresql)
+		<PackageReference Include="Npgsql" Version="6.0.1" />
+		$endif$$if$ ($databasetechnology$ == MySQL)
+		<PackageReference Include="MySql.Data" Version="8.0.25" />
+		$endif$$if$ ($useauth$ == True)<PackageReference Include="IdentityServer4.AccessTokenValidation" Version="3.0.1" />
+		$endif$<PackageReference Include="CorrelationId" Version="3.0.1" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.0.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+		<PackageReference Include="AspNetCore.HealthChecks.Uris" Version="6.0.3" />
+		<PackageReference Include="Serilog" Version="2.10.0" />
+		<PackageReference Include="Serilog.AspNetCore" Version="5.0.0" />
+		<PackageReference Include="Serilog.Extensions.Logging" Version="3.1.0" />
+		<PackageReference Include="Serilog.Settings.Configuration" Version="3.3.0" />
+		<PackageReference Include="Serilog.Sinks.Console" Version="4.0.1" />
+		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.3.0" />
+		<PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.3.0" />
+		<PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.3.0" />
+		<PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.3.0" />
+		<PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="6.3.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="$safeprojectname$.xml">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="Controllers\"/>
+		<Folder Include="Mapping\"/>
+		<Folder Include="Models\EntityModels\"/>
+		<Folder Include="Models\ResourceModels\"/>
+	</ItemGroup>
+
+</Project>

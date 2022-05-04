@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("RESTTEmplate")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("WizardInstaller")]
+[assembly: AssemblyDescription("Generates a REST Service")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("RESTTEmplate")]
-[assembly: AssemblyCopyright("")]
+[assembly: AssemblyCompany("Michael Zuniga")]
+[assembly: AssemblyProduct("WizardInstaller")]
+[assembly: AssemblyCopyright("Copyright © Michael Zuniga 2022")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
