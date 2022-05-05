@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Item" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" xmlns:sdk="http://schemas.microsoft.com/developer/vstemplate-sdkextension/2010">
+  <TemplateData>
+    <Name>REST API Entity Model</Name>
+    <Description>Adds an entity model to a REST Service</Description>
+    <Icon>EntityModelTemplate.ico</Icon>
+    <TemplateID>447c5bce-dc86-4ef0-b787-4fbee1af179f</TemplateID>
+	  <ProjectType>CSharp</ProjectType>
+	  <TemplateGroupID>AspNetCore</TemplateGroupID>
+	  <RequiredFrameworkVersion>2.0</RequiredFrameworkVersion>
+	  <NumberOfParentCategoriesToRollUp>2</NumberOfParentCategoriesToRollUp>
+	  <DefaultName>EResource.cs</DefaultName>
+	  <SortOrder>1000</SortOrder>
+  </TemplateData>
+  <TemplateContent>
+    <References>
+      <Reference>
+        <Assembly>System</Assembly>
+      </Reference>
+    </References>
+	  <ProjectItem ReplaceParameters="true" OpenInEditor="true" TargetFileName="$safeitemname$.cs">EntityModel.cs</ProjectItem>
+  </TemplateContent>
+	<WizardExtension>
+		<Assembly>WizardInstaller, Version=1.0.0.0, Culture=neutral, PublicKeyToken=d25fecd65f5a9374</Assembly>
+		<FullClassName>WizardInstaller.Template.Wizards.EntityModelWizard</FullClassName>
+	</WizardExtension>
+</VSTemplate>
