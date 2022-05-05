@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <VSTemplate Version="3.0.0" Type="Item" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" xmlns:sdk="http://schemas.microsoft.com/developer/vstemplate-sdkextension/2010">
 	<TemplateData>
-		<Name>REST API Entity Model</Name>
-		<Description>Adds an entity model to a REST Service</Description>
-		<Icon>EntityModelTemplate.ico</Icon>
-		<TemplateID>447c5bce-dc86-4ef0-b787-4fbee1af179f</TemplateID>
+		<Name>REST API Controller</Name>
+		<Description>Adds a controller to the REST Service</Description>
+		<Icon>ControllerTemplate.ico</Icon>
+		<TemplateID>152ada01-5d35-461e-bce2-d87ce5b54a96</TemplateID>
 		<ProjectType>CSharp</ProjectType>
 		<ProjectSubType>Web</ProjectSubType>
 		<ShowByDefault>true</ShowByDefault>
@@ -12,7 +12,7 @@
 		<PlatformTag>Windows</PlatformTag>
 		<RequiredFrameworkVersion>2.0</RequiredFrameworkVersion>
 		<NumberOfParentCategoriesToRollUp>2</NumberOfParentCategoriesToRollUp>
-		<DefaultName>EResource.cs</DefaultName>
+		<DefaultName>ResourcesController.cs</DefaultName>
 	</TemplateData>
 	<TemplateContent>
 		<References>
@@ -20,10 +20,10 @@
 				<Assembly>System</Assembly>
 			</Reference>
 		</References>
-		<ProjectItem ReplaceParameters="true" OpenInEditor="true" TargetFileName="$safeitemname$.cs">EntityModel.cs</ProjectItem>
+		<ProjectItem ReplaceParameters="true">Controller.cs</ProjectItem>
 	</TemplateContent>
 	<WizardExtension>
 		<Assembly>WizardInstaller, Version=1.0.0.0, Culture=neutral, PublicKeyToken=d25fecd65f5a9374</Assembly>
-		<FullClassName>WizardInstaller.Template.Wizards.EntityModelWizard</FullClassName>
+		<FullClassName>WizardInstaller.Template.Wizards.ControllerWizard</FullClassName>
 	</WizardExtension>
 </VSTemplate>

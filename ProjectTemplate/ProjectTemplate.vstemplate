@@ -9,9 +9,11 @@
     <LanguageTag>CSharp</LanguageTag>
     <ProjectTypeTag>WebAPI</ProjectTypeTag>
     <PlatformTag>Windows</PlatformTag>
-    <SortOrder>1</SortOrder>
+	  <PlatformTag>Windows</PlatformTag>
+	  <SortOrder>1000</SortOrder>
     <TemplateID>c711adac-2559-4831-9163-68a1d466d084</TemplateID>
-    <CreateNewFolder>true</CreateNewFolder>
+	<NumberOfParentCategoriesToRollUp>2</NumberOfParentCategoriesToRollUp>
+	<CreateNewFolder>true</CreateNewFolder>
     <DefaultName>RESTService</DefaultName>
     <ProvideDefaultName>true</ProvideDefaultName>
     <CreateInPlace>true</CreateInPlace>
@@ -55,6 +57,6 @@
   </TemplateContent>
   <WizardExtension>
     <Assembly>WizardInstaller, Version=1.0.0.0, Culture=neutral, PublicKeyToken=d25fecd65f5a9374</Assembly>
-    <FullClassName>REST.Template.Wizards.ProjectWizard</FullClassName>
+    <FullClassName>WizardInstaller.Template.Wizards.ProjectWizard</FullClassName>
   </WizardExtension>
 </VSTemplate>

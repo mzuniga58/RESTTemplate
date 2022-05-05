@@ -9,7 +9,7 @@ using REST.Template.Dialogs;
 using WizardInstaller.Template.Models;
 using Microsoft.Win32;
 
-namespace REST.Template.Wizards
+namespace WizardInstaller.Template.Wizards
 {
 	public class ProjectWizard : IWizard
 	{
