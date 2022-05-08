@@ -162,6 +162,10 @@ namespace WizardInstaller.Template.Wizards
 							ControllersProject = replacementsDictionary["$safeprojectname$"],
 							ControllersFolder = Path.Combine(replacementsDictionary["$destinationdirectory$"], "Controllers"),
 							ControllersNamespace = $"{replacementsDictionary["$safeprojectname$"]}.Controllers",
+
+							ExtensionsProject = replacementsDictionary["$safeprojectname$"],
+							ExtensionsFolder = Path.Combine(replacementsDictionary["$destinationdirectory$"], "Extensions"),
+							ExtensionsNamespace = $"{replacementsDictionary["$safeprojectname$"]}.Extensions",
 						};
 
 						var projectMappingData = JsonSerializer.Serialize<ProjectMapping>(projectMapping, new JsonSerializerOptions()

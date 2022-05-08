@@ -5,10 +5,9 @@
     <Description>Adds an AutoMapper profile to transform a resource model to an entity model, and vice versa.</Description>
     <Icon>ProfileTemplate.ico</Icon>
     <TemplateID>0222bf01-59c4-4676-81b1-12f6cef6c409</TemplateID>
-	  <ProjectType>CSharp</ProjectType>
-	  <ProjectSubType>Web</ProjectSubType>
-	  <ShowByDefault>true</ShowByDefault>
 	  <TemplateGroupID>AspNetCore</TemplateGroupID>
+	  <ProjectType>CSharp</ProjectType>
+	  <ShowByDefault>true</ShowByDefault>
 	  <PlatformTag>Windows</PlatformTag>
 	  <RequiredFrameworkVersion>2.0</RequiredFrameworkVersion>
 	  <NumberOfParentCategoriesToRollUp>2</NumberOfParentCategoriesToRollUp>

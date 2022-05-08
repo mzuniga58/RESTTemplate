@@ -80,7 +80,6 @@ namespace WizardInstaller.Template.Wizards
 
 				var form = new NewControllerDialog()
 				{
-					DefaultConnectionString = connectionString,
 					ServiceProvider = ServiceProvider.GlobalProvider,
 					Policies = codeService.Policies
 				};
@@ -115,6 +114,7 @@ namespace WizardInstaller.Template.Wizards
 						replacementsDictionary.Add("$resourcenamespace$", resourceModel.Namespace);
 						replacementsDictionary.Add("$orchestrationnamespace$", orchestrationNamespace);
 						replacementsDictionary.Add("$examplesnamespace$", projectMapping.ExampleNamespace);
+						replacementsDictionary.Add("$extensionsnamespace$", projectMapping.ExtensionsNamespace);
 
 						var emitter = new Emitter();
 						var model = emitter.EmitController(
@@ -134,8 +134,8 @@ namespace WizardInstaller.Template.Wizards
 			}
 			catch (Exception error)
 			{
-				if (waitDialog != null)
-					waitDialog.EndWaitDialog(out int usercancel);
+                if (waitDialog != null)
+					waitDialog.EndWaitDialog(out _);
 
 				VsShellUtilities.ShowMessageBox(ServiceProvider.GlobalProvider,
 												error.Message,

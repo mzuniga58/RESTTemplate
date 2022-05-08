@@ -12,9 +12,5 @@ namespace $safeprojectname$.Orchestration
     ///	combining the base functions, or to invent entirely new functions, as needs arise.</remarks>
 	public interface IOrchestrator$if$ ($userql$ == True) : IRqlOrchestrator$endif$
 	{
-        /// <summary>
-        /// The <see cref="HttpRequest"/> associated with this instance
-        /// </summary>
-        HttpRequest? Request { get; set; }
-}
+	}
 }

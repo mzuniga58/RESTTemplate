@@ -6,7 +6,7 @@
              ShowInTaskbar="False"
              WindowStartupLocation="CenterOwner"
              SizeToContent="WidthAndHeight" Loaded="OnLoad"
-             WindowStyle="ToolWindow" Title="REST Service (.NET Core)" >
+             WindowStyle="ToolWindow" Title="REST Service (.NET Core)" Height="155" >
     <ui:DialogWindow.Resources>
         <Style TargetType="{x:Type Grid}">
             <Setter Property="Background" Value="{DynamicResource {x:Static vsui:VsBrushes.ToolboxBackgroundKey}}" />
@@ -20,31 +20,19 @@
             <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:VsBrushes.ToolWindowTextKey}}" />
         </Style>
     </ui:DialogWindow.Resources>
-    <Grid x:Name="MainGrid" Width="840" Height="558">
-        <Label Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogLabelStyleKey}}" x:Name="Lable_Server" Content="Database Server" HorizontalAlignment="Left" Margin="13,18,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="Combobox_Server" Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogComboBoxStyleKey}}" HorizontalAlignment="Left" Margin="110,20,0,0" VerticalAlignment="Top" Width="303" SelectionChanged="Server_SelectionChanged"/>
-        <Label Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogLabelStyleKey}}" x:Name="Label_ServerType" Content="Server Type:" HorizontalAlignment="Left" Margin="110,50,0,0" VerticalAlignment="Top"/>
-        <Label Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogLabelStyleKey}}" x:Name="Label_ServerType_Content" Content="xxx" HorizontalAlignment="Left" Margin="210,50,0,0" VerticalAlignment="Top" Width="203"/>
-        <Label Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogLabelStyleKey}}" x:Name="Label_Authentication" Content="Authentication:" HorizontalAlignment="Left" Margin="110,70,0,0" VerticalAlignment="Top"/>
-        <Label Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogLabelStyleKey}}" x:Name="Label_Authentication_Content" Content="xxx" HorizontalAlignment="Left" Margin="210,70,0,0" VerticalAlignment="Top" Width="203"/>
-        <Label Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogLabelStyleKey}}" x:Name="Label_UserName" Content="User Name:" HorizontalAlignment="Left" Margin="110,90,0,0" VerticalAlignment="Top"/>
-        <Label Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogLabelStyleKey}}" x:Name="Label_UserName_Content" Content="xxx" HorizontalAlignment="Left" Margin="210,90,0,0" VerticalAlignment="Top" Width="203"/>
-
-        <Button Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogButtonStyleKey}}" x:Name="Button_AddNewServer" Content="Add New Server" HorizontalAlignment="Left" Margin="168,125,0,0" VerticalAlignment="Top" Width="111" Click="AddNewServer_Click"/>
-        <Button Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogButtonStyleKey}}" x:Name="Button_RemoveServer" Content="Remove Server" HorizontalAlignment="Left" Margin="305,125,0,0" VerticalAlignment="Top" Width="108" Click="RemoveServer_Click"/>
-
-        <Label Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogLabelStyleKey}}" Content="Automapper Profile Generator" HorizontalAlignment="Left" Margin="431,7,0,0" VerticalAlignment="Top" FontSize="20"/>
-        <TextBlock x:Name="Label_Directions" HorizontalAlignment="Left" Margin="431,55,0,0" TextWrapping="Wrap" Text="Select a database, then select a table. The AutoMapper Profile Generator will construct a mapping between a resource model and an entity model. A corresponding entity model and resource model must exist to create the mapping." VerticalAlignment="Top" Width="386" />
-        <Label Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogLabelStyleKey}}" x:Name="Label_Databases" Content="Databases" HorizontalAlignment="Left" Margin="10,195,0,0" VerticalAlignment="Top"/>
-        <Label Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogLabelStyleKey}}" x:Name="Label_Tables" Content="Tables" HorizontalAlignment="Left" Margin="431,195,0,0" VerticalAlignment="Top"/>
-        <ListBox Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogListBoxStyleKey}}" x:Name="Listbox_Databases" Margin="13,226,427,52" SelectionChanged="Databases_SelectionChanged"/>
-        <ListBox Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogListBoxStyleKey}}" x:Name="Listbox_Tables" Margin="431,226,23,52" SelectionChanged="Tables_SelectionChanged"/>
-        <Button Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogButtonStyleKey}}" x:Name="Button_OK" Content="OK" HorizontalAlignment="Left" Margin="651,518,0,0" VerticalAlignment="Top" Width="65" Click="OK_Click"/>
-        <Button Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogButtonStyleKey}}" x:Name="Button_Cancel" Content="Cancel" HorizontalAlignment="Left" Margin="739,517,0,0" VerticalAlignment="Top" Width="65" IsCancel="true" Click="Cancel_Click"/>
-        <Label Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogLabelStyleKey}}" x:Name="Label_EntityCombo" Content="Entity Class" HorizontalAlignment="Left" Margin="480,124,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="Combobox_EntityClasses" Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogComboBoxStyleKey}}" HorizontalAlignment="Left" Margin="573,125,0,0" VerticalAlignment="Top" Width="221"/>
-        <Label Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogLabelStyleKey}}" x:Name="Label_ResourcesCombo" Content="Resource Class" HorizontalAlignment="Left" Margin="480,154,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="Combobox_ResourceClasses" Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogComboBoxStyleKey}}" HorizontalAlignment="Left" Margin="573,155,0,0" VerticalAlignment="Top" Width="221"/>
-
+    <Grid x:Name="MainGrid" Width="355" Height="142" Margin="0,0,0,-2">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="142"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="355*"/>
+        </Grid.ColumnDefinitions>
+        <Canvas Grid.Row="0" Grid.Column="0" Height="149" VerticalAlignment="Top">
+            <Label Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogLabelStyleKey}}" Content="Automapper Profile Generator" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" FontSize="20" Grid.ColumnSpan="2"/>
+            <Label Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogLabelStyleKey}}" x:Name="Label_ResourcesCombo" Content="Resource Model" HorizontalAlignment="Left" Margin="10,63,0,0" VerticalAlignment="Top"/>
+            <ComboBox x:Name="Combobox_ResourceClasses" Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogComboBoxStyleKey}}" HorizontalAlignment="Left" Margin="110,65,0,0" VerticalAlignment="Top" Width="221" AutomationProperties.HelpText="Select a resource model to generate the mapping." Grid.ColumnSpan="2"/>
+            <Button Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogButtonStyleKey}}" x:Name="Button_OK" Content="OK" HorizontalAlignment="Left" VerticalAlignment="Center" Width="66" Click="OK_Click" Grid.ColumnSpan="2" Canvas.Left="173" Canvas.Top="108"/>
+            <Button Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogButtonStyleKey}}" x:Name="Button_Cancel" Content="Cancel" HorizontalAlignment="Left" VerticalAlignment="Center" Width="65" IsCancel="true" Click="Cancel_Click" Grid.Column="1" Canvas.Left="256" Canvas.Top="108"/>
+        </Canvas>
     </Grid>
 </ui:DialogWindow>

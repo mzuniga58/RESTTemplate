@@ -35,7 +35,6 @@ namespace WizardInstaller.Template.Wizards
 		public void RunStarted(object automationObject, Dictionary<string, string> replacementsDictionary, WizardRunKind runKind, object[] customParams)
 		{
 			ThreadHelper.ThrowIfNotOnUIThread();
-			DTE2 mDte = automationObject as DTE2;
 			var codeService = ServiceFactory.GetService<ICodeService>();
 			var shell = Package.GetGlobalService(typeof(SVsUIShell)) as IVsUIShell;
 			IVsThreadedWaitDialog2 waitDialog = null;
@@ -45,7 +44,6 @@ namespace WizardInstaller.Template.Wizards
 				//  Load the project mapping information
 				var projectMapping = codeService.LoadProjectMapping();
 				var installationFolder = codeService.InstallationFolder;
-				var connectionString = codeService.ConnectionString;
 
 				//  Make sure we are where we're supposed to be
 				if (!codeService.IsChildOf(projectMapping.MappingFolder, installationFolder.Folder))
@@ -71,7 +69,6 @@ namespace WizardInstaller.Template.Wizards
 
 				var form = new NewProfileDialog()
 				{
-					DefaultConnectionString = connectionString,
 					ServiceProvider = ServiceProvider.GlobalProvider
 				};
 
@@ -111,8 +108,8 @@ namespace WizardInstaller.Template.Wizards
 			}
 			catch (Exception error)
 			{
-				if (waitDialog != null)
-					waitDialog.EndWaitDialog(out int usercancel);
+                if (waitDialog != null)
+					waitDialog.EndWaitDialog(out _);
 
 				VsShellUtilities.ShowMessageBox(ServiceProvider.GlobalProvider,
 												error.Message,

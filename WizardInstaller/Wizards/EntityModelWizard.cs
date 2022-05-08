@@ -129,8 +129,7 @@ namespace WizardInstaller.Template.Wizards
 
                             emitter.GenerateComposites(form.UndefinedEntityModels,
                                                        form.ConnectionString,
-                                                       replacementsDictionary,
-                                                       projectMapping.GetEntityModelsFolder());
+                                                       replacementsDictionary);
                         }
 
                         string model = string.Empty;
@@ -184,9 +183,7 @@ namespace WizardInstaller.Template.Wizards
                             model = emitter.EmitComposite(replacementsDictionary["$safeitemname$"],
                                                                   form.DatabaseTable.Schema,
                                                                   form.DatabaseTable.Table,
-                                                                  ElementType.Composite,
                                                                   columns,
-                                                                  form.ConnectionString,
                                                                   replacementsDictionary);
 
                             replacementsDictionary["$npgsqltypes$"] = "true";
@@ -225,6 +222,17 @@ namespace WizardInstaller.Template.Wizards
                         replacementsDictionary.Add("$entityModel$", model);
                         Proceed = true;
 
+                        var entityMap = new EntityDBMap()
+                        {
+                            EntityClassName = replacementsDictionary["$safeitemname$"],
+                            DBServerType = form.ServerType.ToString(),
+                            EntitySchema = form.DatabaseTable.Schema,
+                            EntityTable = form.DatabaseTable.Table,
+                            ConnectionString = form.ConnectionString
+                        };
+
+                        codeService.AddEntityMap(entityMap);
+
                         waitDialog.EndWaitDialog(out int usercancel);
                     }
                 }
@@ -234,7 +242,7 @@ namespace WizardInstaller.Template.Wizards
             catch (Exception error)
             {
                 if (waitDialog != null)
-                    waitDialog.EndWaitDialog(out int usercancel);
+                    waitDialog.EndWaitDialog(out _);
 
                 VsShellUtilities.ShowMessageBox(ServiceProvider.GlobalProvider,
                                                 error.Message,

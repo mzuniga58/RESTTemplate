@@ -113,6 +113,77 @@ namespace WizardInstaller.Template.Services
 			}
 		}
 
+		public string GetConnectionStringForEntity(string entityClassName)
+		{
+			ThreadHelper.ThrowIfNotOnUIThread();
+			var mDte = Package.GetGlobalService(typeof(SDTE)) as DTE2;
+			var solutionPath = mDte.Solution.Properties.Item("Path").Value.ToString();
+			var mappingPath = Path.Combine(Path.GetDirectoryName(solutionPath), ".rest\\EntityMapping.json");
+			EntityDBMapping mappings = new EntityDBMapping();
+
+			if (File.Exists(mappingPath))
+			{
+				var json = File.ReadAllText(mappingPath);
+				mappings = JsonConvert.DeserializeObject<EntityDBMapping>(json);
+			}
+
+			foreach (var map in mappings.Maps)
+			{
+				if (map.EntityClassName.Equals(entityClassName, StringComparison.OrdinalIgnoreCase))
+				{
+					return map.ConnectionString;
+				}
+			}
+
+			return string.Empty;
+		}
+
+		public void AddEntityMap(EntityDBMap entityDBMap)
+        {
+			ThreadHelper.ThrowIfNotOnUIThread();
+			var mDte = Package.GetGlobalService(typeof(SDTE)) as DTE2;
+			var solutionPath = mDte.Solution.Properties.Item("Path").Value.ToString();
+			var mappingPath = Path.Combine(Path.GetDirectoryName(solutionPath), ".rest\\EntityMapping.json");
+			EntityDBMapping mappings = new EntityDBMapping();
+
+			if (File.Exists(mappingPath))
+			{
+				var json = File.ReadAllText(mappingPath);
+				mappings = JsonConvert.DeserializeObject<EntityDBMapping>(json);
+			}
+
+			foreach ( var map in mappings.Maps)
+            {
+				if ( map.EntityClassName.Equals(entityDBMap.EntityClassName, StringComparison.OrdinalIgnoreCase))
+                {
+					map.ConnectionString = entityDBMap.ConnectionString;
+					map.EntitySchema = entityDBMap.EntitySchema;
+					map.EntityTable = entityDBMap.EntityTable;
+					map.DBServerType = entityDBMap.DBServerType;
+
+					SaveEntityMap(mappings);
+					return;
+                }
+            }
+
+			var theList = mappings.Maps.ToList();
+			theList.Add(entityDBMap);
+			mappings.Maps = theList.ToArray();
+			SaveEntityMap(mappings);
+		}
+
+		public void SaveEntityMap(EntityDBMapping theMap)
+        {
+			ThreadHelper.ThrowIfNotOnUIThread();
+			var mDte = Package.GetGlobalService(typeof(SDTE)) as DTE2;
+			var solutionPath = mDte.Solution.Properties.Item("Path").Value.ToString();
+			var mappingPath = Path.Combine(Path.GetDirectoryName(solutionPath), ".rest\\EntityMapping.json");
+
+			var json = JsonConvert.SerializeObject(theMap);
+			File.WriteAllText(mappingPath, json);
+        }
+
+
 		/// <summary>
 		/// Returns the <see cref="ProjectFolder"/> where the new item is being installed.
 		/// </summary>
@@ -1575,6 +1646,50 @@ namespace WizardInstaller.Template.Services
 		/// </summary>
 		/// <param name="solution"></param>
 		/// <returns></returns>
+		public ProjectFolder FindExtensionsFolder()
+		{
+			ThreadHelper.ThrowIfNotOnUIThread();
+			var mDte2 = Package.GetGlobalService(typeof(SDTE)) as DTE2;
+
+			//	Search the solution for a validator class. If one is found then return the 
+			//	project folder for the folder in which it resides.
+			foreach (Project project in mDte2.Solution.Projects)
+			{
+				var extensionsFolder = ScanForExtensions(project);
+
+				if (extensionsFolder != null)
+					return extensionsFolder;
+
+				foreach (ProjectItem candidateFolder in project.ProjectItems)
+				{
+					if (candidateFolder.Kind == EnvDTE.Constants.vsProjectItemKindPhysicalFolder ||
+						candidateFolder.Kind == EnvDTE.Constants.vsProjectItemKindVirtualFolder)
+					{
+						extensionsFolder = FindExtensionsFolder(candidateFolder, project.Name);
+
+						if (extensionsFolder != null)
+							return extensionsFolder;
+					}
+				}
+			}
+
+			//	We didn't find any resource models in the project. Search for the default resource models folder.
+			var theExensionsNamespace = "*.Extensions";
+			
+			var candidates = FindProjectFolder(theExensionsNamespace);
+
+			if (candidates.Count > 0)
+				return candidates[0];
+
+			//	We didn't find any folder matching the required namespace, so just return null.
+			return null;
+		}
+
+		/// <summary>
+		/// Find Controllers Folder
+		/// </summary>
+		/// <param name="solution"></param>
+		/// <returns></returns>
 		public ProjectFolder FindControllersFolder()
 		{
 			ThreadHelper.ThrowIfNotOnUIThread();
@@ -1644,6 +1759,36 @@ namespace WizardInstaller.Template.Services
 			return null;
 		}
 
+		/// <summary>
+		/// Locates and returns the mapping folder for the project
+		/// </summary>
+		/// <param name="parent">A <see cref="ProjectItem"/> folder within the project.</param>
+		/// <param name="projectName">The name of the project containing the <see cref="ProjectItem"/> folder.</param>
+		/// <returns>The first <see cref="ProjectFolder"/> that contains an entity model, or null if none are found.</returns>
+		private ProjectFolder FindExtensionsFolder(ProjectItem parent, string projectName)
+		{
+			ThreadHelper.ThrowIfNotOnUIThread();
+
+			var extensionsFolder = ScanForExtensions(parent, projectName);
+
+			if (extensionsFolder != null)
+				return extensionsFolder;
+
+			foreach (ProjectItem candidateFolder in parent.ProjectItems)
+			{
+				if (candidateFolder.Kind == EnvDTE.Constants.vsProjectItemKindPhysicalFolder ||
+					candidateFolder.Kind == EnvDTE.Constants.vsProjectItemKindVirtualFolder)
+				{
+					extensionsFolder = FindExtensionsFolder(candidateFolder, projectName);
+
+					if (extensionsFolder != null)
+						return extensionsFolder;
+				}
+			}
+
+			return null;
+		}
+
 
 		/// <summary>
 		/// Scans the projects root folder for a validator class
@@ -1695,6 +1840,52 @@ namespace WizardInstaller.Template.Services
 		}
 
 		/// <summary>
+		/// Scans the projects root folder for a validator class
+		/// </summary>
+		/// <param name="parent">The <see cref="Project"/> to scan</param>
+		/// <returns>Returns the <see cref="ProjectFolder"/> for the <see cref="Project"/> if the root folder contains an entity model</returns>
+		private static ProjectFolder ScanForExtensions(Project parent)
+		{
+			ThreadHelper.ThrowIfNotOnUIThread();
+
+			foreach (ProjectItem candidate in parent.ProjectItems)
+			{
+				if (candidate.Kind == Constants.vsProjectItemKindPhysicalFile &&
+					candidate.FileCodeModel != null &&
+					candidate.FileCodeModel.Language == CodeModelLanguageConstants.vsCMLanguageCSharp &&
+					Convert.ToInt32(candidate.Properties.Item("BuildAction").Value) == 1)
+				{
+					foreach (CodeNamespace namespaceElement in candidate.FileCodeModel.CodeElements.OfType<CodeNamespace>())
+					{
+						foreach (CodeClass2 candidateClass in namespaceElement.Members.OfType<CodeClass2>())
+						{
+							bool isExtension = false;
+
+							if (string.Equals(candidateClass.Name, "ClaimsPrincipalExtensions", StringComparison.OrdinalIgnoreCase))
+							{
+								isExtension = true;
+								break;
+							}
+
+							if (isExtension)
+							{
+								return new ProjectFolder()
+								{
+									Folder = parent.Properties.Item("FullPath").Value.ToString(),
+									Namespace = namespaceElement.Name,
+									ProjectName = parent.Name,
+									Name = candidateClass.Name
+								};
+							}
+						}
+					}
+				}
+			}
+
+			return null;
+		}
+
+		/// <summary>
 		/// Scans the project folder for a validator class
 		/// </summary>
 		/// <param name="parent">The <see cref="ProjectItem"/> folder to scan</param>
@@ -1727,6 +1918,53 @@ namespace WizardInstaller.Template.Services
 							}
 
 							if (isController)
+							{
+								return new ProjectFolder()
+								{
+									Folder = parent.Properties.Item("FullPath").Value.ToString(),
+									Namespace = parent.Properties.Item("DefaultNamespace").Value.ToString(),
+									ProjectName = projectName,
+									Name = codeClass.Name
+								};
+							}
+						}
+					}
+				}
+			}
+
+			return null;
+		}
+
+		/// <summary>
+		/// Scans the project folder for a validator class
+		/// </summary>
+		/// <param name="parent">The <see cref="ProjectItem"/> folder to scan</param>
+		/// <param name="projectName">the name of the project</param>
+		/// <returns>Returns the <see cref="ProjectFolder"/> for the <see cref="ProjectItem"/> folder if the folder contains an entity model</returns>
+		private ProjectFolder ScanForExtensions(ProjectItem parent, string projectName)
+		{
+			ThreadHelper.ThrowIfNotOnUIThread();
+
+			foreach (ProjectItem candidate in parent.ProjectItems)
+			{
+				if (candidate.Kind == Constants.vsProjectItemKindPhysicalFile &&
+					candidate.FileCodeModel != null &&
+					candidate.FileCodeModel.Language == CodeModelLanguageConstants.vsCMLanguageCSharp &&
+					Convert.ToInt32(candidate.Properties.Item("BuildAction").Value) == 1)
+				{
+					foreach (CodeNamespace namespaceElement in candidate.FileCodeModel.CodeElements.OfType<CodeNamespace>())
+					{
+						foreach (CodeClass2 codeClass in namespaceElement.Members.OfType<CodeClass2>())
+						{
+							bool isExtension = false;
+
+							if (string.Equals(codeClass.Name, "ClaimsPrincipalExtensions", StringComparison.OrdinalIgnoreCase))
+							{
+								isExtension = true;
+								break;
+							}
+
+							if (isExtension)
 							{
 								return new ProjectFolder()
 								{
@@ -4148,7 +4386,7 @@ namespace WizardInstaller.Template.Services
 					ModelDataType = parts[parts.Count() - 1]
 				};
 
-				if (property.Name.Equals("HRef", StringComparison.OrdinalIgnoreCase))
+				if (property.Name.Equals("Href", StringComparison.OrdinalIgnoreCase))
 					dbColumn.IsPrimaryKey = true;
 				else
 				{
@@ -4225,6 +4463,16 @@ namespace WizardInstaller.Template.Services
 				projectMapping.ControllersFolder = modelFolder == null ? installationFolder.Folder : modelFolder.Folder;
 				projectMapping.ControllersNamespace = modelFolder == null ? installationFolder.Namespace : modelFolder.Namespace;
 				projectMapping.ControllersProject = modelFolder == null ? installationFolder.ProjectName : modelFolder.ProjectName;
+			}
+
+			if (string.IsNullOrWhiteSpace(projectMapping.ExtensionsFolder) ||
+				string.IsNullOrWhiteSpace(projectMapping.ExtensionsNamespace) ||
+				string.IsNullOrWhiteSpace(projectMapping.ExtensionsProject))
+			{
+				var modelFolder = FindExtensionsFolder();
+				projectMapping.ExtensionsFolder = modelFolder == null ? installationFolder.Folder : modelFolder.Folder;
+				projectMapping.ExtensionsNamespace = modelFolder == null ? installationFolder.Namespace : modelFolder.Namespace;
+				projectMapping.ExtensionsProject = modelFolder == null ? installationFolder.ProjectName : modelFolder.ProjectName;
 			}
 
 			return projectMapping;
@@ -4512,17 +4760,17 @@ namespace WizardInstaller.Template.Services
 						};
 
 						//  This entity member is part of the primary key. In the resource model, the primary
-						//  key is contained in the hRef. Therefore, the formula to extract the value of this
-						//  entity member is going to take the form: source.HRef.GetId<datatype>(n), were datatype
+						//  key is contained in the href. Therefore, the formula to extract the value of this
+						//  entity member is going to take the form: source.Href.GetId<datatype>(n), were datatype
 						//  is the datatype of this entity member, and n is the position of this member in the 
-						//  HRef, counting backwards.
+						//  Href, counting backwards.
 						//
-						//  For example, suppose we have the HRef = /resourcename/id/10/20
+						//  For example, suppose we have the Href = /resourcename/id/10/20
 						//  Where 10 is the dealer id and it is an int.
 						//  And 20 is the user id and it is a short.
 						//
-						//  To extract the dealer id, the formula would be: source.HRef.GetId<int>(1)
-						//  To extract the user id, the formula would be: source.HRef.GetId<short>(0)
+						//  To extract the dealer id, the formula would be: source.Href.GetId<int>(1)
+						//  To extract the user id, the formula would be: source.Href.GetId<short>(0)
 						string dataType = "Unknown";
 
 						//  We're going to need that datatype. Get it here.
@@ -4535,13 +4783,13 @@ namespace WizardInstaller.Template.Services
 						if (primaryKeys.Count() == 1)
 						{
 							//  There is only one primary key element, so we don't need to bother with the count.
-							entityProfile.MapFunction = $"source.HRef == null ? default : source.HRef.GetId<{dataType}>()";
-							entityProfile.ResourceColumns = new string[] { "HRef" };
+							entityProfile.MapFunction = $"source.Href == null ? default : source.Href.GetId<{dataType}>()";
+							entityProfile.ResourceColumns = new string[] { "Href" };
 							entityProfile.IsDefined = true;
 						}
 						else
 						{
-							var formula = new StringBuilder($"source.HRef == null ? default : source.HRef.GetId<{dataType}>(");
+							var formula = new StringBuilder($"source.Href == null ? default : source.Href.GetId<{dataType}>(");
 
 							//  Compute the index and append it to the above formula.
 							if (primaryKeys.Count() > 1)
@@ -4560,7 +4808,7 @@ namespace WizardInstaller.Template.Services
 							//  Close the formula
 							formula.Append(")");
 							entityProfile.MapFunction = formula.ToString();
-							entityProfile.ResourceColumns = new string[] { "HRef" };
+							entityProfile.ResourceColumns = new string[] { "Href" };
 							entityProfile.IsDefined = true;
 						}
 
@@ -4825,7 +5073,7 @@ namespace WizardInstaller.Template.Services
 
 			foreach (var resourceMember in resourceModel.Columns)
 			{
-				//  If this is the HRef (the primary key), then the columns that comprise it are all the primary
+				//  If this is the Href (the primary key), then the columns that comprise it are all the primary
 				//  key values of the entity in the order in which they appear in the entity
 				if (resourceMember.IsPrimaryKey)
 				{

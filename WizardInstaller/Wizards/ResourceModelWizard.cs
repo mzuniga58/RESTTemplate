@@ -11,7 +11,7 @@ using WizardInstaller.Template.Services;
 
 namespace WizardInstaller.Template.Wizards
 {
-    public class ResourceWizard : IWizard
+    public class ResourceModelWizard : IWizard
     {
         private bool Proceed = false;
 
@@ -40,7 +40,6 @@ namespace WizardInstaller.Template.Wizards
             var codeService = ServiceFactory.GetService<ICodeService>();
             var shell = Package.GetGlobalService(typeof(SVsUIShell)) as IVsUIShell;
             IVsThreadedWaitDialog2 waitDialog = null;
-            bool fpCanceled = false;
 
             try
             {
@@ -74,8 +73,6 @@ namespace WizardInstaller.Template.Wizards
 
                 var form = new NewResourceDialog()
                 {
-                    DefaultConnectionString = connectionString,
-                    ResourceModelsFolder = projectMapping.GetResourceModelsFolder(),
                     ServiceProvider = ServiceProvider.GlobalProvider
                 };
 
@@ -97,22 +94,6 @@ namespace WizardInstaller.Template.Wizards
                                                                  false, true) == VSConstants.S_OK)
                     {
                         var standardEmitter = new Emitter();
-
-                        if (form.UndefinedResources != null && form.UndefinedResources.Count > 0)
-                        {
-                            waitDialog.UpdateProgress($"Building resource model",
-                                                      $"Building composites",
-                                                      $"Building composites",
-                                                      0,
-                                                      0,
-                                                      true,
-                                                      out fpCanceled);
-
-                            standardEmitter.GenerateResourceComposites(form.UndefinedResources,
-                                                                       projectMapping.GetResourceModelsFolder(),
-                                                                       form.ConnectionString);
-                        }
-
                         var entityModel = form.EntityModel;
 
                         string model;
@@ -123,12 +104,12 @@ namespace WizardInstaller.Template.Wizards
                                                   0,
                                                   0,
                                                   true,
-                                                  out fpCanceled);
+                                                  out bool fpCanceled);
 
                         if (form.GenerateAsEnum)
-                            model = standardEmitter.EmitResourceEnum(replacementsDictionary["$safeitemname$"],
-                                                                     entityModel,
-                                                                     form.ConnectionString);
+                            model = standardEmitter.EmitResourceEnum(codeService,
+                                                                     replacementsDictionary["$safeitemname$"],
+                                                                     entityModel);
                         else
                             model = standardEmitter.EmitResourceModel(replacementsDictionary["$safeitemname$"],
                                                                       entityModel,
@@ -149,7 +130,7 @@ namespace WizardInstaller.Template.Wizards
             {
                 if (waitDialog != null)
                 {
-                    waitDialog.EndWaitDialog(out int usercancel);
+                    waitDialog.EndWaitDialog(out _);
                 }
 
                 VsShellUtilities.ShowMessageBox(ServiceProvider.GlobalProvider,

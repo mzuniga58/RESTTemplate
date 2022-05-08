@@ -19,8 +19,11 @@ namespace WizardInstaller.Template.Services
         #endregion
 
         ProjectMapping LoadProjectMapping();
+        string GetConnectionStringForEntity(string entityClassName);
 
         void SaveProjectMapping();
+
+        void AddEntityMap(EntityDBMap entityDBMap);
 
         void OnProjectItemRemoved(ProjectItem ProjectItem);
         void OnProjectItemAdded(ProjectItem ProjectItem);

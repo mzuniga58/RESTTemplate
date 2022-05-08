@@ -40,10 +40,5 @@ namespace $safeprojectname$.Orchestration
 			_mapper = mapper;
 			_provider = provider;$endif$
 		}
-
-		/// <summary>
-		/// The <see cref="HttpRequest"/> associated with this instance
-		/// </summary>
-		public HttpRequest? Request { get; set; }
 	}
 }

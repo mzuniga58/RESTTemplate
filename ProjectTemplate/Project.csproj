@@ -14,8 +14,8 @@
 
 	<ItemGroup>
 		<PackageReference Include="AutoMapper" Version="11.0.1" />
-		$if$ ($userql$ == True)<PackageReference Include ="RqlEngine" Version="0.0.4-alpha" />
-		$endif$$if$ ($databasetechnology$ == SQLServer)$if$ ($userql$ == True)<PackageReference Include ="RqlSqlServer" Version="0.0.4-alpha" />
+		$if$ ($userql$ == True)<PackageReference Include ="RqlEngine" Version="0.0.5-alpha" />
+		$endif$$if$ ($databasetechnology$ == SQLServer)$if$ ($userql$ == True)<PackageReference Include ="RqlSqlServer" Version="0.0.5-alpha" />
 		$endif$$endif$$if$ ($databasetechnology$ == Postgresql)
 		<PackageReference Include="Npgsql" Version="6.0.1" />
 		$endif$$if$ ($databasetechnology$ == MySQL)

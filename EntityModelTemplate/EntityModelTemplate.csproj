@@ -102,7 +102,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <VSTemplate Include="EntityModelTemplate.vstemplate" />
+    <VSTemplate Include="EntityModelTemplate.vstemplate">
+      <OutputSubPath>ASP.NET%2520Core\\Web\\REST%2520Services</OutputSubPath>
+    </VSTemplate>
   </ItemGroup>
   <ItemGroup>
     <Content Include="EntityModelTemplate.ico">

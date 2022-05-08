@@ -23,6 +23,9 @@ namespace WizardInstaller.Template.Models
         public string ControllersProject { get; set; }
         public string ControllersNamespace { get; set; }
         public string ControllersFolder { get; set; }
+        public string ExtensionsProject { get; set; }
+        public string ExtensionsNamespace { get; set; }
+        public string ExtensionsFolder { get; set; }
 
         public ProjectFolder GetEntityModelsFolder()
         {
@@ -79,6 +82,18 @@ namespace WizardInstaller.Template.Models
                 Folder = ControllersFolder,
                 Namespace = ControllersNamespace,
                 ProjectName = ControllersProject
+            };
+
+            return pf;
+        }
+
+        public ProjectFolder GetExtensionsFolder()
+        {
+            var pf = new ProjectFolder
+            {
+                Folder = ExtensionsFolder,
+                Namespace = ExtensionsNamespace,
+                ProjectName = ExtensionsProject
             };
 
             return pf;

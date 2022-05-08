@@ -285,31 +285,31 @@ namespace WizardInstaller.Template.Services
 			return results.ToString();
 		}
 
-		public string EmitResourceEnum(string resourceClassName, EntityClass model, string connectionString)
+		public string EmitResourceEnum(ICodeService codeService, string resourceClassName, EntityClass model)
 		{
 			ThreadHelper.ThrowIfNotOnUIThread();
 
 			if (model.ServerType == DBServerType.MYSQL)
-				return EmitResourceMySqlEnum(resourceClassName, model, connectionString);
+				return EmitResourceMySqlEnum(codeService, resourceClassName, model);
 			else if (model.ServerType == DBServerType.POSTGRESQL)
-				return EmitResourcePostgresqlEnum(resourceClassName, model, connectionString);
+				return EmitResourcePostgresqlEnum(codeService, resourceClassName, model);
 			else if (model.ServerType == DBServerType.SQLSERVER)
-				return EmitResourceSqlServerEnum(resourceClassName, model, connectionString);
+				return EmitResourceSqlServerEnum(codeService, resourceClassName, model);
 
 			return "Invalid DB Server Type";
 		}
 
-		private static string EmitResourceMySqlEnum(string resourceClassName, EntityClass model, string connectionString)
+		private static string EmitResourceMySqlEnum(ICodeService codeService, string resourceClassName, EntityClass model)
 		{
 			throw new NotImplementedException("not implemented yet");
 		}
 
-		private static string EmitResourcePostgresqlEnum(string resourceClassName, EntityClass model, string connectionString)
+		private static string EmitResourcePostgresqlEnum(ICodeService codeService, string resourceClassName, EntityClass model)
 		{
 			throw new NotImplementedException("not implemented yet");
 		}
 
-		private static string EmitResourceSqlServerEnum(string resourceClassName, EntityClass entityModel, string connectionString)
+		private static string EmitResourceSqlServerEnum(ICodeService codeService, string resourceClassName, EntityClass entityModel)
 		{
 			ThreadHelper.ThrowIfNotOnUIThread();
 			StringBuilder results = new StringBuilder();
@@ -344,6 +344,7 @@ namespace WizardInstaller.Template.Services
 			query += entityModel.TableName;
 
 			firstColumn = true;
+			var connectionString = codeService.GetConnectionStringForEntity(entityModel.ClassName);
 
 			using (var connection = new SqlConnection(connectionString))
 			{
@@ -481,7 +482,7 @@ namespace WizardInstaller.Template.Services
 			results.AppendLine($"\t\tpublic {mappingClassName}()");
 			results.AppendLine("\t\t{");
 			results.AppendLine($"\t\t\t//\tGets the root URL of the service from the configuration settings.");
-			results.AppendLine("\t\t\tvar rootUrl = new Uri(Startup.AppConfig.GetRootUrl());");
+			results.AppendLine("\t\t\tvar rootUrl = new Uri(\"http://localhost\");");
 
 			#region Create the Resource to Entity Mapping
 			results.AppendLine();
@@ -555,16 +556,16 @@ namespace WizardInstaller.Template.Services
 			results.AppendLine($"\t\t\t//\tCreates a mapping to transform a collection of {resourceModel.Entity.ClassName} model instances (the source)");
 			results.AppendLine($"\t\t\t//\tinto a collection of {resourceModel.ClassName} model instances (the destination).");
 			results.AppendLine($"\t\t\tCreateMap<PagedCollection<{resourceModel.Entity.ClassName}>, PagedCollection<{resourceModel.ClassName}>>()");
-			results.AppendLine($"\t\t\t\t.ForMember(destination => destination.HRef, opts => opts.MapFrom(source => new Uri(rootUrl, $\"{nn.PluralCamelCase}{{source.HRef.Query}}\")))");
-			results.AppendLine($"\t\t\t\t.ForMember(destination => destination.First, opts => opts.MapFrom(source => source.First == null ? null : new Uri(rootUrl, $\"{nn.PluralCamelCase}{{source.First.Query}}\")))");
-			results.AppendLine($"\t\t\t\t.ForMember(destination => destination.Next, opts => opts.MapFrom(source => source.Next == null ? null : new Uri(rootUrl, $\"{nn.PluralCamelCase}{{source.Next.Query}}\")))");
-			results.AppendLine($"\t\t\t\t.ForMember(destination => destination.Previous, opts => opts.MapFrom(source => source.Previous == null ? null : new Uri(rootUrl, $\"{nn.PluralCamelCase}{{source.Previous.Query}}\")));");
+			results.AppendLine($"\t\t\t\t.ForMember(destination => destination.Href, opts => opts.MapFrom(source => new Uri(rootUrl, source.Href == null ? \"{nn.PluralCamelCase}\" : $\"{nn.PluralCamelCase}{{source.Href.Query}}\")))");
+			results.AppendLine($"\t\t\t\t.ForMember(destination => destination.First, opts => opts.MapFrom(source => source.First == null ? null : new Uri(rootUrl, source.First == null ? \"{nn.PluralCamelCase}\" : $\"{nn.PluralCamelCase}{{source.First.Query}}\")))");
+			results.AppendLine($"\t\t\t\t.ForMember(destination => destination.Next, opts => opts.MapFrom(source => source.Next == null ? null : new Uri(rootUrl, source.Next == null ? \"{nn.PluralCamelCase}\" : $\"{nn.PluralCamelCase}{{source.Next.Query}}\")))");
+			results.AppendLine($"\t\t\t\t.ForMember(destination => destination.Previous, opts => opts.MapFrom(source => source.Previous == null ? null : new Uri(rootUrl, source.Previous == null ? \"{nn.PluralCamelCase}\" : $\"{nn.PluralCamelCase}{{source.Previous.Query}}\")));");
 			results.AppendLine("\t\t}");
 			results.AppendLine("\t}");
 
 			return results.ToString();
 		}
-
+		
 		private int GenerateChildMappings(StringBuilder results, int j, List<ResourceProfile> resourceProfiles, string baseColumn, ref bool ImageConversionRequired)
 		{
 			var baseCount = baseColumn.CountOf('.');
@@ -985,13 +986,13 @@ namespace WizardInstaller.Template.Services
 							results.AppendLine($"\t\t///\tThe hypertext reference that identifies the resource.");
 							results.AppendLine("\t\t///\t</summary>");
 							results.AppendLine("\t\t[Url]");
-							results.AppendLine($"\t\tpublic Uri HRef {{ get; set; }}");
+							results.AppendLine($"\t\tpublic Uri Href {{ get; set; }} = new Uri(\"http:\\\\localhost\");");
 							hasPrimary = true;
 						}
 
 						var resourceColumn = new DBColumn()
 						{
-							ColumnName = "HRef",
+							ColumnName = "Href",
 							IsPrimaryKey = member.IsPrimaryKey,
 							IsForeignKey = member.IsForeignKey,
 							IsComputed = member.IsComputed,
@@ -1025,7 +1026,11 @@ namespace WizardInstaller.Template.Services
 							results.AppendLine("\t\t///\t<summary>");
 							results.AppendLine($"\t\t///\tThe enum for {member.ColumnName}");
 							results.AppendLine("\t\t///\t</summary>");
-							results.AppendLine($"\t\tpublic {enumResourceModel.ClassName} {member.ColumnName} {{ get; set; }}");
+
+							if ( member.IsNullable )
+								results.AppendLine($"\t\tpublic {enumResourceModel.ClassName}? {member.ColumnName} {{ get; set; }}");
+							else
+								results.AppendLine($"\t\tpublic {enumResourceModel.ClassName} {member.ColumnName} {{ get; set; }} = ({enumResourceModel.ClassName}) 0;");
 
 							var resourceColumn = new DBColumn()
 							{
@@ -1064,7 +1069,11 @@ namespace WizardInstaller.Template.Services
 								results.AppendLine($"\t\t///\tA hypertext reference that identifies the associated {memberName}");
 								results.AppendLine("\t\t///\t</summary>");
 								results.AppendLine("\t\t[Url]");
-								results.AppendLine($"\t\tpublic Uri {memberName} {{ get; set; }}");
+
+								if ( member.IsNullable)
+									results.AppendLine($"\t\tpublic Uri? {memberName} {{ get; set; }}");
+								else
+									results.AppendLine($"\t\tpublic Uri {memberName} {{ get; set; }} = new Uri(\"http:\\\\localhost\");");
 
 								foreignTableList.Add(member.ForeignTableName);
 
@@ -1159,13 +1168,10 @@ namespace WizardInstaller.Template.Services
 
 						if (member.ModelDataType.Equals("string", StringComparison.OrdinalIgnoreCase))
 						{
-							if (member.ModelDataType.Equals("string", StringComparison.OrdinalIgnoreCase))
-							{
-								if (!member.IsNullable)
-									results.AppendLine($"\t\t[Required(AllowEmptyStrings=false, ErrorMessage=\"{membername} cannot be blank or null.\")]");
+							if (!member.IsNullable)
+								results.AppendLine($"\t\t[Required(AllowEmptyStrings=false, ErrorMessage=\"{membername} cannot be blank or null.\")]");
 
-								results.AppendLine($"\t\t[StringLength({member.Length}, ErrorMessage=\"{membername} cannot exceed {member.Length} characters.\")]");
-							}
+							results.AppendLine($"\t\t[StringLength({member.Length}, ErrorMessage=\"{membername} cannot exceed {member.Length} characters.\")]");
 						}
 						else if (member.ModelDataType.Equals("Uri"))
 						{
@@ -1181,7 +1187,28 @@ namespace WizardInstaller.Template.Services
 							results.AppendLine($"\t\t[Required(ErrorMessage=\"{membername} cannot be null.\")]");
 						}
 
-						results.AppendLine($"\t\tpublic {member.ModelDataType} {membername} {{ get; set; }}");
+						if (member.IsNullable)
+						{
+							if (member.ModelDataType.EndsWith("?"))
+								results.AppendLine($"\t\tpublic {member.ModelDataType} {membername} {{ get; set; }}");
+							else
+								results.AppendLine($"\t\tpublic {member.ModelDataType}? {membername} {{ get; set; }}");
+						}
+						else
+                        {
+							if (member.ModelDataType.Equals("string", StringComparison.OrdinalIgnoreCase))
+								results.AppendLine($"\t\tpublic {member.ModelDataType} {membername} {{ get; set; }} = string.Empty;");
+							else if (member.ModelDataType.Equals("DateTime", StringComparison.OrdinalIgnoreCase))
+								results.AppendLine($"\t\tpublic {member.ModelDataType} {membername} {{ get; set; }} = DateTime.UtcNow;");
+							else if (member.ModelDataType.Equals("DateTimeOffset", StringComparison.OrdinalIgnoreCase))
+								results.AppendLine($"\t\tpublic {member.ModelDataType} {membername} {{ get; set; }} = DateTimeOffset.UtcNow;");
+							else if (member.ModelDataType.Equals("TimeSpan", StringComparison.OrdinalIgnoreCase))
+								results.AppendLine($"\t\tpublic {member.ModelDataType} {membername} {{ get; set; }} = TimeSpan.FromSeconds(0);");
+							else if (member.ModelDataType.Equals("Guid", StringComparison.OrdinalIgnoreCase))
+								results.AppendLine($"\t\tpublic {member.ModelDataType} {membername} {{ get; set; }} = Guid.Empty;");
+							else
+								results.AppendLine($"\t\tpublic {member.ModelDataType} {membername} {{ get; set; }}");
+						}
 
 						var resourceColumn = new DBColumn()
 						{
@@ -1264,7 +1291,7 @@ namespace WizardInstaller.Template.Services
 			return builder.ToString();
 		}
 
-		public string EmitComposite(string className, string schema, string tableName, ElementType elementType, DBColumn[] columns, string connectionString, Dictionary<string, string> replacementsDictionary)
+		public string EmitComposite(string className, string schema, string tableName, DBColumn[] columns, Dictionary<string, string> replacementsDictionary)
 		{
 			ThreadHelper.ThrowIfNotOnUIThread();
 			var codeService = ServiceFactory.GetService<ICodeService>();
@@ -1435,56 +1462,6 @@ namespace WizardInstaller.Template.Services
 			return result.ToString();
 		}
 
-		public void GenerateResourceComposites(List<ResourceClass> undefinedModels, ProjectFolder resourceModelFolder, string connectionString)
-		{
-			ThreadHelper.ThrowIfNotOnUIThread();
-			var codeService = ServiceFactory.GetService<ICodeService>();
-
-			while (undefinedModels.Count > 0)
-			{
-				var undefinedModel = undefinedModels[0];
-				undefinedModels.RemoveAt(0);
-
-				//	Generate the model
-				var result = new StringBuilder();
-
-				if (undefinedModel.Entity.ElementType == ElementType.Enum)
-				{
-					var nn = new NameNormalizer(undefinedModel.Entity.TableName);
-
-					var className = $"{codeService.CorrectForReservedNames(codeService.NormalizeClassName(nn.SingleForm))}";
-
-					result.AppendLine("using Rql;");
-					result.AppendLine("using NpgsqlTypes;");
-					result.AppendLine($"using {undefinedModel.Entity.Namespace};");
-					result.AppendLine();
-					result.AppendLine($"namespace {resourceModelFolder.Namespace}");
-					result.AppendLine("{");
-					result.Append(EmitResourceEnum(className, undefinedModel.Entity, connectionString));
-					result.AppendLine("}");
-
-					//	Save the model to disk
-					if (!Directory.Exists(Path.GetDirectoryName(resourceModelFolder.Folder)))
-						Directory.CreateDirectory(Path.GetDirectoryName(resourceModelFolder.Folder));
-
-					var fullPath = Path.Combine(resourceModelFolder.Folder, $"{className}.cs");
-
-					File.WriteAllText(fullPath, result.ToString());
-
-					//	Add the model to the project
-					var parentProject = codeService.GetProjectFromFolder(resourceModelFolder.Folder);
-					ProjectItem resourceItem;
-
-					if (parentProject.GetType() == typeof(Project))
-						resourceItem = ((Project)parentProject).ProjectItems.AddFromFile(resourceModelFolder.Folder);
-					else
-						resourceItem = ((ProjectItem)parentProject).ProjectItems.AddFromFile(resourceModelFolder.Folder);
-
-					codeService.AddResource(resourceItem);
-				}
-			}
-		}
-
 		/// <summary>
 		/// Generate undefined elements
 		/// </summary>
@@ -1492,7 +1469,7 @@ namespace WizardInstaller.Template.Services
 		/// <param name="undefinedEntityModels">The list of elements to be defined"/></param>
 		/// <param name="connectionString">The connection string to the database server</param>
 		/// <param name="replacementsDictionary">The replacements dictionary</param>
-		public void GenerateComposites(List<EntityModel> undefinedEntityModels, string connectionString, Dictionary<string, string> replacementsDictionary, ProjectFolder entityModelsFolder)
+		public void GenerateComposites(List<EntityModel> undefinedEntityModels, string connectionString, Dictionary<string, string> replacementsDictionary)
 		{
 			ThreadHelper.ThrowIfNotOnUIThread();
 			var codeService = ServiceFactory.GetService<ICodeService>();
@@ -1566,9 +1543,7 @@ namespace WizardInstaller.Template.Services
 						var body = EmitComposite(undefinedModel.ClassName,
 												 undefinedModel.SchemaName,
 												 undefinedModel.TableName,
-												 undefinedModel.ElementType,
 												 columns,
-												 connectionString,
 												 replacementsDictionary);
 
 						result.AppendLine("using Rql;");
@@ -1745,7 +1720,7 @@ namespace WizardInstaller.Template.Services
 			var pkcolumns = resourceClass.Entity.Columns.Where(c => c.IsPrimaryKey);
 
 			BuildControllerInterface(resourceClass.ClassName, resourceClass.Namespace);
-			BuildControllerOrchestration(resourceClass.ClassName, resourceClass.Namespace);
+			BuildControllerOrchestration(resourceClass, resourceClass.Namespace);
 
 			// --------------------------------------------------------------------------------
 			//	Class
@@ -1755,14 +1730,14 @@ namespace WizardInstaller.Template.Services
 			results.AppendLine($"\t///\t{resourceClass.ClassName} Controller");
 			results.AppendLine("\t///\t</summary>");
 			results.AppendLine("\t[ApiVersion(\"1.0\")]");
-			results.AppendLine($"\tpublic class {controllerClassName} : BaseController");
+			results.AppendLine($"\tpublic class {controllerClassName} : ControllerBase");
 			results.AppendLine("\t{");
 			results.AppendLine("\t\t///\t<value>A generic interface for logging where the category name is derrived from");
 			results.AppendLine($"\t\t///\tthe specified <see cref=\"{controllerClassName}\"/> type name.</value>");
-			results.AppendLine($"\t\tprivate readonly ILogger<{controllerClassName}> Logger;");
+			results.AppendLine($"\t\tprivate readonly ILogger<{controllerClassName}> _logger;");
 			results.AppendLine();
 			results.AppendLine("\t\t///\t<value>The interface to the orchestration layer.</value>");
-			results.AppendLine($"\t\tprotected readonly IServiceOrchestrator Orchestrator;");
+			results.AppendLine($"\t\tprotected readonly IOrchestrator _orchestrator;");
 			results.AppendLine();
 
 			// --------------------------------------------------------------------------------
@@ -1774,11 +1749,11 @@ namespace WizardInstaller.Template.Services
 			results.AppendLine("\t\t///\t</summary>");
 			results.AppendLine("\t\t///\t<param name=\"logger\">A generic interface for logging where the category name is derrived from");
 			results.AppendLine($"\t\t///\tthe specified <see cref=\"{controllerClassName}\"/> type name. The logger is activated from dependency injection.</param>");
-			results.AppendLine("\t\t///\t<param name=\"orchestrator\">The <see cref=\"IServiceOrchestrator\"/> interface for the Orchestration layer. The orchestrator is activated from dependency injection.</param>");
-			results.AppendLine($"\t\tpublic {controllerClassName}(ILogger<{controllerClassName}> logger, IServiceOrchestrator orchestrator)");
+			results.AppendLine("\t\t///\t<param name=\"orchestrator\">The <see cref=\"IOrchestrator\"/> interface for the Orchestration layer. The orchestrator is activated from dependency injection.</param>");
+			results.AppendLine($"\t\tpublic {controllerClassName}(ILogger<{controllerClassName}> logger, IOrchestrator orchestrator)");
 			results.AppendLine("\t\t{");
-			results.AppendLine("\t\t\tLogger = logger;");
-			results.AppendLine("\t\t\tOrchestrator = orchestrator;");
+			results.AppendLine("\t\t\t_logger = logger;");
+			results.AppendLine("\t\t\t_orchestrator = orchestrator;");
 			results.AppendLine("\t\t}");
 			results.AppendLine();
 
@@ -1799,20 +1774,17 @@ namespace WizardInstaller.Template.Services
 				results.AppendLine($"\t\t[Authorize(\"{policy}\")]");
 
 			results.AppendLine($"\t\t[SwaggerResponse((int)HttpStatusCode.OK, Type = typeof(PagedCollection<{resourceClass.ClassName}>))]");
-			results.AppendLine($"\t\t[SwaggerResponseExample((int)HttpStatusCode.OK, typeof({resourceClass.ClassName}CollectionExample))]");
-
 			results.AppendLine($"\t\t[Produces(\"application/vnd.{moniker}.v1+json\", \"application/json\", \"text/json\")]");
-			results.AppendLine("\t\t[SupportRQL]");
 			results.AppendLine($"\t\tpublic async Task<IActionResult> Get{nn.PluralForm}Async()");
 			results.AppendLine("\t\t{");
 			results.AppendLine("\t\t\tvar node = RqlNode.Parse(Request.QueryString.Value);");
 			results.AppendLine();
 			results.AppendLine("\t\t\tLogContext.PushProperty(\"RqlNode\", node);");
 			results.AppendLine("\t\t\tLogContext.PushProperty(\"ClaimsPrincipal\", User.ListClaims());");
-			results.AppendLine("\t\t\tLogger.LogInformation(\"{s1} {s2}\", Request.Method, Request.Path);");
+			results.AppendLine("\t\t\t_logger.LogInformation(\"{s1} {s2}\", Request.Method, Request.Path);");
 			results.AppendLine();
 
-			results.AppendLine($"\t\t\tvar collection = await Orchestrator.Get{resourceClass.ClassName}CollectionAsync(Request.QueryString.Value, node, User);");
+			results.AppendLine($"\t\t\tvar collection = await _orchestrator.Get{resourceClass.ClassName}CollectionAsync(Request, node, User);");
 			results.AppendLine($"\t\t\treturn Ok(collection);");
 			results.AppendLine("\t\t}");
 
@@ -1839,11 +1811,8 @@ namespace WizardInstaller.Template.Services
 					results.AppendLine($"\t\t[Authorize(\"{policy}\")]");
 
 				results.AppendLine($"\t\t[SwaggerResponse((int)HttpStatusCode.OK, Type = typeof({resourceClass.ClassName}))]");
-				results.AppendLine($"\t\t[SwaggerResponseExample((int)HttpStatusCode.OK, typeof({resourceClass.ClassName}Example))]");
-
 				results.AppendLine($"\t\t[SwaggerResponse((int)HttpStatusCode.NotFound)]");
 				results.AppendLine($"\t\t[Produces(\"application/vnd.{moniker}.v1+json\", \"application/json\", \"text/json\")]");
-				results.AppendLine("\t\t[SupportRQL]");
 
 				EmitEndpoint(resourceClass.ClassName, "Get", results, pkcolumns);
 
@@ -1854,8 +1823,8 @@ namespace WizardInstaller.Template.Services
 
 				results.AppendLine("\t\t\tLogContext.PushProperty(\"RqlNode\", node);");
 				results.AppendLine("\t\t\tLogContext.PushProperty(\"ClaimsPrincipal\", User.ListClaims());");
-				results.AppendLine("\t\t\tLogger.LogInformation(\"{s1} {s2}\", Request.Method, Request.Path);");
-				results.AppendLine($"\t\t\tvar item = await Orchestrator.Get{resourceClass.ClassName}Async(node, User);");
+				results.AppendLine("\t\t\t_logger.LogInformation(\"{s1} {s2}\", Request.Method, Request.Path);");
+				results.AppendLine($"\t\t\tvar item = await _orchestrator.Get{resourceClass.ClassName}Async(Request, node, User);");
 				results.AppendLine();
 				results.AppendLine("\t\t\tif (item == null)");
 				results.AppendLine("\t\t\t\treturn NotFound();");
@@ -1882,8 +1851,6 @@ namespace WizardInstaller.Template.Services
 				results.AppendLine($"\t\t[Authorize(\"{policy}\")]");
 
 			results.AppendLine($"\t\t[SwaggerResponse((int)HttpStatusCode.Created, Type = typeof({resourceClass.ClassName}))]");
-			results.AppendLine($"\t\t[SwaggerRequestExample(typeof({resourceClass.ClassName}), typeof({resourceClass.ClassName}Example))]");
-			results.AppendLine($"\t\t[SwaggerResponseExample((int)HttpStatusCode.Created, typeof({resourceClass.ClassName}Example))]");
 			results.AppendLine($"\t\t[Consumes(\"application/vnd.{moniker}.v1+json\", \"application/json\", \"text/json\")]");
 			results.AppendLine($"\t\t[Produces(\"application/vnd.{moniker}.v1+json\", \"application/json\", \"text/json\")]");
 			results.AppendLine($"\t\tpublic async Task<IActionResult> Add{resourceClass.ClassName}Async([FromBody] {resourceClass.ClassName} item)");
@@ -1891,10 +1858,10 @@ namespace WizardInstaller.Template.Services
 
 			results.AppendLine("\t\t\tLogContext.PushProperty(\"Item\", JsonSerializer.Serialize(item));");
 			results.AppendLine("\t\t\tLogContext.PushProperty(\"ClaimsPrincipal\", User.ListClaims());");
-			results.AppendLine("\t\t\tLogger.LogInformation(\"{s1} {s2}\", Request.Method, Request.Path);");
+			results.AppendLine("\t\t\t_logger.LogInformation(\"{s1} {s2}\", Request.Method, Request.Path);");
 			results.AppendLine();
-			results.AppendLine($"\t\t\titem = await Orchestrator.Add{resourceClass.ClassName}Async(item, User);");
-			results.AppendLine($"\t\t\treturn Created(item.HRef.AbsoluteUri, item);");
+			results.AppendLine($"\t\t\titem = await _orchestrator.Add{resourceClass.ClassName}Async(Request, item, User);");
+			results.AppendLine($"\t\t\treturn Created(item.Href.AbsoluteUri, item);");
 
 			results.AppendLine("\t\t}");
 			results.AppendLine();
@@ -1917,20 +1884,17 @@ namespace WizardInstaller.Template.Services
 
 
 			results.AppendLine($"\t\t[SwaggerResponse((int)HttpStatusCode.OK, Type = typeof({resourceClass.ClassName}))]");
-			results.AppendLine($"\t\t[SwaggerRequestExample(typeof({resourceClass.ClassName}), typeof({resourceClass.ClassName}Example))]");
-			results.AppendLine($"\t\t[SwaggerResponseExample((int)HttpStatusCode.OK, typeof({resourceClass.ClassName}Example))]");
 			results.AppendLine($"\t\t[Consumes(\"application/vnd.{moniker}.v1+json\", \"application/json\", \"text/json\")]");
 			results.AppendLine($"\t\t[Produces(\"application/vnd.{moniker}.v1+json\", \"application/json\", \"text/json\")]");
-			results.AppendLine("\t\t[SupportRQL]");
 			results.AppendLine($"\t\tpublic async Task<IActionResult> Update{resourceClass.ClassName}Async([FromBody] {resourceClass.ClassName} item)");
 			results.AppendLine("\t\t{");
 
 			results.AppendLine("\t\t\tLogContext.PushProperty(\"Item\", JsonSerializer.Serialize(item));");
 			results.AppendLine("\t\t\tLogContext.PushProperty(\"ClaimsPrincipal\", User.ListClaims());");
-			results.AppendLine("\t\t\tLogger.LogInformation(\"{s1} {s2}\", Request.Method, Request.Path);");
+			results.AppendLine("\t\t\t_logger.LogInformation(\"{s1} {s2}\", Request.Method, Request.Path);");
 			results.AppendLine();
 
-			results.AppendLine($"\t\t\titem = await Orchestrator.Update{resourceClass.ClassName}Async(item, User);");
+			results.AppendLine($"\t\t\titem = await _orchestrator.Update{resourceClass.ClassName}Async(Request, item, User);");
 			results.AppendLine($"\t\t\treturn Ok(item);");
 
 			results.AppendLine("\t\t}");
@@ -1938,43 +1902,6 @@ namespace WizardInstaller.Template.Services
 
 			if (pkcolumns.Count() > 0)
 			{
-				// --------------------------------------------------------------------------------
-				//	PATCH Endpoint
-				// --------------------------------------------------------------------------------
-
-				results.AppendLine("\t\t///\t<summary>");
-				results.AppendLine($"\t\t///\tUpdate a {nn.SingleForm} using patch commands");
-				results.AppendLine("\t\t///\t</summary>");
-				EmitEndpointExamples(resourceClass.Entity.ServerType, resourceClass.ClassName, results, pkcolumns);
-				results.AppendLine("\t\t///\t<param name=\"commands\">The patch commands to perform.</param>");
-				results.AppendLine($"\t\t///\t<remarks>Update a {nn.SingleForm} in the datastore.</remarks>");
-				results.AppendLine($"\t\t///\t<response code=\"204\">No Content - returned when the {nn.SingleForm} was successfully updated in the datastore.</response>");
-				results.AppendLine($"\t\t///\t<response code=\"404\">Not Found - returned when the speicifed {nn.SingleForm} does not exist in the datastore.</response>");
-				results.AppendLine("\t\t[HttpPatch]");
-				results.AppendLine("\t\t[MapToApiVersion(\"1.0\")]");
-				EmitRoute(results, nn.PluralCamelCase, pkcolumns);
-
-				if (!string.IsNullOrWhiteSpace(policy) && !policy.Equals("Anonymous", StringComparison.OrdinalIgnoreCase))
-					results.AppendLine($"\t\t[Authorize(\"{policy}\")]");
-
-				results.AppendLine($"\t\t[SwaggerRequestExample(typeof(IEnumerable<PatchCommand>), typeof({resourceClass.ClassName}PatchExample))]");
-				results.AppendLine($"\t\t[Consumes(\"application/vnd.{moniker}.v1+json\", \"application/json\", \"text/json\")]");
-				results.AppendLine($"\t\t[Produces(\"application/vnd.{moniker}.v1+json\", \"application/json\", \"text/json\")]");
-				EmitEndpoint(resourceClass.ClassName, "Patch", results, pkcolumns);
-
-				results.AppendLine("\t\t{");
-				results.AppendLine($"\t\t\tvar node = RqlNode.Parse($\"HRef=uri:\\\"/{BuildRoute(nn.PluralCamelCase, pkcolumns)}\\\"\");");
-				results.AppendLine();
-				results.AppendLine("\t\t\tLogContext.PushProperty(\"Commands\", JsonSerializer.Serialize(commands));");
-				results.AppendLine("\t\t\tLogContext.PushProperty(\"ClaimsPrincipal\", User.ListClaims());");
-				results.AppendLine("\t\t\tLogger.LogInformation(\"{s1} {s2}\", Request.Method, Request.Path);");
-				results.AppendLine();
-
-				results.AppendLine($"\t\t\tawait Orchestrator.Patch{resourceClass.ClassName}Async(commands, node, User);");
-				results.AppendLine($"\t\t\treturn NoContent();");
-				results.AppendLine("\t\t}");
-				results.AppendLine();
-
 				// --------------------------------------------------------------------------------
 				//	DELETE Endpoint
 				// --------------------------------------------------------------------------------
@@ -2000,10 +1927,10 @@ namespace WizardInstaller.Template.Services
 				results.AppendLine();
 				results.AppendLine("\t\t\tLogContext.PushProperty(\"RqlNode\", node);");
 				results.AppendLine("\t\t\tLogContext.PushProperty(\"ClaimsPrincipal\", User.ListClaims());");
-				results.AppendLine("\t\t\tLogger.LogInformation(\"{s1} {s2}\", Request.Method, Request.Path);");
+				results.AppendLine("\t\t\t_logger.LogInformation(\"{s1} {s2}\", Request.Method, Request.Path);");
 				results.AppendLine();
 
-				results.AppendLine($"\t\t\tawait Orchestrator.Delete{resourceClass.ClassName}Async(node, User);");
+				results.AppendLine($"\t\t\tawait _orchestrator.Delete{resourceClass.ClassName}Async(Request, node, User);");
 				results.AppendLine($"\t\t\treturn NoContent();");
 
 				results.AppendLine("\t\t}");
@@ -2018,7 +1945,7 @@ namespace WizardInstaller.Template.Services
 			ThreadHelper.ThrowIfNotOnUIThread();
 			var mDte = Package.GetGlobalService(typeof(SDTE)) as DTE2;
 
-			ProjectItem orchInterface = mDte.Solution.FindProjectItem("IServiceOrchestrator.cs");
+			ProjectItem orchInterface = mDte.Solution.FindProjectItem("IOrchestrator.cs");
 			orchInterface.Open(EnvDTE.Constants.vsViewKindCode);
 			FileCodeModel2 fileCodeModel = (FileCodeModel2)orchInterface.FileCodeModel;
 
@@ -2032,6 +1959,15 @@ namespace WizardInstaller.Template.Services
 			if (fileCodeModel.CodeElements.OfType<CodeImport>().FirstOrDefault(c => c.Namespace.Equals("System.Collections.Generic")) == null)
 				fileCodeModel.AddImport("System.Collections.Generic");
 
+			if (fileCodeModel.CodeElements.OfType<CodeImport>().FirstOrDefault(c => c.Namespace.Equals("Rql")) == null)
+				fileCodeModel.AddImport("Rql");
+
+			if (fileCodeModel.CodeElements.OfType<CodeImport>().FirstOrDefault(c => c.Namespace.Equals("Rql.Models")) == null)
+				fileCodeModel.AddImport("Rql.Models");
+
+			if (fileCodeModel.CodeElements.OfType<CodeImport>().FirstOrDefault(c => c.Namespace.Equals("Rql.Extensions")) == null)
+				fileCodeModel.AddImport("Rql.Extensions");
+
 			if (fileCodeModel.CodeElements.OfType<CodeImport>().FirstOrDefault(c => c.Namespace.Equals(resourceNamespace)) == null)
 				fileCodeModel.AddImport(resourceNamespace);
 
@@ -2040,16 +1976,15 @@ namespace WizardInstaller.Template.Services
 			{
 				CodeInterface2 orchestrationInterface = orchestrationNamespace.Children
 																			  .OfType<CodeInterface2>()
-																			  .FirstOrDefault(c => c.Name.Equals("IServiceOrchestrator"));
+																			  .FirstOrDefault(c => c.Name.Equals("IOrchestrator"));
 
 				if (orchestrationInterface != null)
 				{
-					if (orchestrationInterface.Name.Equals("IServiceOrchestrator", StringComparison.OrdinalIgnoreCase))
+					if (orchestrationInterface.Name.Equals("IOrchestrator", StringComparison.OrdinalIgnoreCase))
 					{
 						// List<DBColumn> primaryKeyColumns = resourceModel.EntityModel.Columns.Where(c => c.IsPrimaryKey == true).ToList();
 
 						string deleteFunctionName = $"Delete{resourceClassName}Async";
-						string patchFunctionName = $"Patch{resourceClassName}Async";
 						string updateFunctionName = $"Update{resourceClassName}Async";
 						string addFunctionName = $"Add{resourceClassName}Async";
 						string getSingleFunctionName = $"Get{resourceClassName}Async";
@@ -2068,9 +2003,10 @@ namespace WizardInstaller.Template.Services
 							{
 								var theGetSingleFunction = (CodeFunction2)orchestrationInterface.AddFunction(getSingleFunctionName,
 														  vsCMFunction.vsCMFunctionFunction,
-														  $"Task<{resourceClassName}>",
+														  $"Task<{resourceClassName}?>",
 														  -1);
 
+								theGetSingleFunction.AddParameter("request", "HttpRequest", -1);
 								theGetSingleFunction.AddParameter("node", "RqlNode", -1);
 								theGetSingleFunction.AddParameter("User", "ClaimsPrincipal", -1);
 
@@ -2079,8 +2015,9 @@ namespace WizardInstaller.Template.Services
 								doc.AppendLine("<summary>");
 								doc.AppendLine($"Asynchronously gets {article} {resourceClassName} resource specified by the <see cref=\"RqlNode\"/>.");
 								doc.AppendLine("</summary>");
-								doc.AppendLine("<param name=\"node\">The <see cref=\"RqlNode\"/> that further restricts the selection</param>");
-								doc.AppendLine("<param name=\"User\">The <see cref=\"ClaimsPrincipal\"/> of the actor calling the function</param>");
+								doc.AppendLine("<param name=\"request\">The <see cref=\"HttpRequest\"/> associated with this request.</param>");
+								doc.AppendLine("<param name=\"node\">The <see cref=\"RqlNode\"/> that further restricts the selection.</param>");
+								doc.AppendLine("<param name=\"User\">The <see cref=\"ClaimsPrincipal\"/> of the actor calling the function.</param>");
 								doc.AppendLine($"<returns>The specified {resourceClassName} resource.</returns>");
 								doc.AppendLine("</doc>");
 
@@ -2096,8 +2033,8 @@ namespace WizardInstaller.Template.Services
 														  $"Task<PagedCollection<{resourceClassName}>>",
 														  -1);
 
-								theCollectionFunction.AddParameter("originalQuery", "string", -1);
-								theCollectionFunction.AddParameter("node", "RqlNode", -1);
+								theCollectionFunction.AddParameter("request", "HttpRequest", -1);
+								theCollectionFunction.AddParameter("node", "RqlNode?", -1);
 								theCollectionFunction.AddParameter("User", "ClaimsPrincipal", -1);
 
 								StringBuilder doc = new StringBuilder();
@@ -2105,7 +2042,7 @@ namespace WizardInstaller.Template.Services
 								doc.AppendLine("<summary>");
 								doc.AppendLine($"Asynchronously gets a collection of {resourceClassName} resources filtered by the <see cref=\"RqlNode\"/>.");
 								doc.AppendLine("</summary>");
-								doc.AppendLine("<param name=\"originalQuery\">The original query string.</param>");
+								doc.AppendLine("<param name=\"request\">The <see cref=\"HttpRequest\"/> associated with this request.</param>");
 								doc.AppendLine("<param name=\"node\">The <see cref=\"RqlNode\"/> that further restricts the selection.</param>");
 								doc.AppendLine("<param name=\"User\">The <see cref=\"ClaimsPrincipal\"/> of the actor calling the function.</param>");
 								doc.AppendLine($"<returns>The collection of {resourceClassName} resources filtered by the <see cref=\"RqlNode\"/>.</returns>");
@@ -2123,6 +2060,7 @@ namespace WizardInstaller.Template.Services
 														  $"Task<{resourceClassName}>",
 														  -1);
 
+								theAddFunction.AddParameter("request", "HttpRequest", -1);
 								theAddFunction.AddParameter("item", resourceClassName, -1);
 								theAddFunction.AddParameter("User", "ClaimsPrincipal", -1);
 
@@ -2131,6 +2069,7 @@ namespace WizardInstaller.Template.Services
 								doc.AppendLine("<summary>");
 								doc.AppendLine($"Asynchronously adds {article} {resourceClassName} resource.");
 								doc.AppendLine("</summary>");
+								doc.AppendLine("<param name=\"request\">The <see cref=\"HttpRequest\"/> associated with this request.</param>");
 								doc.AppendLine($"<param name=\"item\">The {resourceClassName} resource to add.</param>");
 								doc.AppendLine("<param name=\"User\">The <see cref=\"ClaimsPrincipal\"/> of the actor calling the function.</param>");
 								doc.AppendLine("<returns>The newly added resource.</returns>");
@@ -2148,6 +2087,7 @@ namespace WizardInstaller.Template.Services
 														  $"Task<{resourceClassName}>",
 														  -1);
 
+								theUpdateFunction.AddParameter("request", "HttpRequest", -1);
 								theUpdateFunction.AddParameter("item", resourceClassName, -1);
 								theUpdateFunction.AddParameter("User", "ClaimsPrincipal", -1);
 
@@ -2156,38 +2096,13 @@ namespace WizardInstaller.Template.Services
 								doc.AppendLine("<summary>");
 								doc.AppendLine($"Asynchronously updates {article} {resourceClassName} resource.");
 								doc.AppendLine("</summary>");
+								doc.AppendLine("<param name=\"request\">The <see cref=\"HttpRequest\"/> associated with this request.</param>");
 								doc.AppendLine($"<param name=\"item\">The {resourceClassName} resource to update.</param>");
 								doc.AppendLine("<param name=\"User\">The <see cref=\"ClaimsPrincipal\"/> of the actor calling the function.</param>");
 								doc.AppendLine("<returns>The updated item.</returns>");
 								doc.AppendLine("</doc>");
 
 								theUpdateFunction.DocComment = doc.ToString();
-							}
-							#endregion
-
-							#region Patch Function
-							if (orchestrationInterface.Children.OfType<CodeFunction2>().FirstOrDefault(c => c.Name.Equals(patchFunctionName)) == null)
-							{
-								var thePatchFunction = (CodeFunction2)orchestrationInterface.AddFunction(patchFunctionName,
-														  vsCMFunction.vsCMFunctionFunction,
-														  $"Task",
-														  -1);
-
-								thePatchFunction.AddParameter("commands", "IEnumerable<PatchCommand>", -1);
-								thePatchFunction.AddParameter("node", "RqlNode", -1);
-								thePatchFunction.AddParameter("User", "ClaimsPrincipal", -1);
-
-								StringBuilder doc = new StringBuilder();
-								doc.AppendLine("<doc>");
-								doc.AppendLine("<summary>");
-								doc.AppendLine($"Asynchronously updates {article} {resourceClassName} resource using patch commands.");
-								doc.AppendLine("</summary>");
-								doc.AppendLine("<param name=\"commands\">The list of <see cref=\"PatchCommand\"/>s to perform.</param>");
-								doc.AppendLine("<param name=\"node\">The <see cref=\"RqlNode\"/> that further restricts the selection</param>");
-								doc.AppendLine("<param name=\"User\">The <see cref=\"ClaimsPrincipal\"/> of the actor calling the function.</param>");
-								doc.AppendLine("</doc>");
-
-								thePatchFunction.DocComment = doc.ToString();
 							}
 							#endregion
 
@@ -2198,7 +2113,8 @@ namespace WizardInstaller.Template.Services
 														  vsCMFunction.vsCMFunctionFunction,
 														  $"Task", -1);
 
-								theDeleteFunction.AddParameter("node", "RqlNode", -1);
+								theDeleteFunction.AddParameter("request", "HttpRequest", -1);
+								theDeleteFunction.AddParameter("node", "RqlNode?", -1);
 								theDeleteFunction.AddParameter("User", "ClaimsPrincipal", -1);
 
 								StringBuilder doc = new StringBuilder();
@@ -2206,6 +2122,7 @@ namespace WizardInstaller.Template.Services
 								doc.AppendLine("<summary>");
 								doc.AppendLine($"Asynchronously deletes {article} {resourceClassName} resource specified by the <see cref=\"RqlNode\"/>.");
 								doc.AppendLine("</summary>");
+								doc.AppendLine("<param name=\"request\">The <see cref=\"HttpRequest\"/> associated with this request.</param>");
 								doc.AppendLine("<param name=\"node\">The <see cref=\"RqlNode\"/> that further restricts the selection of resources to delete.</param>");
 								doc.AppendLine("<param name=\"User\">The <see cref=\"ClaimsPrincipal\"/> of the actor calling the function.</param>");
 								doc.AppendLine("</doc>");
@@ -2222,12 +2139,12 @@ namespace WizardInstaller.Template.Services
 			}
 		}
 
-		private static void BuildControllerOrchestration(string resourceClassName, string resourceNamespace)
+		private static void BuildControllerOrchestration(ResourceClass resourceClass, string resourceNamespace)
 		{
 			ThreadHelper.ThrowIfNotOnUIThread();
 			var mDte = Package.GetGlobalService(typeof(SDTE)) as DTE2;
 
-			ProjectItem orchCode = mDte.Solution.FindProjectItem("ServiceOrchestrator.cs");
+			ProjectItem orchCode = mDte.Solution.FindProjectItem("Orchestrator.cs");
 			orchCode.Open(EnvDTE.Constants.vsViewKindCode);
 			var fileCodeModel = (FileCodeModel2)orchCode.FileCodeModel;
 
@@ -2250,6 +2167,15 @@ namespace WizardInstaller.Template.Services
 			if (fileCodeModel.CodeElements.OfType<CodeImport>().FirstOrDefault(c => c.Namespace.Equals("Microsoft.Extensions.Logging")) == null)
 				fileCodeModel.AddImport("Microsoft.Extensions.Logging");
 
+			if (fileCodeModel.CodeElements.OfType<CodeImport>().FirstOrDefault(c => c.Namespace.Equals("Rql")) == null)
+				fileCodeModel.AddImport("Rql");
+
+			if (fileCodeModel.CodeElements.OfType<CodeImport>().FirstOrDefault(c => c.Namespace.Equals("Rql.Models")) == null)
+				fileCodeModel.AddImport("Rql.Models");
+
+			if (fileCodeModel.CodeElements.OfType<CodeImport>().FirstOrDefault(c => c.Namespace.Equals("Rql.Extensions")) == null)
+				fileCodeModel.AddImport("Rql.Extensions");
+
 			if (fileCodeModel.CodeElements.OfType<CodeImport>().FirstOrDefault(c => c.Namespace.Equals("Serilog.Context")) == null)
 				fileCodeModel.AddImport("Serilog.Context");
 
@@ -2261,24 +2187,23 @@ namespace WizardInstaller.Template.Services
 			{
 				CodeClass2 orchestratorClass = orchestrattorNamespace.Children
 																	 .OfType<CodeClass2>()
-																	 .FirstOrDefault(c => c.Name.Equals("ServiceOrchestrator"));
+																	 .FirstOrDefault(c => c.Name.Equals("Orchestrator"));
 
 				if (orchestratorClass != null)
 				{
 					//var primaryKeyColumns = resourceModel.EntityModel.Columns.Where(c => c.IsPrimaryKey == true).ToList();
 
-					var deleteFunctionName = $"Delete{resourceClassName}Async";
-					var patchFunctionName = $"Patch{resourceClassName}Async";
-					var updateFunctionName = $"Update{resourceClassName}Async";
-					var addFunctionName = $"Add{resourceClassName}Async";
-					var getSingleFunctionName = $"Get{resourceClassName}Async";
-					var collectionFunctionName = $"Get{resourceClassName}CollectionAsync";
+					var deleteFunctionName = $"Delete{resourceClass.ClassName}Async";
+					var updateFunctionName = $"Update{resourceClass.ClassName}Async";
+					var addFunctionName = $"Add{resourceClass.ClassName}Async";
+					var getSingleFunctionName = $"Get{resourceClass.ClassName}Async";
+					var collectionFunctionName = $"Get{resourceClass.ClassName}CollectionAsync";
 
-					var article = resourceClassName.ToLower().StartsWith("a") ||
-								  resourceClassName.ToLower().StartsWith("e") ||
-								  resourceClassName.ToLower().StartsWith("i") ||
-								  resourceClassName.ToLower().StartsWith("o") ||
-								  resourceClassName.ToLower().StartsWith("u") ? "an" : "a";
+					var article = resourceClass.ClassName.ToLower().StartsWith("a") ||
+								  resourceClass.ClassName.ToLower().StartsWith("e") ||
+								  resourceClass.ClassName.ToLower().StartsWith("i") ||
+								  resourceClass.ClassName.ToLower().StartsWith("o") ||
+								  resourceClass.ClassName.ToLower().StartsWith("u") ? "an" : "a";
 
 					EditPoint2 editPoint;
 
@@ -2291,21 +2216,23 @@ namespace WizardInstaller.Template.Services
 						{
 							var theGetSingleFunction = (CodeFunction2)orchestratorClass.AddFunction(getSingleFunctionName,
 													  vsCMFunction.vsCMFunctionFunction,
-													  $"Task<{resourceClassName}>",
+													  $"Task<{resourceClass.ClassName}?>",
 													  -1,
 													  vsCMAccess.vsCMAccessPublic);
 
-							theGetSingleFunction.AddParameter("node", "RqlNode", -1);
+							theGetSingleFunction.AddParameter("request", "HttpRequest", -1);
+							theGetSingleFunction.AddParameter("node", "RqlNode?", -1);
 							theGetSingleFunction.AddParameter("User", "ClaimsPrincipal", -1);
 
 							StringBuilder doc = new StringBuilder();
 							doc.AppendLine("<doc>");
 							doc.AppendLine("<summary>");
-							doc.AppendLine($"Asynchronously gets {article} {resourceClassName} resource specified by the <see cref=\"RqlNode\"/>.");
+							doc.AppendLine($"Asynchronously gets {article} {resourceClass.ClassName} resource specified by the <see cref=\"RqlNode\"/>.");
 							doc.AppendLine("</summary>");
+							doc.AppendLine("<param name=\"request\">The <see cref=\"HttpRequest\"/> associated with this request.</param>");
 							doc.AppendLine("<param name=\"node\">The <see cref=\"RqlNode\"/> that further restricts the selection</param>");
 							doc.AppendLine("<param name=\"User\">The <see cref=\"ClaimsPrincipal\"/> of the actor calling the function</param>");
-							doc.AppendLine($"<returns>The specified {resourceClassName} resource.</returns>");
+							doc.AppendLine($"<returns>The specified {resourceClass.ClassName} resource.</returns>");
 							doc.AppendLine("</doc>");
 
 							theGetSingleFunction.DocComment = doc.ToString();
@@ -2317,10 +2244,36 @@ namespace WizardInstaller.Template.Services
 							editPoint.LineUp();
 							editPoint.StartOfLine();
 							editPoint.Indent(null, 3);
-							editPoint.Insert($"Logger.LogDebug(\"{getSingleFunctionName}\");");
+							editPoint.Insert($"_logger.LogDebug(\"{getSingleFunctionName}\");");
 							editPoint.InsertNewLine();
 							editPoint.Indent(null, 3);
-							editPoint.Insert($"return await GetSingleAsync<{resourceClassName}>(node);");
+							editPoint.Insert($"var resource = await GetSingleAsync<{resourceClass.ClassName}>(node);");
+							editPoint.InsertNewLine(2);
+							editPoint.Indent(null, 3);
+							editPoint.Insert("if (resource != null)");
+							editPoint.InsertNewLine();
+							editPoint.Indent(null, 3);
+							editPoint.Insert("{");
+							editPoint.InsertNewLine();
+							editPoint.Indent(null, 4);
+							editPoint.Insert("var rootUrl = new Uri($\"{request.Scheme}://{request.Host}\");");
+							editPoint.InsertNewLine();
+
+							foreach (var col in resourceClass.Columns)
+							{
+								if (col.IsPrimaryKey || col.IsForeignKey)
+								{
+									editPoint.Indent(null, 4);
+									editPoint.Insert($"resource.{col.ColumnName} = new Uri(rootUrl, resource.{col.ColumnName}.AbsolutePath);");
+									editPoint.InsertNewLine();
+								}
+							}
+
+							editPoint.Indent(null, 3);
+							editPoint.Insert("}");
+							editPoint.InsertNewLine(2);
+							editPoint.Indent(null, 3);
+							editPoint.Insert("return resource;");
 						}
 						#endregion
 
@@ -2331,23 +2284,23 @@ namespace WizardInstaller.Template.Services
 						{
 							var theCollectionFunction = (CodeFunction2)orchestratorClass.AddFunction(collectionFunctionName,
 													  vsCMFunction.vsCMFunctionFunction,
-													  $"Task<PagedCollection<{resourceClassName}>>",
+													  $"Task<PagedCollection<{resourceClass.ClassName}>>",
 													  -1,
 													  vsCMAccess.vsCMAccessPublic);
 
-							theCollectionFunction.AddParameter("originalQuery", "string", -1);
-							theCollectionFunction.AddParameter("node", "RqlNode", -1);
+							theCollectionFunction.AddParameter("request", "HttpRequest", -1);
+							theCollectionFunction.AddParameter("node", "RqlNode?", -1);
 							theCollectionFunction.AddParameter("User", "ClaimsPrincipal", -1);
 
 							StringBuilder doc = new StringBuilder();
 							doc.AppendLine("<doc>");
 							doc.AppendLine("<summary>");
-							doc.AppendLine($"Asynchronously gets a collection of {resourceClassName} resources filtered by the <see cref=\"RqlNode\"/>.");
+							doc.AppendLine($"Asynchronously gets a collection of {resourceClass.ClassName} resources filtered by the <see cref=\"RqlNode\"/>.");
 							doc.AppendLine("</summary>");
-							doc.AppendLine("<param name=\"originalQuery\">The original query string.</param>");
+							doc.AppendLine("<param name=\"request\">The <see cref=\"HttpRequest\"/> associated with this request.</param>");
 							doc.AppendLine("<param name=\"node\">The <see cref=\"RqlNode\"/> that further restricts the selection.</param>");
 							doc.AppendLine("<param name=\"User\">The <see cref=\"ClaimsPrincipal\"/> of the actor calling the function.</param>");
-							doc.AppendLine($"<returns>The collection of {resourceClassName} resources filtered by the <see cref=\"RqlNode\"/>.</returns>");
+							doc.AppendLine($"<returns>The collection of {resourceClass.ClassName} resources filtered by the <see cref=\"RqlNode\"/>.</returns>");
 							doc.AppendLine("</doc>");
 
 							theCollectionFunction.DocComment = doc.ToString();
@@ -2359,10 +2312,47 @@ namespace WizardInstaller.Template.Services
 							editPoint.LineUp();
 							editPoint.StartOfLine();
 							editPoint.Indent(null, 3);
-							editPoint.Insert($"Logger.LogDebug(\"{collectionFunctionName}\");");
+							editPoint.Insert($"_logger.LogDebug(\"{collectionFunctionName}\");");
 							editPoint.InsertNewLine();
 							editPoint.Indent(null, 3);
-							editPoint.Insert($"return await GetCollectionAsync<{resourceClassName}>(originalQuery, node);");
+							editPoint.Insert($"var collection = await GetCollectionAsync<{resourceClass.ClassName}>(request, node);");
+							editPoint.InsertNewLine();
+							editPoint.Indent(null, 3);
+							editPoint.Insert("var rootUrl = new Uri($\"{request.Scheme}://{request.Host}\");");
+							editPoint.InsertNewLine();
+							editPoint.Indent(null, 3);
+							editPoint.Insert("collection.Href = new Uri(rootUrl, (string?) collection.Href?.AbsolutePath);");
+							editPoint.InsertNewLine();
+							editPoint.Indent(null, 3);
+							editPoint.Insert("collection.Next = collection.Next == null ? null : new Uri(rootUrl, (string?) collection.Next?.AbsolutePath);");
+							editPoint.InsertNewLine();
+							editPoint.Indent(null, 3);
+							editPoint.Insert("collection.Previous = collection.Previous == null ? null : new Uri(rootUrl, (string?) collection.Previous?.AbsolutePath);");
+							editPoint.InsertNewLine();
+							editPoint.Indent(null, 3);
+							editPoint.Insert("collection.First = collection.First == null ? null : new Uri(rootUrl, (string?) collection.First?.AbsolutePath);");
+							editPoint.InsertNewLine(2);
+							editPoint.Indent(null, 3);
+							editPoint.Insert($"foreach ({resourceClass.ClassName} resource in collection.Items)");
+							editPoint.InsertNewLine();
+							editPoint.Indent(null, 3);
+							editPoint.Insert("{");
+							editPoint.InsertNewLine();
+
+							foreach (var col in resourceClass.Columns)
+							{
+								if (col.IsPrimaryKey || col.IsForeignKey)
+								{
+									editPoint.Indent(null, 4);
+									editPoint.Insert($"resource.{col.ColumnName} = new Uri(rootUrl, (string) resource.{col.ColumnName}.AbsolutePath);");
+									editPoint.InsertNewLine();
+								}
+							}
+							editPoint.Indent(null, 3);
+							editPoint.Insert("}");
+							editPoint.InsertNewLine(2);
+							editPoint.Indent(null, 3);
+							editPoint.Insert("return collection;");
 						}
 						#endregion
 
@@ -2373,19 +2363,21 @@ namespace WizardInstaller.Template.Services
 						{
 							var theAddFunction = (CodeFunction2)orchestratorClass.AddFunction(addFunctionName,
 													  vsCMFunction.vsCMFunctionFunction,
-													  $"Task<{resourceClassName}>",
+													  $"Task<{resourceClass.ClassName}>",
 													  -1,
 													  vsCMAccess.vsCMAccessPublic);
 
-							theAddFunction.AddParameter("item", resourceClassName, -1);
+							theAddFunction.AddParameter("request", "HttpRequest", -1);
+							theAddFunction.AddParameter("item", resourceClass.ClassName, -1);
 							theAddFunction.AddParameter("User", "ClaimsPrincipal", -1);
 
 							StringBuilder doc = new StringBuilder();
 							doc.AppendLine("<doc>");
 							doc.AppendLine("<summary>");
-							doc.AppendLine($"Asynchronously adds {article} {resourceClassName} resource.");
+							doc.AppendLine($"Asynchronously adds {article} {resourceClass.ClassName} resource.");
 							doc.AppendLine("</summary>");
-							doc.AppendLine($"<param name=\"item\">The {resourceClassName} resource to add.</param>");
+							doc.AppendLine("<param name=\"request\">The <see cref=\"HttpRequest\"/> associated with this request.</param>");
+							doc.AppendLine($"<param name=\"item\">The {resourceClass.ClassName} resource to add.</param>");
 							doc.AppendLine("<param name=\"User\">The <see cref=\"ClaimsPrincipal\"/> of the actor calling the function.</param>");
 							doc.AppendLine("<returns>The newly added resource.</returns>");
 							doc.AppendLine("</doc>");
@@ -2399,10 +2391,28 @@ namespace WizardInstaller.Template.Services
 							editPoint.LineUp();
 							editPoint.StartOfLine();
 							editPoint.Indent(null, 3);
-							editPoint.Insert($"Logger.LogDebug(\"{addFunctionName}\");");
+							editPoint.Insert($"_logger.LogDebug(\"{addFunctionName}\");");
 							editPoint.InsertNewLine();
 							editPoint.Indent(null, 3);
-							editPoint.Insert($"return await AddAsync<{resourceClassName}>(item);");
+							editPoint.Insert($"var resource = await AddAsync<{resourceClass.ClassName}>(item);");
+							editPoint.InsertNewLine();
+							editPoint.Indent(null, 3);
+							editPoint.Insert("var rootUrl = new Uri($\"{request.Scheme}://{request.Host}\");");
+							editPoint.InsertNewLine();
+
+							foreach (var col in resourceClass.Columns)
+							{
+								if (col.IsPrimaryKey || col.IsForeignKey)
+								{
+									editPoint.Indent(null, 3);
+									editPoint.Insert($"resource.{col.ColumnName} = new Uri(rootUrl, resource.{col.ColumnName}.AbsolutePath);");
+									editPoint.InsertNewLine();
+								}
+							}
+
+							editPoint.InsertNewLine();
+							editPoint.Indent(null, 3);
+							editPoint.Insert("return resource;");
 						}
 						#endregion
 
@@ -2413,19 +2423,21 @@ namespace WizardInstaller.Template.Services
 						{
 							var theUpdateFunction = (CodeFunction2)orchestratorClass.AddFunction(updateFunctionName,
 													  vsCMFunction.vsCMFunctionFunction,
-													  $"Task<{resourceClassName}>",
+													  $"Task<{resourceClass.ClassName}>",
 													  -1,
 													  vsCMAccess.vsCMAccessPublic);
 
-							theUpdateFunction.AddParameter("item", resourceClassName, -1);
+							theUpdateFunction.AddParameter("request", "HttpRequest", -1);
+							theUpdateFunction.AddParameter("item", resourceClass.ClassName, -1);
 							theUpdateFunction.AddParameter("User", "ClaimsPrincipal", -1);
 
 							StringBuilder doc = new StringBuilder();
 							doc.AppendLine("<doc>");
 							doc.AppendLine("<summary>");
-							doc.AppendLine($"Asynchronously updates {article} {resourceClassName} resource.");
+							doc.AppendLine($"Asynchronously updates {article} {resourceClass.ClassName} resource.");
 							doc.AppendLine("</summary>");
-							doc.AppendLine($"<param name=\"item\">The {resourceClassName} resource to update.</param>");
+							doc.AppendLine("<param name=\"request\">The <see cref=\"HttpRequest\"/> associated with this request.</param>");
+							doc.AppendLine($"<param name=\"item\">The {resourceClass.ClassName} resource to update.</param>");
 							doc.AppendLine("<param name=\"User\">The <see cref=\"ClaimsPrincipal\"/> of the actor calling the function.</param>");
 							doc.AppendLine("<returns>The updated item.</returns>");
 							doc.AppendLine("</doc>");
@@ -2439,51 +2451,28 @@ namespace WizardInstaller.Template.Services
 							editPoint.LineUp();
 							editPoint.StartOfLine();
 							editPoint.Indent(null, 3);
-							editPoint.Insert($"Logger.LogDebug(\"{updateFunctionName}\");");
+							editPoint.Insert($"_logger.LogDebug(\"{updateFunctionName}\");");
 							editPoint.InsertNewLine();
 							editPoint.Indent(null, 3);
-							editPoint.Insert($"return await UpdateAsync<{resourceClassName}>(item);");
-						}
-						#endregion
-
-						#region Patch Function
-						if (orchestratorClass.Children
-											 .OfType<CodeFunction2>()
-											 .FirstOrDefault(c => c.Name.Equals(patchFunctionName, StringComparison.OrdinalIgnoreCase)) == null)
-						{
-							var thePatchFunction = (CodeFunction2)orchestratorClass.AddFunction(patchFunctionName,
-													  vsCMFunction.vsCMFunctionFunction,
-													  $"Task",
-													  -1,
-													  vsCMAccess.vsCMAccessPublic);
-
-							thePatchFunction.AddParameter("commands", "IEnumerable<PatchCommand>", -1);
-							thePatchFunction.AddParameter("node", "RqlNode", -1);
-							thePatchFunction.AddParameter("User", "ClaimsPrincipal", -1);
-
-							StringBuilder doc = new StringBuilder();
-							doc.AppendLine("<doc>");
-							doc.AppendLine("<summary>");
-							doc.AppendLine($"Asynchronously updates {article} {resourceClassName} resource using patch commands.");
-							doc.AppendLine("</summary>");
-							doc.AppendLine("<param name=\"commands\">The list of <see cref=\"PatchCommand\"/>s to perform.</param>");
-							doc.AppendLine("<param name=\"node\">The <see cref=\"RqlNode\"/> that further restricts the selection</param>");
-							doc.AppendLine("<param name=\"User\">The <see cref=\"ClaimsPrincipal\"/> of the actor calling the function.</param>");
-							doc.AppendLine("</doc>");
-
-							thePatchFunction.DocComment = doc.ToString();
-
-							editPoint = (EditPoint2)thePatchFunction.StartPoint.CreateEditPoint();
-							editPoint.ReplaceText(6, "public async", 0);
-
-							editPoint = (EditPoint2)thePatchFunction.EndPoint.CreateEditPoint();
-							editPoint.LineUp();
-							editPoint.StartOfLine();
-							editPoint.Indent(null, 3);
-							editPoint.Insert($"Logger.LogDebug(\"{patchFunctionName}\");");
+							editPoint.Insert($"var resource = await UpdateAsync<{resourceClass.ClassName}>(item);");
 							editPoint.InsertNewLine();
 							editPoint.Indent(null, 3);
-							editPoint.Insert($"await PatchAsync<{resourceClassName}>(commands, node);");
+							editPoint.Insert("var rootUrl = new Uri($\"{request.Scheme}://{request.Host}\");");
+							editPoint.InsertNewLine();
+
+							foreach (var col in resourceClass.Columns)
+							{
+								if (col.IsPrimaryKey || col.IsForeignKey)
+								{
+									editPoint.Indent(null, 3);
+									editPoint.Insert($"resource.{col.ColumnName} = new Uri(rootUrl, resource.{col.ColumnName}.AbsolutePath);");
+									editPoint.InsertNewLine();
+								}
+							}
+
+							editPoint.InsertNewLine();
+							editPoint.Indent(null, 3);
+							editPoint.Insert("return resource;");
 						}
 						#endregion
 
@@ -2498,14 +2487,16 @@ namespace WizardInstaller.Template.Services
 													  -1,
 													  vsCMAccess.vsCMAccessPublic);
 
-							theDeleteFunction.AddParameter("node", "RqlNode", -1);
+							theDeleteFunction.AddParameter("request", "HttpRequest", -1);
+							theDeleteFunction.AddParameter("node", "RqlNode?", -1);
 							theDeleteFunction.AddParameter("User", "ClaimsPrincipal", -1);
 
 							StringBuilder doc = new StringBuilder();
 							doc.AppendLine("<doc>");
 							doc.AppendLine("<summary>");
-							doc.AppendLine($"Asynchronously deletes {article} {resourceClassName} resource specified by the <see cref=\"RqlNode\"/>.");
+							doc.AppendLine($"Asynchronously deletes {article} {resourceClass.ClassName} resource specified by the <see cref=\"RqlNode\"/>.");
 							doc.AppendLine("</summary>");
+							doc.AppendLine("<param name=\"request\">The <see cref=\"HttpRequest\"/> associated with this request.</param>");
 							doc.AppendLine("<param name=\"node\">The <see cref=\"RqlNode\"/> that further restricts the selection of resources to delete.</param>");
 							doc.AppendLine("<param name=\"User\">The <see cref=\"ClaimsPrincipal\"/> of the actor calling the function.</param>");
 							doc.AppendLine("</doc>");
@@ -2519,10 +2510,10 @@ namespace WizardInstaller.Template.Services
 							editPoint.LineUp();
 							editPoint.StartOfLine();
 							editPoint.Indent(null, 3);
-							editPoint.Insert($"Logger.LogDebug(\"{deleteFunctionName}\");");
+							editPoint.Insert($"_logger.LogDebug(\"{deleteFunctionName}\");");
 							editPoint.InsertNewLine();
 							editPoint.Indent(null, 3);
-							editPoint.Insert($"await DeleteAsync<{resourceClassName}>(node);");
+							editPoint.Insert($"await DeleteAsync<{resourceClass.ClassName}>(node);");
 						}
 						#endregion
 					}

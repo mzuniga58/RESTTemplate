@@ -71,6 +71,7 @@
     <None Include="Orchestration\IOrchestrator.cs" />
     <None Include="Orchestration\Orchestrator.cs" />
     <None Include="AssemblyInfo.cs" />
+    <None Include="Extensions\ClaimsPrincipalExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
