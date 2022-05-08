@@ -1817,7 +1817,7 @@ namespace WizardInstaller.Template.Services
 				EmitEndpoint(resourceClass.ClassName, "Get", results, pkcolumns);
 
 				results.AppendLine("\t\t{");
-				results.AppendLine($"\t\t\tvar node = RqlNode.Parse($\"HRef=uri:\\\"/{BuildRoute(nn.PluralCamelCase, pkcolumns)}\\\"\")");
+				results.AppendLine($"\t\t\tvar node = RqlNode.Parse($\"HRef=uri:\r\"/{BuildRoute(nn.PluralCamelCase, pkcolumns)}\\\"\")");
 				results.AppendLine($"\t\t\t\t\t\t\t  .Merge(RqlNode.Parse(Request.QueryString.Value));");
 				results.AppendLine();
 
@@ -2577,7 +2577,7 @@ namespace WizardInstaller.Template.Services
 
 			foreach (var entityColumn in pkcolumns)
 			{
-				results.Append($"/{{{entityColumn.EntityName}}}");
+				results.Append($"/{{{entityColumn.EntityName.ToLower()}}}");
 			}
 
 			results.AppendLine("\")]");
@@ -2592,7 +2592,7 @@ namespace WizardInstaller.Template.Services
 
 			foreach (var entityColumn in pkcolumns)
 			{
-				route.Append($"/{{{entityColumn.ColumnName}}}");
+				route.Append($"/{{{entityColumn.ColumnName.ToLower()}}}");
 			}
 
 			return route.ToString();
