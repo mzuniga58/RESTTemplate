@@ -13,11 +13,6 @@ namespace WizardInstaller.Template.Models
     internal class RESTPreferences
     {
         /// <summary>
-        /// The company moniker used in the versioned media type string
-        /// </summary>
-        public string vendorMoniker { get; set; }
-
-        /// <summary>
         /// The authors name (most likely the user of this computer)
         /// </summary>
         public string authorName { get; set; }

@@ -92,7 +92,7 @@ namespace WizardInstaller.Template.Wizards
 						var resourceModel = form.ResourceModel;
 
 						var emitter = new Emitter();
-						var model = emitter.EmitMappingModel(resourceModel, replacementsDictionary["$safeitemname$"], replacementsDictionary);
+						var model = emitter.EmitMappingModel(resourceModel, replacementsDictionary["$safeitemname$"]);
 
 						replacementsDictionary["$resourcenamespace$"] = resourceModel.Namespace;
 						replacementsDictionary["$entitynamespace$"] = resourceModel.Entity.Namespace;

@@ -19,6 +19,7 @@ namespace WizardInstaller.Template.Wizards
 		private string databaseTechnology;
 		private string logPath;
 		private string projectMapPath;
+		private bool useHal;
 
 		// This method is called before opening any item that
 		// has the OpenInEditor attribute.
@@ -70,7 +71,6 @@ namespace WizardInstaller.Template.Wizards
 
 						if (preferences != null)
 						{
-							inputForm.VendorTag = string.IsNullOrWhiteSpace(preferences.vendorMoniker) ? "" : preferences.vendorMoniker;
 							inputForm.TeamName = string.IsNullOrWhiteSpace(preferences.authorName) ? "" : preferences.authorName;
 							inputForm.TeamEmail = string.IsNullOrWhiteSpace(preferences.emailAddress) ? "" : preferences.emailAddress;
 							inputForm.TeamUrl = string.IsNullOrWhiteSpace(preferences.webSite) ? "" : preferences.webSite;
@@ -93,7 +93,6 @@ namespace WizardInstaller.Template.Wizards
 						//	Save the preferences
 						var preferences = new RESTPreferences
 						{
-							vendorMoniker = inputForm.VendorTag,
 							authorName = inputForm.TeamName,
 							emailAddress = inputForm.TeamEmail,
 							webSite = inputForm.TeamUrl
@@ -108,7 +107,6 @@ namespace WizardInstaller.Template.Wizards
 						replacementsDictionary.Add("$authorname$", preferences.authorName);
 						replacementsDictionary.Add("$emailaddress$", preferences.emailAddress);
 						replacementsDictionary.Add("$website$", preferences.webSite);
-						replacementsDictionary.Add("$companymoniker$", preferences.vendorMoniker);
 
 						var preferenceData = JsonSerializer.Serialize(preferences, new JsonSerializerOptions()
 						{
@@ -190,16 +188,18 @@ namespace WizardInstaller.Template.Wizards
 						var sslPortNumber = randomNumberGenerator.Next(1024, 65534);
 						var useAuth = inputForm.AuthCheckbox.IsChecked ?? false;
 						var useRql = inputForm.RQLCheckbox.IsChecked ?? false;
+						useHal = inputForm.HALCheckbox.IsChecked ?? false;	
 
 						// Add custom parameters.
 						replacementsDictionary.Add("$framework$", framework);
 						replacementsDictionary.Add("$useauth$", useAuth.ToString());
 						replacementsDictionary.Add("$userql$", useRql.ToString());
+						replacementsDictionary.Add("$usehal$", useHal.ToString());
+						replacementsDictionary.Add("$userqldatabase$", useRql ? databaseTechnology : "None");
 						replacementsDictionary.Add("$databasetechnology$", databaseTechnology);
 						replacementsDictionary.Add("$logPath$", logPath);
 						replacementsDictionary.Add("$portNumber$", portNumber.ToString());
 						replacementsDictionary.Add("$sslportNumber$", sslPortNumber.ToString());
-						replacementsDictionary.Add("$repository$", GenerateRepository(replacementsDictionary));
 					}
 					else
 					{
@@ -229,6 +229,14 @@ namespace WizardInstaller.Template.Wizards
 		// not for project templates.
 		public bool ShouldAddProjectItem(string filePath)
 		{
+			if ( filePath.Equals("HalConfiguration.cs", StringComparison.OrdinalIgnoreCase	))
+            {
+				if (useHal)
+					return Proceed;
+
+				return false;
+            }
+
 			if ( databaseTechnology.Equals("None", StringComparison.OrdinalIgnoreCase) )
             {
 				if ( filePath.Equals("IRepository.cs", StringComparison.OrdinalIgnoreCase) ||
@@ -238,71 +246,6 @@ namespace WizardInstaller.Template.Wizards
                 }
             }
 			return Proceed;
-		}
-
-		public string GenerateRepository(Dictionary<string, string> replacementsDictionary)
-		{
-			var code = new StringBuilder();
-
-			if (replacementsDictionary["$userql$"].Equals("true", StringComparison.OrdinalIgnoreCase))
-			{
-				code.AppendLine("using Rql.Services;");
-				code.AppendLine("using Rql.Models;");
-				if (replacementsDictionary["$databasetechnology$"].Equals("sqlserver", StringComparison.OrdinalIgnoreCase))
-				{
-					code.AppendLine("using Rql.SqlServer;");
-				}
-				else if (replacementsDictionary["$databasetechnology$"].Equals("postgresql", StringComparison.OrdinalIgnoreCase))
-				{
-					code.AppendLine("using Rql.Postgresql;");
-					code.AppendLine("using Npgsql;");
-				}
-				else if (replacementsDictionary["$databasetechnology$"].Equals("mysql", StringComparison.OrdinalIgnoreCase))
-				{
-					code.AppendLine("using Rql.Mysql;");
-					code.AppendLine("using MySql.Data;");
-				}
-			}
-
-			code.AppendLine();
-			code.AppendLine($"namespace {replacementsDictionary["$safeprojectname$"]}.Repositories");
-			code.AppendLine("{");
-			code.AppendLine("\t///\t<summary>");
-			code.AppendLine("\t///\tThe repository");
-			code.AppendLine("\t///\t</summary>");
-			code.Append("\tpublic class Repository : ");
-
-			if (replacementsDictionary["$userql$"].Equals("true", StringComparison.OrdinalIgnoreCase))
-				code.Append("SqlServerRepository, ");
-
-			code.AppendLine("IRepository");
-			code.AppendLine("\t{");
-			code.AppendLine("\t\tprivate readonly ILogger<Repository> _logger;");
-			code.AppendLine();
-			code.AppendLine("\t\t///\t<summary>");
-			code.AppendLine("\t\t///\tInstantiates the Repository");
-			code.AppendLine("\t\t///\t</summary>");
-			code.AppendLine("\t\t///\t<param name=\"logger\">A generic interface for logging where the category name is derrived from the <see cref=\"Repository\"/> name.");
-			code.AppendLine("\t\t///\tGenerally used to enable activation of a named <see cref=\"ILogger\"/> from dependency injection.</param>");
-
-			if (replacementsDictionary["$userql$"].Equals("true", StringComparison.OrdinalIgnoreCase))
-			{
-				code.AppendLine("\t\t///\t<param name=\"options\">Represents a set of key/value application configuration properties.</param>");
-				code.AppendLine("\t\tpublic Repository(ILogger<Repository> logger, IRepositoryOptions options)");
-				code.AppendLine("\t\t\t: base(logger, options)");
-			}
-			else
-            {
-				code.AppendLine("\t\tpublic Repository(ILogger<Repository> logger)");
-			}
-
-			code.AppendLine("\t\t{");
-			code.AppendLine("\t\t\t_logger = logger;");
-			code.AppendLine("\t\t}");
-			code.AppendLine("\t}");
-			code.AppendLine("}");
-
-			return code.ToString();
 		}
 	}
 }

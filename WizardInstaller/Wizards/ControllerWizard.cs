@@ -102,12 +102,10 @@ namespace WizardInstaller.Template.Wizards
 																 false, true) == VSConstants.S_OK)
 					{
 						var resourceModel = form.ResourceModel;
-						var moniker = codeService.Moniker;
 						string policy = form.Policy;
 
 						var orchestrationNamespace = codeService.FindOrchestrationNamespace();
 
-						replacementsDictionary.Add("$companymoniker$", string.IsNullOrWhiteSpace(moniker) ? "acme" : moniker);
 						replacementsDictionary.Add("$securitymodel$", string.IsNullOrWhiteSpace(policy) ? "none" : "OAuth");
 						replacementsDictionary.Add("$policy$", string.IsNullOrWhiteSpace(policy) ? "none" : "using");
 						replacementsDictionary.Add("$entitynamespace$", resourceModel.Entity.Namespace);
@@ -119,7 +117,6 @@ namespace WizardInstaller.Template.Wizards
 						var emitter = new Emitter();
 						var model = emitter.EmitController(
 							resourceModel,
-							moniker,
 							replacementsDictionary["$safeitemname$"],
 							policy);
 

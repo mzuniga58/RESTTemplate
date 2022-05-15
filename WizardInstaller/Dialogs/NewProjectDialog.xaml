@@ -16,7 +16,7 @@
             <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:VsBrushes.ToolWindowTextKey}}" />
         </Style>
     </ui:DialogWindow.Resources>
-    <Grid x:Name="MainGrid" Width="725" Height="266">
+    <Grid x:Name="MainGrid" Width="725" Height="230">
         <!-- Main label of the form -->
         <Label Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogLabelStyleKey}}" 
 			   x:Name="MainLabel" 
@@ -65,21 +65,6 @@
         </ComboBox>
 
         <!-- Vendor tag to be used -->
-        <Label Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogLabelStyleKey}}" 
-			   x:Name="VendorTagLabel" 
-			   Content="Vendor Tag" 
-			   HorizontalAlignment="Left" 
-			   Margin="10,119,0,0" 
-			   VerticalAlignment="Top"/>
-        <TextBox Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogTextBoxStyleKey}}" 
-				 x:Name="VendorTagTextBox" 
-				 HorizontalAlignment="Left" 
-				 Margin="145,120,0,0" 
- 				 Text="tag" 
-				 Height="24"
-				 Padding="0,3,0,0"
-				 VerticalAlignment="Top" 
-				 Width="200"/>
 
         <!-- The team name of the authors -->
         <Label Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogLabelStyleKey}}" 
@@ -125,12 +110,12 @@
         <TextBox Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogTextBoxStyleKey}}" 
 				 x:Name="TeamUrlTextBox" 
 				 HorizontalAlignment="Left" 
-				 Margin="480,0,0,0" 
+				 Margin="480,120,0,0" 
  				 Text="YourUrl@domain.com" 
 				 Height="24"
 				 Padding="0,3,0,0"
 				 TextWrapping="Wrap"
-				 VerticalAlignment="Center" 
+				 VerticalAlignment="Top" 
 				 Width="235"/>
 
         <!-- Features -->
@@ -138,26 +123,33 @@
 			   x:Name="FeaturesLabel" 
 			   Content="Features" 
 			   HorizontalAlignment="Left" 
-			   Margin="10,154,0,0" 
+			   Margin="10,124,0,0" 
 			   VerticalAlignment="Top"/>
         <CheckBox Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogCheckBoxStyleKey}}" 
 				  x:Name="AuthCheckbox"  
 				  Content="Use OAuth Authentication" 
-				  HorizontalAlignment="Left" Margin="145,160,0,0" 
+				  HorizontalAlignment="Left" Margin="145,130,0,0" 
 				  VerticalAlignment="Top" 
 				  IsChecked="True"/>
         <CheckBox Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogCheckBoxStyleKey}}"
 				  x:Name="RQLCheckbox"  
 				  Content="Incorporate RQL" 
 				  HorizontalAlignment="Left"
-				  Margin="145,184,0,0"
+				  Margin="145,154,0,0"
+				  VerticalAlignment="Top" IsChecked="True"/>
+
+        <CheckBox Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogCheckBoxStyleKey}}"
+				  x:Name="HALCheckbox"  
+				  Content="Incorporate HAL" 
+				  HorizontalAlignment="Left"
+				  Margin="145,178,0,0"
 				  VerticalAlignment="Top" IsChecked="True"/>
 
         <!-- Ok and Cancel buttons-->
         <Button Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogButtonStyleKey}}" 
 				x:Name="OKButton" Content="OK" 
 				HorizontalAlignment="Left"
-				Margin="553,216,0,0" 
+				Margin="553,195,0,0" 
 				VerticalAlignment="Top" 
 				Width="66" 
 				Click="OnOK"/>
@@ -165,7 +157,7 @@
 				x:Name="CancelButton" 
 				Content="Cancel" 
 				HorizontalAlignment="Left"
-				Margin="635,216,0,0" 
+				Margin="635,195,0,0" 
 				VerticalAlignment="Top" 
 				Click="OnCancel" 
 				Width="65"/>

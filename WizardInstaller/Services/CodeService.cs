@@ -139,7 +139,7 @@ namespace WizardInstaller.Template.Services
 		}
 
 		public void AddEntityMap(EntityDBMap entityDBMap)
-        {
+		{
 			ThreadHelper.ThrowIfNotOnUIThread();
 			var mDte = Package.GetGlobalService(typeof(SDTE)) as DTE2;
 			var solutionPath = mDte.Solution.Properties.Item("Path").Value.ToString();
@@ -152,10 +152,10 @@ namespace WizardInstaller.Template.Services
 				mappings = JsonConvert.DeserializeObject<EntityDBMapping>(json);
 			}
 
-			foreach ( var map in mappings.Maps)
-            {
-				if ( map.EntityClassName.Equals(entityDBMap.EntityClassName, StringComparison.OrdinalIgnoreCase))
-                {
+			foreach (var map in mappings.Maps)
+			{
+				if (map.EntityClassName.Equals(entityDBMap.EntityClassName, StringComparison.OrdinalIgnoreCase))
+				{
 					map.ConnectionString = entityDBMap.ConnectionString;
 					map.EntitySchema = entityDBMap.EntitySchema;
 					map.EntityTable = entityDBMap.EntityTable;
@@ -163,8 +163,8 @@ namespace WizardInstaller.Template.Services
 
 					SaveEntityMap(mappings);
 					return;
-                }
-            }
+				}
+			}
 
 			var theList = mappings.Maps.ToList();
 			theList.Add(entityDBMap);
@@ -173,7 +173,7 @@ namespace WizardInstaller.Template.Services
 		}
 
 		public void SaveEntityMap(EntityDBMapping theMap)
-        {
+		{
 			ThreadHelper.ThrowIfNotOnUIThread();
 			var mDte = Package.GetGlobalService(typeof(SDTE)) as DTE2;
 			var solutionPath = mDte.Solution.Properties.Item("Path").Value.ToString();
@@ -181,7 +181,7 @@ namespace WizardInstaller.Template.Services
 
 			var json = JsonConvert.SerializeObject(theMap);
 			File.WriteAllText(mappingPath, json);
-        }
+		}
 
 
 		/// <summary>
@@ -388,65 +388,6 @@ namespace WizardInstaller.Template.Services
 			}
 		}
 
-		public string Moniker
-		{
-			get
-			{
-				ThreadHelper.ThrowIfNotOnUIThread();
-
-				var results = new List<string>();
-				string jsonText;
-
-				if (_globalSettingsFile == null)
-				{
-					var mDte = Package.GetGlobalService(typeof(SDTE)) as DTE2;
-					_globalSettingsFile = mDte.Solution.FindProjectItem("appSettings.json");
-				}
-
-				if (!_globalSettingsFile.IsOpen)
-				{
-					var filePath = _globalSettingsFile.Properties.OfType<Property>().FirstOrDefault(p =>
-					{
-						ThreadHelper.ThrowIfNotOnUIThread();
-						return p.Name.Equals("FullPath");
-					});
-
-					if (filePath != null)
-					{
-						var thePath = filePath.Value.ToString();
-						jsonText = File.ReadAllText(thePath);
-					}
-					else
-					{
-						_globalSettingsFile.Open();
-
-						TextSelection sel = (TextSelection)_globalSettingsFile.Document.Selection;
-						sel.SelectAll();
-						jsonText = sel.Text;
-
-						_globalSettingsFile.Document.Close();
-					}
-				}
-				else
-				{
-					TextSelection sel = (TextSelection)_globalSettingsFile.Document.Selection;
-					sel.SelectAll();
-					jsonText = sel.Text;
-				}
-
-				var settings = JObject.Parse(jsonText);
-
-				if (settings["ApiSettings"] == null)
-					return "acme";
-
-				var apiSettings = settings["ApiSettings"].Value<JObject>();
-
-				if (apiSettings["CompanyName"] == null)
-					return "acme";
-
-				return apiSettings["CompanyName"].Value<string>();
-			}
-		}
 
 		public List<EntityClass> EntityClassList
 		{
@@ -774,6 +715,51 @@ namespace WizardInstaller.Template.Services
 					}
 				}
 			}
+		}
+
+		public bool GetUseRql()
+		{
+			ThreadHelper.ThrowIfNotOnUIThread();
+			var mDte = (DTE2)Package.GetGlobalService(typeof(SDTE));
+			var projectItem = mDte.Solution.FindProjectItem("Program.cs");
+
+			if (projectItem != null)
+			{
+				if (projectItem.Kind == Constants.vsProjectItemKindPhysicalFile &&
+										 projectItem.FileCodeModel != null &&
+										 projectItem.FileCodeModel.Language == CodeModelLanguageConstants.vsCMLanguageCSharp &&
+										 Convert.ToInt32(projectItem.Properties.Item("BuildAction").Value) == 1)
+				{
+					FileCodeModel2 programCode = (FileCodeModel2)projectItem.FileCodeModel;
+
+					return programCode.CodeElements.OfType<CodeImport>().FirstOrDefault(c => c.Namespace.Equals("Tense.Rql")) != null;
+
+				}
+			}
+
+			return false;
+		}
+
+		public bool GetUseHal()
+		{
+			ThreadHelper.ThrowIfNotOnUIThread();
+			var mDte = (DTE2)Package.GetGlobalService(typeof(SDTE));
+			var projectItem = mDte.Solution.FindProjectItem("Program.cs");
+
+			if (projectItem != null)
+			{
+				if (projectItem.Kind == Constants.vsProjectItemKindPhysicalFile &&
+										 projectItem.FileCodeModel != null &&
+										 projectItem.FileCodeModel.Language == CodeModelLanguageConstants.vsCMLanguageCSharp &&
+										 Convert.ToInt32(projectItem.Properties.Item("BuildAction").Value) == 1)
+				{
+					FileCodeModel2 programCode = (FileCodeModel2)projectItem.FileCodeModel;
+
+					return programCode.CodeElements.OfType<CodeImport>().FirstOrDefault(c => c.Namespace.Equals("Tense.Hal")) != null;
+				}
+			}
+
+			return false;
 		}
 
 		public void LoadEntityClassList(string folder = "")
@@ -4745,314 +4731,109 @@ namespace WizardInstaller.Template.Services
 			foreach (var entityMember in entityColumns)
 			{
 				//  Now, construct the mapping
-				if (entityMember.IsPrimaryKey)
+				//  Is there a corresponding Entity Column for this resource Column?
+				var resourceMember = resourceModel.Columns.FirstOrDefault(u =>
+														u.ColumnName.Equals(entityMember.ColumnName, StringComparison.OrdinalIgnoreCase));
+
+				var matchedColumn = unmappedMembers.FirstOrDefault(c => c.Equals(entityMember.EntityName, StringComparison.OrdinalIgnoreCase));
+
+				if (!string.IsNullOrWhiteSpace(matchedColumn))
 				{
-					var matchedColumn = unmappedMembers.FirstOrDefault(c => c.Equals(entityMember.EntityName, StringComparison.OrdinalIgnoreCase));
-
-					if (!string.IsNullOrWhiteSpace(matchedColumn))
+					unmappedMembers.Remove(matchedColumn);
+					//  Construct a data row for this entity member, and populate the column name
+					var entityProfile = new EntityProfile
 					{
-						unmappedMembers.Remove(matchedColumn);
-
-						//  Construct a data row for this entity member, and populate the column name
-						var entityProfile = new EntityProfile
-						{
-							EntityColumnName = entityMember.ColumnName
-						};
-
-						//  This entity member is part of the primary key. In the resource model, the primary
-						//  key is contained in the href. Therefore, the formula to extract the value of this
-						//  entity member is going to take the form: source.Href.GetId<datatype>(n), were datatype
-						//  is the datatype of this entity member, and n is the position of this member in the 
-						//  Href, counting backwards.
-						//
-						//  For example, suppose we have the Href = /resourcename/id/10/20
-						//  Where 10 is the dealer id and it is an int.
-						//  And 20 is the user id and it is a short.
-						//
-						//  To extract the dealer id, the formula would be: source.Href.GetId<int>(1)
-						//  To extract the user id, the formula would be: source.Href.GetId<short>(0)
-						string dataType = "Unknown";
-
-						//  We're going to need that datatype. Get it here.
-						dataType = entityMember.ModelDataType;
-
-						//  We need the list of all the primary keys in the entity model, so that we know the
-						//  position of this member.
-						var primaryKeys = entityColumns.Where(c => c.IsPrimaryKey);
-
-						if (primaryKeys.Count() == 1)
-						{
-							//  There is only one primary key element, so we don't need to bother with the count.
-							entityProfile.MapFunction = $"source.Href == null ? default : source.Href.GetId<{dataType}>()";
-							entityProfile.ResourceColumns = new string[] { "Href" };
-							entityProfile.IsDefined = true;
-						}
-						else
-						{
-							var formula = new StringBuilder($"source.Href == null ? default : source.Href.GetId<{dataType}>(");
-
-							//  Compute the index and append it to the above formula.
-							if (primaryKeys.Count() > 1)
-							{
-								var index = primaryKeys.Count() - 1;
-
-								foreach (var pk in primaryKeys)
-								{
-									if (pk == entityMember)
-										formula.Append(index.ToString());
-									else
-										index--;
-								}
-							}
-
-							//  Close the formula
-							formula.Append(")");
-							entityProfile.MapFunction = formula.ToString();
-							entityProfile.ResourceColumns = new string[] { "Href" };
-							entityProfile.IsDefined = true;
-						}
-
-						result.Add(entityProfile);
-					}
-				}
-				else if (entityMember.IsForeignKey)
-				{
-					//  This is a special case of a foreign key. The first challenge is to discover which resource member
-					//  is used to represent this foreign key. In all likelyhood, it will be the resource member that has
-					//  the same name as the foreign table that this foreign key represents. It's probably going to be the
-					//  single form, but it could be the plural form. Look for either one.
-					var nnx = new NameNormalizer(entityMember.ForeignTableName);
-					DBColumn resourceMember = null;
-
-					foreach (var rmap in profileMap.ResourceProfiles)
-					{
-						if (rmap.EntityColumnNames != null)
-						{
-							foreach (var entityColumnUsed in rmap.EntityColumnNames)
-							{
-								if (entityColumnUsed.Equals(entityMember.ColumnName, StringComparison.OrdinalIgnoreCase))
-								{
-									var resourceMemberName = rmap.ResourceColumnName;
-									resourceMember = resourceModel.Columns.FirstOrDefault(c =>
-										string.Equals(c.ColumnName, resourceMemberName, StringComparison.OrdinalIgnoreCase));
-
-									break;
-								}
-							}
-						}
-
-						if (resourceMember != null)
-							break;
-					}
+						EntityColumnName = entityMember.ColumnName
+					};
 
 					if (resourceMember != null)
 					{
-						var matchedMember = unmappedMembers.FirstOrDefault(c => c.Equals(entityMember.EntityName));
+						MapResourceDestinationFromSource(entityMember, entityProfile, resourceMember);
+					}
+					else
+					{
+						var rp = profileMap.ResourceProfiles.FirstOrDefault(c => c.MapFunction.IndexOf(entityMember.ColumnName, 0, StringComparison.CurrentCultureIgnoreCase) != -1);
 
-						if (!string.IsNullOrWhiteSpace(matchedMember))
+						if (rp != null)
 						{
-							unmappedMembers.Remove(matchedMember);
-
-							//  Construct a data row for this entity member, and populate the column name
-							var entityProfile = new EntityProfile
+							if (rp.ResourceColumnName.Contains("."))
 							{
-								EntityColumnName = entityMember.ColumnName
-							};
+								var parts = rp.ResourceColumnName.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+								StringBuilder mapFunction = new StringBuilder();
+								StringBuilder parent = new StringBuilder("");
+								string NullValue = "null";
 
-							//  We found a resource member.
-							//
-							//  Foreign keys generally come in one of two forms. Either it is a reference to a primary key
-							//  in a foreign table, or it is an enumeration. If it is a reference to a primary key in a 
-							//  foreign table, then it will be a Uri.
+								var parentModel = GetParentModel(resourceModel, parts);
 
-							if (string.Equals(resourceMember.ModelDataType.ToString(), "uri", StringComparison.OrdinalIgnoreCase))
-							{
-								//  This is an href. First, get the data type.
-								string dataType = entityMember.ModelDataType;
-
-								//  Now, we need the list of entity members that correspond to this resource member.
-								//  To get that, we need to look at the resource mapping.
-
-								//  This is an href. Very much like the primary key, there can be more than one single 
-								//  element in this href. 
-
-								var foreignKeys = entityColumns.Where(c => c.IsForeignKey &&
-													string.Equals(c.ForeignTableName, entityMember.ForeignTableName, StringComparison.OrdinalIgnoreCase));
-
-								if (foreignKeys.Count() == 1)
+								if (parentModel != null)
 								{
-									var foreignKey = foreignKeys.First();
-									entityProfile.MapFunction = $"source.{resourceMember.ColumnName}.GetId<{dataType}>()";
-									entityProfile.ResourceColumns = new string[] { resourceMember.ColumnName };
-									entityProfile.IsDefined = true;
-								}
-								else
-								{
-									var formula = new StringBuilder($"source.{resourceMember.ColumnName}.GetId<{dataType}>(");
-									var foreignKeyList = new List<string>();
+									var parentColumn = parentModel.Columns.FirstOrDefault(c => string.Equals(c.ColumnName, parts[parts.Count() - 1], StringComparison.OrdinalIgnoreCase));
 
-									if (foreignKeys.Count() > 1)
+									if (parentColumn != null)
 									{
-										var index = foreignKeys.Count() - 1;
-
-										foreach (var pk in foreignKeys)
+										if (string.Equals(parentColumn.ModelDataType.ToString(), "string", StringComparison.OrdinalIgnoreCase))
 										{
-											var foreignKey = foreignKeys.ToList()[index];
-											foreignKeyList.Add(foreignKey.ColumnName);
+											NullValue = "string.Empty";
+										}
+										else
+										{
+											var theDataType = Type.GetType(parentColumn.ModelDataType.ToString());
 
-											if (pk == entityMember)
-												formula.Append(index.ToString());
+											if (theDataType != null)
+											{
+												NullValue = "default";
+											}
 											else
-												index--;
+											{
+												NullValue = "default";
+											}
 										}
 									}
+								}
 
-									formula.Append(")");
-									entityProfile.MapFunction = formula.ToString();
-									entityProfile.ResourceColumns = foreignKeyList.ToArray();
-									entityProfile.IsDefined = true;
+								for (int i = 0; i < parts.Count() - 1; i++)
+								{
+									var parentClass = parts[i];
+
+									if (string.IsNullOrWhiteSpace(parent.ToString()))
+										mapFunction.Append($"source.{parentClass} == null ? {NullValue} : ");
+									else
+										mapFunction.Append($"source.{parent}.{parentClass} == null ? {NullValue} : ");
+									parent.Append($"source.{parentClass}");
+
+								}
+
+								mapFunction.Append($"{parent}.{parts[parts.Count() - 1]}");
+								entityProfile.MapFunction = mapFunction.ToString();
+
+								StringBuilder childColumn = new StringBuilder();
+
+								foreach (var p in parts)
+								{
+									if (childColumn.Length > 0)
+										childColumn.Append(".");
+									childColumn.Append(p);
+								}
+
+								var cc = parentModel.Columns.FirstOrDefault(c => string.Equals(c.ColumnName, childColumn.ToString(), StringComparison.OrdinalIgnoreCase));
+								if (cc != null)
+								{
+									entityProfile.ResourceColumns = new string[] { cc.ColumnName };
 								}
 							}
 							else
 							{
-								//  The resource member is not a URI. It should be an enum. If it is, we sould be able to
-								//  find it in our resource models list.
+								StringBuilder mc = new StringBuilder();
 
-								var referenceModel = codeService.GetResourceClass(resourceMember.ModelDataType.ToString());
+								resourceMember = resourceModel.Columns.FirstOrDefault(c =>
+									string.Equals(c.ModelDataType.ToString(), rp.ResourceColumnName, StringComparison.OrdinalIgnoreCase));
 
-								if (referenceModel != null)
-								{
-									if (referenceModel.ResourceType == ResourceType.Enum)
-									{
-										var foreignKeys = entityColumns.Where(c => c.IsForeignKey &&
-											string.Equals(c.ForeignTableName, entityMember.ForeignTableName, StringComparison.OrdinalIgnoreCase));
-
-										//  If the resource member is an enum that represents the value of the primary key of a foreign table,
-										//  then that foreign key can only have one member. If it has more than one member, then this 
-										//  is not the proper mapping.
-										if (foreignKeys.Count() == 1)
-										{
-											string dataType = entityMember.ModelDataType;
-
-											var formula = $"Convert.ChangeType(source.{resourceMember.ColumnName}, source.{resourceMember.ColumnName}.GetTypeCode())";
-											entityProfile.MapFunction = formula.ToString();
-											entityProfile.ResourceColumns = new string[] { "unknown" };
-											entityProfile.IsDefined = false;
-										}
-									}
-								}
-							}
-
-							result.Add(entityProfile);
-						}
-					}
-				}
-				else
-				{
-					//  Is there a corresponding Entity Column for this resource Column?
-					var resourceMember = resourceModel.Columns.FirstOrDefault(u =>
-															u.ColumnName.Equals(entityMember.ColumnName, StringComparison.OrdinalIgnoreCase));
-
-					var matchedColumn = unmappedMembers.FirstOrDefault(c => c.Equals(entityMember.EntityName, StringComparison.OrdinalIgnoreCase));
-
-					if (!string.IsNullOrWhiteSpace(matchedColumn))
-					{
-						unmappedMembers.Remove(matchedColumn);
-						//  Construct a data row for this entity member, and populate the column name
-						var entityProfile = new EntityProfile
-						{
-							EntityColumnName = entityMember.ColumnName
-						};
-
-						if (resourceMember != null)
-						{
-							MapResourceDestinationFromSource(entityMember, entityProfile, resourceMember);
-						}
-						else
-						{
-							var rp = profileMap.ResourceProfiles.FirstOrDefault(c => c.MapFunction.IndexOf(entityMember.ColumnName, 0, StringComparison.CurrentCultureIgnoreCase) != -1);
-
-							if (rp != null)
-							{
-								if (rp.ResourceColumnName.Contains("."))
-								{
-									var parts = rp.ResourceColumnName.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
-									StringBuilder mapFunction = new StringBuilder();
-									StringBuilder parent = new StringBuilder("");
-									string NullValue = "null";
-
-									var parentModel = GetParentModel(resourceModel, parts);
-
-									if (parentModel != null)
-									{
-										var parentColumn = parentModel.Columns.FirstOrDefault(c => string.Equals(c.ColumnName, parts[parts.Count() - 1], StringComparison.OrdinalIgnoreCase));
-
-										if (parentColumn != null)
-										{
-											if (string.Equals(parentColumn.ModelDataType.ToString(), "string", StringComparison.OrdinalIgnoreCase))
-											{
-												NullValue = "string.Empty";
-											}
-											else
-											{
-												var theDataType = Type.GetType(parentColumn.ModelDataType.ToString());
-
-												if (theDataType != null)
-												{
-													NullValue = "default";
-												}
-												else
-												{
-													NullValue = "default";
-												}
-											}
-										}
-									}
-
-									for (int i = 0; i < parts.Count() - 1; i++)
-									{
-										var parentClass = parts[i];
-
-										if (string.IsNullOrWhiteSpace(parent.ToString()))
-											mapFunction.Append($"source.{parentClass} == null ? {NullValue} : ");
-										else
-											mapFunction.Append($"source.{parent}.{parentClass} == null ? {NullValue} : ");
-										parent.Append($"source.{parentClass}");
-
-									}
-
-									mapFunction.Append($"{parent}.{parts[parts.Count() - 1]}");
-									entityProfile.MapFunction = mapFunction.ToString();
-
-									StringBuilder childColumn = new StringBuilder();
-
-									foreach (var p in parts)
-									{
-										if (childColumn.Length > 0)
-											childColumn.Append(".");
-										childColumn.Append(p);
-									}
-
-									var cc = parentModel.Columns.FirstOrDefault(c => string.Equals(c.ColumnName, childColumn.ToString(), StringComparison.OrdinalIgnoreCase));
-									if (cc != null)
-									{
-										entityProfile.ResourceColumns = new string[] { cc.ColumnName };
-									}
-								}
-								else
-								{
-									StringBuilder mc = new StringBuilder();
-
-									resourceMember = resourceModel.Columns.FirstOrDefault(c =>
-										string.Equals(c.ModelDataType.ToString(), rp.ResourceColumnName, StringComparison.OrdinalIgnoreCase));
-
-									MapResourceDestinationFromSource(entityMember, entityProfile, resourceMember);
-								}
+								MapResourceDestinationFromSource(entityMember, entityProfile, resourceMember);
 							}
 						}
-
-						result.Add(entityProfile);
 					}
+
+					result.Add(entityProfile);
 				}
 			}
 
@@ -5073,229 +4854,80 @@ namespace WizardInstaller.Template.Services
 
 			foreach (var resourceMember in resourceModel.Columns)
 			{
-				//  If this is the Href (the primary key), then the columns that comprise it are all the primary
-				//  key values of the entity in the order in which they appear in the entity
-				if (resourceMember.IsPrimaryKey)
+				//  Is there an existing entityMember whos column name matches the resource member?
+				var entityMember = entityColumns.FirstOrDefault(u =>
+					string.Equals(u.ColumnName, resourceMember.ColumnName, StringComparison.OrdinalIgnoreCase));
+
+				if (entityMember != null)
 				{
-					var matchedColumn = unmappedMembers.FirstOrDefault(c => c.Equals(resourceMember.ColumnName));
-
-					if (!string.IsNullOrWhiteSpace(matchedColumn))
+					//  There is, just assign it.
+					var resourceProfile = new ResourceProfile
 					{
-						unmappedMembers.Remove(matchedColumn);
+						ResourceColumnName = resourceMember.ColumnName
+					};
 
-						var resourceProfile = new ResourceProfile
-						{
-							ResourceColumnName = resourceMember.ColumnName
-						};
-
-						var primaryKeys = entityColumns.Where(c => c.IsPrimaryKey);
-						var formula = new StringBuilder($"new Uri(rootUrl, $\"{nn.PluralCamelCase}/id");
-						var sourceColumns = new List<string>();
-
-						foreach (var entityMember in primaryKeys)
-						{
-							formula.Append($"/{{source.{entityMember.ColumnName}}}");
-							sourceColumns.Add(entityMember.ColumnName);
-						}
-
-						formula.Append("\")");
-						resourceProfile.MapFunction = formula.ToString();
-						resourceProfile.EntityColumnNames = sourceColumns.ToArray();
-						resourceProfile.IsDefined = true;
-						result.Add(resourceProfile);
-
-					}
-				}
-
-				//  If this column represents a foreign key, then the entity members that comprise it will be
-				//  those entity members that are foreign keys, that have the same table name as this members name.
-				else if (resourceMember.IsForeignKey)
-				{
-					//  A foreign key is commonly represented in one of two forms. Either it is a hypertext reference
-					//  (an href), in which case the resource member should be a Uri, or it is an enum.
-
-					//  If it is an enum, there will be a resource model of type enum, whose corresponding entity model
-					//  will point to the foreign table.
-
-					var enumResource = codeService.GetResourceClassBySchema(resourceModel.Entity.SchemaName, resourceMember.ForeignTableName);
-
-					if (enumResource != null && enumResource.ResourceType == ResourceType.Enum)
-					{
-						var matchedColumn = unmappedMembers.FirstOrDefault(c => c.Equals(resourceMember.ColumnName));
-
-						if (!string.IsNullOrWhiteSpace(matchedColumn))
-						{
-							unmappedMembers.Remove(matchedColumn);
-
-							var resourceProfile = new ResourceProfile
-							{
-								ResourceColumnName = resourceMember.ColumnName
-							};
-
-							var sourceColumns = new List<string>();
-							var formula = $"({enumResource.ClassName})source.{resourceMember.ColumnName}";
-							//  Need to think about this...
-							sourceColumns.Add(enumResource.Entity.ClassName);
-							resourceProfile.MapFunction = formula.ToString();
-							resourceProfile.EntityColumnNames = sourceColumns.ToArray();
-							resourceProfile.IsDefined = true;
-							result.Add(resourceProfile);
-						}
-					}
-					else
-					{
-						if (string.Equals(resourceMember.ModelDataType.ToString(), "Uri", StringComparison.OrdinalIgnoreCase))
-						{
-							var matchedColumn = unmappedMembers.FirstOrDefault(c => c.Equals(resourceMember.ColumnName));
-
-							if (!string.IsNullOrWhiteSpace(matchedColumn))
-							{
-								unmappedMembers.Remove(matchedColumn);
-
-								var resourceProfile = new ResourceProfile
-								{
-									ResourceColumnName = resourceMember.ColumnName
-								};
-
-								var nnn = new NameNormalizer(resourceMember.ColumnName);
-								var foreignKeys = entityColumns.Where(c => c.IsForeignKey &&
-									string.Equals(c.ForeignTableName, resourceMember.ForeignTableName, StringComparison.Ordinal));
-
-								var formula = new StringBuilder($"new Uri(rootUrl, $\"{nnn.PluralCamelCase}/id");
-								var sourceColumns = new List<string>();
-
-								foreach (var entityMember in foreignKeys)
-								{
-									formula.Append($"/{{source.{entityMember.ColumnName}}}");
-									sourceColumns.Add(entityMember.ColumnName);
-								}
-
-								formula.Append("\")");
-								resourceProfile.MapFunction = formula.ToString();
-								resourceProfile.EntityColumnNames = sourceColumns.ToArray();
-								resourceProfile.IsDefined = true;
-								result.Add(resourceProfile);
-							}
-						}
-						else
-						{
-							//  This is probably an Enum. If it is, we should be able to find it in the list of 
-							//  resource models.
-							var referenceModel = codeService.GetResourceClass(resourceMember.ModelDataType);
-
-							if (referenceModel != null)
-							{
-								if (referenceModel.ResourceType == ResourceType.Enum)
-								{
-									var matchedColumn = unmappedMembers.FirstOrDefault(c => c.Equals(resourceMember.ColumnName));
-
-									if (!string.IsNullOrWhiteSpace(matchedColumn))
-									{
-										unmappedMembers.Remove(matchedColumn);
-
-										var resourceProfile = new ResourceProfile
-										{
-											ResourceColumnName = resourceMember.ColumnName
-										};
-
-										var nnn = new NameNormalizer(resourceMember.ColumnName);
-										var foreignKeys = entityColumns.Where(c => c.IsForeignKey &&
-												 (string.Equals(c.ForeignTableName, nnn.SingleForm, StringComparison.Ordinal) ||
-												   string.Equals(c.ForeignTableName, nnn.PluralForm, StringComparison.Ordinal)));
-
-										if (foreignKeys.Count() == 1)
-										{
-											var entityMember = foreignKeys.ToList()[0];
-
-											var formula = $"({referenceModel.ClassName}) source.{entityMember.ColumnName}";
-											resourceProfile.MapFunction = formula.ToString();
-											resourceProfile.EntityColumnNames = new string[] { entityMember.ColumnName };
-											resourceProfile.IsDefined = true;
-											result.Add(resourceProfile);
-										}
-									}
-								}
-							}
-						}
-					}
+					MapEntityDestinationFromSource(resourceMember, ref resourceProfile, entityMember);
+					result.Add(resourceProfile);
 				}
 				else
 				{
-					//  Is there an existing entityMember whos column name matches the resource member?
-					var entityMember = entityColumns.FirstOrDefault(u =>
-						string.Equals(u.ColumnName, resourceMember.ColumnName, StringComparison.OrdinalIgnoreCase));
+					//  Is this resource member a class?
+					var model = codeService.GetResourceClass(resourceMember.ModelDataType.ToString());
 
-					if (entityMember != null)
+					if (model != null)
 					{
-						//  There is, just assign it.
 						var resourceProfile = new ResourceProfile
 						{
 							ResourceColumnName = resourceMember.ColumnName
 						};
+						//  It is a class, instantiate the class
+						resourceProfile.MapFunction = $"new {model.ClassName}()";
 
-						MapEntityDestinationFromSource(resourceMember, ref resourceProfile, entityMember);
+						//  Now, go map all of it's children
+						MapEntityChildMembers(resourceMember, resourceProfile, model, resourceMember.ColumnName);
 						result.Add(resourceProfile);
 					}
 					else
 					{
-						//  Is this resource member a class?
-						var model = codeService.GetResourceClass(resourceMember.ModelDataType.ToString());
-
-						if (model != null)
+						if (resourceMember.ModelDataType.Contains("[]"))
 						{
 							var resourceProfile = new ResourceProfile
 							{
 								ResourceColumnName = resourceMember.ColumnName
 							};
-							//  It is a class, instantiate the class
-							resourceProfile.MapFunction = $"new {model.ClassName}()";
-
-							//  Now, go map all of it's children
-							MapEntityChildMembers(resourceMember, resourceProfile, model, resourceMember.ColumnName);
+							var className = resourceMember.ModelDataType.Remove(resourceMember.ModelDataType.IndexOf('['), 2);
+							resourceProfile.MapFunction = $"Array.Empty<{className}>()";
+							resourceProfile.EntityColumnNames = Array.Empty<string>();
+							resourceProfile.IsDefined = true;
 							result.Add(resourceProfile);
 						}
-						else
+						else if (resourceMember.ModelDataType.Contains("List<"))
 						{
-							if (resourceMember.ModelDataType.Contains("[]"))
+							var resourceProfile = new ResourceProfile
 							{
-								var resourceProfile = new ResourceProfile
-								{
-									ResourceColumnName = resourceMember.ColumnName
-								};
-								var className = resourceMember.ModelDataType.Remove(resourceMember.ModelDataType.IndexOf('['), 2);
-								resourceProfile.MapFunction = $"Array.Empty<{className}>()";
-								resourceProfile.EntityColumnNames = Array.Empty<string>();
-								resourceProfile.IsDefined = true;
-								result.Add(resourceProfile);
-							}
-							else if (resourceMember.ModelDataType.Contains("List<"))
+								ResourceColumnName = resourceMember.ColumnName
+							};
+							var index = resourceMember.ModelDataType.IndexOf('<');
+							var count = resourceMember.ModelDataType.IndexOf('>') - index;
+							var className = resourceMember.ModelDataType.Substring(index + 1, count - 1);
+							resourceProfile.MapFunction = $"new List<{className}>()";
+							resourceProfile.EntityColumnNames = Array.Empty<string>();
+							resourceProfile.IsDefined = true;
+							result.Add(resourceProfile);
+						}
+						else if (resourceMember.ModelDataType.Contains("IEnumerable<"))
+						{
+							var resourceProfile = new ResourceProfile
 							{
-								var resourceProfile = new ResourceProfile
-								{
-									ResourceColumnName = resourceMember.ColumnName
-								};
-								var index = resourceMember.ModelDataType.IndexOf('<');
-								var count = resourceMember.ModelDataType.IndexOf('>') - index;
-								var className = resourceMember.ModelDataType.Substring(index + 1, count - 1);
-								resourceProfile.MapFunction = $"new List<{className}>()";
-								resourceProfile.EntityColumnNames = Array.Empty<string>();
-								resourceProfile.IsDefined = true;
-								result.Add(resourceProfile);
-							}
-							else if (resourceMember.ModelDataType.Contains("IEnumerable<"))
-							{
-								var resourceProfile = new ResourceProfile
-								{
-									ResourceColumnName = resourceMember.ColumnName
-								};
-								var index = resourceMember.ModelDataType.IndexOf('<');
-								var count = resourceMember.ModelDataType.IndexOf('>') - index;
-								var className = resourceMember.ModelDataType.Substring(index + 1, count - 1);
-								resourceProfile.MapFunction = $"Array.Empty<{className}>()";
-								resourceProfile.EntityColumnNames = Array.Empty<string>();
-								resourceProfile.IsDefined = true;
-								result.Add(resourceProfile);
-							}
+								ResourceColumnName = resourceMember.ColumnName
+							};
+							var index = resourceMember.ModelDataType.IndexOf('<');
+							var count = resourceMember.ModelDataType.IndexOf('>') - index;
+							var className = resourceMember.ModelDataType.Substring(index + 1, count - 1);
+							resourceProfile.MapFunction = $"Array.Empty<{className}>()";
+							resourceProfile.EntityColumnNames = Array.Empty<string>();
+							resourceProfile.IsDefined = true;
+							result.Add(resourceProfile);
 						}
 					}
 				}

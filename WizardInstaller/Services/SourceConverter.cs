@@ -488,11 +488,11 @@ namespace WizardInstaller.Template.Services
             }
             else if (string.Equals(sourceMember.ModelDataType, "DateTime", StringComparison.OrdinalIgnoreCase))
             {
-                return $"new DateTimeOffset(source.{sourceMember.ColumnName})";
+                return $"new DateTimeOffset(source.{sourceMember.ColumnName}).ToLocalTime()";
             }
             else if (string.Equals(sourceMember.ModelDataType, "DateTime?", StringComparison.OrdinalIgnoreCase))
             {
-                return $"source.{sourceMember.ColumnName}.HasValue ? new DateTimeOffset(source.{sourceMember.ColumnName}) : default(DateTimeOffset)";
+                return $"source.{sourceMember.ColumnName}.HasValue ? new DateTimeOffset({sourceMember.ColumnName}).ToLocalTime() : default(DateTimeOffset)";
             }
             else if (string.Equals(sourceMember.ModelDataType, "DateTimeOffset", StringComparison.OrdinalIgnoreCase))
             {
@@ -527,11 +527,11 @@ namespace WizardInstaller.Template.Services
             }
             else if (string.Equals(sourceMember.ModelDataType, "DateTime", StringComparison.OrdinalIgnoreCase))
             {
-                return $"(DateTimeOffset?) new DateTimeOffset(source.{sourceMember.ColumnName})";
+                return $"(DateTimeOffset?) new DateTimeOffset(source.{sourceMember.ColumnName}).ToLocalTime()";
             }
             else if (string.Equals(sourceMember.ModelDataType, "DateTime?", StringComparison.OrdinalIgnoreCase))
             {
-                return $"source.{sourceMember.ColumnName}.HasValue ? (DateTimeOffset?) new DateTimeOffset(source.{sourceMember.ColumnName}.Value) : null";
+                return $"source.{sourceMember.ColumnName}.HasValue ? (DateTimeOffset?) new DateTimeOffset(source.{sourceMember.ColumnName}.Value).ToLocalTime() : null";
             }
             else if (string.Equals(sourceMember.ModelDataType, "DateTimeOffset", StringComparison.OrdinalIgnoreCase))
             {
@@ -566,11 +566,11 @@ namespace WizardInstaller.Template.Services
             }
             else if (string.Equals(sourceMember.ModelDataType, "DateTimeOffset", StringComparison.OrdinalIgnoreCase))
             {
-                return $"source.{sourceMember.ColumnName}.DateTime";
+                return $"source.{sourceMember.ColumnName}.UtcDateTime";
             }
             else if (string.Equals(sourceMember.ModelDataType, "DateTimeOffset?", StringComparison.OrdinalIgnoreCase))
             {
-                return $"source.{sourceMember.ColumnName}.HasValue ? source.{sourceMember.ColumnName}.Value.DateTime : default(DateTime)";
+                return $"source.{sourceMember.ColumnName}.HasValue ? source.{sourceMember.ColumnName}.Value.UtcDateTime : default(DateTime)";
             }
             else if (string.Equals(sourceMember.ModelDataType, "DateTime", StringComparison.OrdinalIgnoreCase))
             {
@@ -617,11 +617,11 @@ namespace WizardInstaller.Template.Services
             }
             else if (string.Equals(sourceMember.ModelDataType, "DateTimeOffset", StringComparison.OrdinalIgnoreCase))
             {
-                return $"(DateTime?) source.{sourceMember.ColumnName}.DateTime";
+                return $"(DateTime?) source.{sourceMember.ColumnName}.UtcDateTime";
             }
             else if (string.Equals(sourceMember.ModelDataType, "DateTimeOffset?", StringComparison.OrdinalIgnoreCase))
             {
-                return $"source.{sourceMember.ColumnName}.HasValue ? (DateTime?) source.{sourceMember.ColumnName}.Value.DateTime : null";
+                return $"source.{sourceMember.ColumnName}.HasValue ? (DateTime?) source.{sourceMember.ColumnName}.Value.UtcDateTime : null";
             }
             else if (string.Equals(sourceMember.ModelDataType, "DateTime", StringComparison.OrdinalIgnoreCase))
             {

@@ -18,7 +18,6 @@ namespace REST.Template.Dialogs
 		public string TeamName { get; set; }
 		public string TeamEmail { get; set; }
 		public string TeamUrl { get; set; }
-		public string VendorTag { get; set; }
 
 		public NewProjectDialog()
         {
@@ -48,7 +47,6 @@ namespace REST.Template.Dialogs
 			TeamNameTextBox.Text = TeamName;
 			TeamEmailTextBox.Text = TeamEmail;
 			TeamUrlTextBox.Text = TeamUrl;
-			VendorTagTextBox.Text = VendorTag; 
 		}
 
 		private void VSColorTheme_ThemeChanged(ThemeChangedEventArgs e)
@@ -119,7 +117,6 @@ namespace REST.Template.Dialogs
 			TeamName = TeamNameTextBox.Text;
 			TeamEmail = TeamEmailTextBox.Text;
 			TeamUrl = TeamUrlTextBox.Text;
-			VendorTag = VendorTagTextBox.Text;
 
 			DialogResult = true;
 			Close();
@@ -140,22 +137,12 @@ namespace REST.Template.Dialogs
 					VSColorTheme.ThemeChanged -= this.VSColorTheme_ThemeChanged;
 				}
 
-				// TODO: free unmanaged resources (unmanaged objects) and override finalizer
-				// TODO: set large fields to null
 				disposedValue = true;
             }
         }
 
-        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-        // ~COFRSNewProjectDialog()
-        // {
-        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        //     Dispose(disposing: false);
-        // }
-
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }

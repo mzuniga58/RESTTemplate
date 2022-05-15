@@ -98,6 +98,8 @@ namespace WizardInstaller.Template.Wizards
 
                         string model;
 
+                        bool useRql = codeService.GetUseRql();
+
                         waitDialog.UpdateProgress($"Building resource model",
                                                   $"Building {replacementsDictionary["$safeitemname$"]}",
                                                   $"Building {replacementsDictionary["$safeitemname$"]}",
@@ -113,10 +115,16 @@ namespace WizardInstaller.Template.Wizards
                         else
                             model = standardEmitter.EmitResourceModel(replacementsDictionary["$safeitemname$"],
                                                                       entityModel,
+                                                                      useRql,
                                                                       replacementsDictionary);
+
+
+                        var orchestrationNamespace = codeService.FindOrchestrationNamespace();
 
                         replacementsDictionary.Add("$model$", model);
                         replacementsDictionary.Add("$entitynamespace$", entityModel.Namespace);
+                        replacementsDictionary.Add("$orchestrationnamespace$", orchestrationNamespace);
+                        replacementsDictionary.Add("$userql$", useRql.ToString());
 
                         waitDialog.EndWaitDialog(out int usercancel);
                     }

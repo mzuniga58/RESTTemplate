@@ -10,12 +10,13 @@ namespace WizardInstaller.Template.Services
     {
         #region Properties
         string ConnectionString { get; set; }
-        string Moniker { get; }
         DBServerType DefaultServerType { get; }
         List<string> Policies { get; }
         ProjectFolder InstallationFolder { get; }
         List<EntityClass> EntityClassList { get; }
         List<ResourceClass> ResourceClassList { get; }
+        bool GetUseRql();
+        bool GetUseHal();
         #endregion
 
         ProjectMapping LoadProjectMapping();

@@ -56,6 +56,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Services\HalConfiguration.cs" />
     <None Include="appSettings.Production.json" />
     <None Include="appSettings.QA.json" />
     <None Include="appSettings.Staging.json" />

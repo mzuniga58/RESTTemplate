@@ -17,274 +17,6 @@ namespace WizardInstaller.Template.Services
 {
 	internal class Emitter
 	{
-		public string EmitExampleModel(ICodeService codeService, ResourceClass resourceModel, ProfileMap profileMap, string exampleClassName, DBServerType serverType, string connectionString)
-		{
-			ThreadHelper.ThrowIfNotOnUIThread();
-			var results = new StringBuilder();
-
-			#region Patch Example
-			//	Generate the patch example class
-			results.AppendLine("\t///\t<summary>");
-
-			if (resourceModel.ClassName.StartsWith("a", StringComparison.OrdinalIgnoreCase) ||
-				resourceModel.ClassName.StartsWith("e", StringComparison.OrdinalIgnoreCase) ||
-				resourceModel.ClassName.StartsWith("i", StringComparison.OrdinalIgnoreCase) ||
-				resourceModel.ClassName.StartsWith("o", StringComparison.OrdinalIgnoreCase) ||
-				resourceModel.ClassName.StartsWith("u", StringComparison.OrdinalIgnoreCase))
-				results.AppendLine($"\t///\tGenerates an example model of a patch command affecting an <see cref=\"{resourceModel.ClassName}\"/> resource.");
-			else
-				results.AppendLine($"\t///\tGenerates an example model of a patch command affecting a <see cref=\"{resourceModel.ClassName}\"/> resource.");
-
-			results.AppendLine("\t///\t</summary>");
-			results.AppendLine($"\tpublic class {resourceModel.ClassName}PatchExample : IExamplesProvider<IEnumerable<PatchCommand>>");
-			results.AppendLine("\t{");
-
-			results.AppendLine("\t\t///\t<summary>");
-			if (resourceModel.ClassName.StartsWith("a", StringComparison.OrdinalIgnoreCase) ||
-				resourceModel.ClassName.StartsWith("e", StringComparison.OrdinalIgnoreCase) ||
-				resourceModel.ClassName.StartsWith("i", StringComparison.OrdinalIgnoreCase) ||
-				resourceModel.ClassName.StartsWith("o", StringComparison.OrdinalIgnoreCase) ||
-				resourceModel.ClassName.StartsWith("u", StringComparison.OrdinalIgnoreCase))
-				results.AppendLine($"\t\t///\tGenerates an example model of a patch command affecting an <see cref=\"{resourceModel.ClassName}\"/> resource.");
-			else
-				results.AppendLine($"\t\t///\tGenerates an example model of a patch command affecting a <see cref=\"{resourceModel.ClassName}\"/> resource.");
-
-			results.AppendLine("\t\t///\t</summary>");
-
-			if (resourceModel.ClassName.StartsWith("a", StringComparison.OrdinalIgnoreCase) ||
-				resourceModel.ClassName.StartsWith("e", StringComparison.OrdinalIgnoreCase) ||
-				resourceModel.ClassName.StartsWith("i", StringComparison.OrdinalIgnoreCase) ||
-				resourceModel.ClassName.StartsWith("o", StringComparison.OrdinalIgnoreCase) ||
-				resourceModel.ClassName.StartsWith("u", StringComparison.OrdinalIgnoreCase))
-				results.AppendLine($"\t\t///\t<returns>An example model of a patch command affecting an <see cref=\"{resourceModel.ClassName}\"/> resource.</returns>");
-			else
-				results.AppendLine($"\t\t///\t<returns>An example model of a patch command affecting a <see cref=\"{resourceModel.ClassName}\"/> resource.</returns>");
-
-			results.AppendLine($"\t\tpublic IEnumerable<PatchCommand> GetExamples()");
-			results.AppendLine("\t\t{");
-
-			results.AppendLine("\t\t\tvar results = new List<PatchCommand> {");
-
-			var exampleModel = codeService.GetExampleModel(0, resourceModel, serverType, connectionString);
-			var entityJson = JObject.Parse(exampleModel);
-			var count = 0;
-
-			foreach (var property in entityJson.Children())
-			{
-				switch (count)
-				{
-					case 1:
-						{
-							results.AppendLine("\t\t\t\tnew PatchCommand {");
-							results.AppendLine("\t\t\t\t\tOp = \"replace\",");
-							results.AppendLine($"\t\t\t\t\tPath = \"{property.Path}\",");
-
-							if (property.First.Type == JTokenType.Null)
-								results.AppendLine($"\t\t\t\t\tValue = null");
-							else if (property.First.Type == JTokenType.String ||
-									 property.First.Type == JTokenType.Date ||
-									 property.First.Type == JTokenType.Guid ||
-									 property.First.Type == JTokenType.TimeSpan)
-								results.AppendLine($"\t\t\t\t\tValue = \"{((string)property.Value<JProperty>())}\"");
-							else if (property.First.Type == JTokenType.Integer)
-								results.AppendLine($"\t\t\t\t\tValue = \"{((long)property.Value<JProperty>())}\"");
-							else if (property.First.Type == JTokenType.Float)
-								results.AppendLine($"\t\t\t\t\tValue = \"{((double)property.Value<JProperty>())}\"");
-							else if (property.First.Type == JTokenType.Boolean)
-							{
-								var theBooleanValue = (bool)property.Value<JProperty>();
-								results.AppendLine($"\t\t\t\t\tValue = {theBooleanValue.ToString().ToLower()}");
-							}
-							else
-								results.AppendLine($"\t\t\t\t\tValue = \"value\"");
-
-							results.AppendLine("\t\t\t\t},");
-						}
-						break;
-
-					case 2:
-						{
-							results.AppendLine("\t\t\t\tnew PatchCommand {");
-							results.AppendLine("\t\t\t\t\tOp = \"add\",");
-							results.AppendLine($"\t\t\t\t\tPath = \"{property.Path}\",");
-
-							if (property.First.Type == JTokenType.Null)
-								results.AppendLine($"\t\t\t\t\tValue = null");
-							else if (property.First.Type == JTokenType.String ||
-									 property.First.Type == JTokenType.Date ||
-									 property.First.Type == JTokenType.Guid ||
-									 property.First.Type == JTokenType.TimeSpan)
-								results.AppendLine($"\t\t\t\t\tValue = \"{((string)property.Value<JProperty>())}\"");
-							else if (property.First.Type == JTokenType.Integer)
-								results.AppendLine($"\t\t\t\t\tValue = \"{((long)property.Value<JProperty>())}\"");
-							else if (property.First.Type == JTokenType.Float)
-								results.AppendLine($"\t\t\t\t\tValue = \"{((double)property.Value<JProperty>())}\"");
-							else if (property.First.Type == JTokenType.Boolean)
-							{
-								var theBooleanValue = (bool)property.Value<JProperty>();
-								results.AppendLine($"\t\t\t\t\tValue = {theBooleanValue.ToString().ToLower()}");
-							}
-							else
-								results.AppendLine($"\t\t\t\t\tValue = \"value\"");
-
-							results.AppendLine("\t\t\t\t},");
-						}
-						break;
-
-					case 3:
-						results.AppendLine("\t\t\t\tnew PatchCommand {");
-						results.AppendLine("\t\t\t\t\tOp = \"delete\",");
-						results.AppendLine($"\t\t\t\t\tPath = \"{property.Path}\",");
-						results.AppendLine("\t\t\t\t}");
-						break;
-				};
-
-				count++;
-			}
-
-			results.AppendLine("\t\t\t};");
-
-			results.AppendLine();
-			results.AppendLine("\t\t\treturn results;");
-
-			results.AppendLine("\t\t}");
-			results.AppendLine("\t}");
-			results.AppendLine();
-			#endregion
-
-			#region Single Example
-			//	Generate the single example class
-			results.AppendLine("\t///\t<summary>");
-
-			if (resourceModel.ClassName.StartsWith("a", StringComparison.OrdinalIgnoreCase) ||
-				resourceModel.ClassName.StartsWith("e", StringComparison.OrdinalIgnoreCase) ||
-				resourceModel.ClassName.StartsWith("i", StringComparison.OrdinalIgnoreCase) ||
-				resourceModel.ClassName.StartsWith("o", StringComparison.OrdinalIgnoreCase) ||
-				resourceModel.ClassName.StartsWith("u", StringComparison.OrdinalIgnoreCase))
-				results.AppendLine($"\t///\tGenerates an example model of an <see cref=\"{resourceModel.ClassName}\"/> resource.");
-			else
-				results.AppendLine($"\t///\tGenerates an example model of a <see cref=\"{resourceModel.ClassName}\"/> resource.");
-
-			results.AppendLine("\t///\t</summary>");
-			results.AppendLine($"\tpublic class {resourceModel.ClassName}Example : IExamplesProvider<{resourceModel.ClassName}>");
-			results.AppendLine("\t{");
-
-			results.AppendLine("\t\tprivate static R MapFrom<R>(Func<R> f)");
-			results.AppendLine("\t\t{");
-			results.AppendLine("\t\t\treturn f();");
-			results.AppendLine("\t\t}");
-			results.AppendLine();
-
-			results.AppendLine("\t\t///\t<summary>");
-			if (resourceModel.ClassName.StartsWith("a", StringComparison.OrdinalIgnoreCase) ||
-				resourceModel.ClassName.StartsWith("e", StringComparison.OrdinalIgnoreCase) ||
-				resourceModel.ClassName.StartsWith("i", StringComparison.OrdinalIgnoreCase) ||
-				resourceModel.ClassName.StartsWith("o", StringComparison.OrdinalIgnoreCase) ||
-				resourceModel.ClassName.StartsWith("u", StringComparison.OrdinalIgnoreCase))
-				results.AppendLine($"\t\t///\tGenerates an example model of an <see cref=\"{resourceModel.ClassName}\"/> resource.");
-			else
-				results.AppendLine($"\t\t///\tGenerates an example model of a <see cref=\"{resourceModel.ClassName}\"/> resource.");
-
-			results.AppendLine("\t\t///\t</summary>");
-
-			if (resourceModel.ClassName.StartsWith("a", StringComparison.OrdinalIgnoreCase) ||
-				resourceModel.ClassName.StartsWith("e", StringComparison.OrdinalIgnoreCase) ||
-				resourceModel.ClassName.StartsWith("i", StringComparison.OrdinalIgnoreCase) ||
-				resourceModel.ClassName.StartsWith("o", StringComparison.OrdinalIgnoreCase) ||
-				resourceModel.ClassName.StartsWith("u", StringComparison.OrdinalIgnoreCase))
-				results.AppendLine($"\t\t///\t<returns>An example model of an <see cref=\"{resourceModel.ClassName}\"/> resource.</returns>");
-			else
-				results.AppendLine($"\t\t///\t<returns>An example model of a <see cref=\"{resourceModel.ClassName}\"/> resource.</returns>");
-
-			results.AppendLine($"\t\tpublic {resourceModel.ClassName} GetExamples()");
-			results.AppendLine("\t\t{");
-
-			results.AppendLine("\t\t\tvar rootUrl = new Uri(Startup.AppConfig.GetRootUrl());");
-			results.AppendLine();
-
-			results.Append("\t\t\tvar singleExample = ");
-			EmitSingleModel("", resourceModel, profileMap, results, entityJson);
-			results.AppendLine(";");
-
-			results.AppendLine();
-			results.AppendLine("\t\t\treturn singleExample;");
-
-			results.AppendLine("\t\t}");
-			results.AppendLine("\t}");
-			results.AppendLine();
-			#endregion
-
-			#region Collection Example
-			//	Generate the collection example class
-			results.AppendLine("\t///\t<summary>");
-			results.AppendLine($"\t///\tGenerates an example model of a collection of <see cref=\"{resourceModel.ClassName}\"/> resources.");
-			results.AppendLine("\t///\t</summary>");
-			results.AppendLine($"\t///\t<returns>An example model of a collection of <see cref=\"{resourceModel.ClassName}\"/> resources.</returns>");
-			results.AppendLine($"\t\tpublic class {resourceModel.ClassName}CollectionExample : IExamplesProvider<PagedCollection<{resourceModel.ClassName}>>");
-			results.AppendLine("\t{");
-
-			results.AppendLine("\t\tprivate static R MapFrom<R>(Func<R> f)");
-			results.AppendLine("\t\t{");
-			results.AppendLine("\t\t\treturn f();");
-			results.AppendLine("\t\t}");
-			results.AppendLine();
-
-			results.AppendLine("\t\t///\t<summary>");
-			results.AppendLine($"\t\t///\tGenerates an example model of a collection of <see cref=\"{resourceModel.ClassName}\"/> resources.");
-			results.AppendLine("\t\t///\t</summary>");
-			results.AppendLine($"\t\t///\t<returns>An example model of a collection of <see cref=\"{resourceModel.ClassName}\"/> resources.</returns>");
-			results.AppendLine($"\t\tpublic PagedCollection<{resourceModel.ClassName}> GetExamples()");
-			results.AppendLine("\t\t{");
-			results.AppendLine("\t\t\tvar rootUrl = new Uri(Startup.AppConfig.GetRootUrl());");
-			results.AppendLine();
-			results.AppendLine($"\t\t\tvar exampleList = new List<{resourceModel.ClassName}>() {{");
-
-			var first = true;
-
-			for (int j = 0; j < 3; j++)
-			{
-				if (first)
-					first = false;
-				else
-					results.AppendLine(",");
-
-				int r = j + 6;
-				exampleModel = "";
-
-				while (string.IsNullOrWhiteSpace(exampleModel.Replace("{", "").Replace("}", "")))
-				{
-					exampleModel = codeService.GetExampleModel(r--, resourceModel, serverType, connectionString);
-				}
-
-				entityJson = JObject.Parse(exampleModel);
-
-				results.Append("\t\t\t\t");
-				EmitSingleModel("\t", resourceModel, profileMap, results, entityJson);
-			}
-
-			var baseUrl = ExtractBaseUrl(profileMap);
-
-			results.AppendLine();
-			results.AppendLine("\t\t\t};");
-			results.AppendLine();
-			results.AppendLine($"\t\t\tvar collection = new PagedCollection<{resourceModel.ClassName}>() {{");
-			results.AppendLine($"\t\t\t\tHRef = new Uri(rootUrl, \"{baseUrl}?limit(6,3)\"),");
-			results.AppendLine($"\t\t\t\tFirst = new Uri(rootUrl, \"{baseUrl}?limit(1,3)\"),");
-			results.AppendLine($"\t\t\t\tPrevious = new Uri(rootUrl, \"{baseUrl}?limit(3,3)\"),");
-			results.AppendLine($"\t\t\t\tNext = new Uri(rootUrl, \"{baseUrl}?limit(9,3)\"),");
-			results.AppendLine($"\t\t\t\tLimit = 3,");
-			results.AppendLine($"\t\t\t\tCount = 20,");
-			results.AppendLine($"\t\t\t\tItems = exampleList.ToArray()");
-			results.AppendLine("\t\t\t\t};");
-			results.AppendLine("\t\t\treturn collection;");
-			results.AppendLine("\t\t}");
-			results.AppendLine("\t}");
-			results.AppendLine();
-			#endregion
-
-			return results.ToString();
-		}
-
 		public string EmitResourceEnum(ICodeService codeService, string resourceClassName, EntityClass model)
 		{
 			ThreadHelper.ThrowIfNotOnUIThread();
@@ -418,50 +150,7 @@ namespace WizardInstaller.Template.Services
 			return results.ToString();
 		}
 
-		/// <summary>
-		/// Extracts the base URL for the resource
-		/// </summary>
-		/// <param name="profileMap"></param>
-		/// <returns></returns>
-		private static string ExtractBaseUrl(ProfileMap profileMap)
-		{
-			var baseUrl = "";
-			var map = profileMap.ResourceProfiles.FirstOrDefault(rp => string.Equals(rp.ResourceColumnName, "href", StringComparison.OrdinalIgnoreCase));
-
-			if (map != null)
-			{
-				var mapFunction = map.MapFunction;
-				var indexStart = mapFunction.ToLower().IndexOf("$\"");
-				var indexEnd = mapFunction.ToLower().IndexOf("/id");
-				baseUrl = mapFunction.Substring(indexStart + 2, indexEnd - indexStart - 2);
-			}
-
-			return baseUrl;
-		}
-
-		private static void EmitSingleModel(string prefix, ResourceClass resourceModel, ProfileMap profileMap, StringBuilder results, JObject entityJson)
-		{
-			ThreadHelper.ThrowIfNotOnUIThread();
-			bool first = true;
-			results.AppendLine($"new {resourceModel.ClassName} {{");
-			var codeService = ServiceFactory.GetService<ICodeService>();
-
-			foreach (var map in profileMap.ResourceProfiles)
-			{
-				if (first)
-					first = false;
-				else
-					results.AppendLine(",");
-
-				results.Append($"{prefix}\t\t\t\t{map.ResourceColumnName} = ");
-				results.Append(codeService.ResolveMapFunction(entityJson, map.ResourceColumnName, resourceModel.Entity.Columns, resourceModel, map.MapFunction));
-			}
-
-			results.AppendLine();
-			results.Append($"{prefix}\t\t\t}}");
-		}
-
-		public string EmitMappingModel(ResourceClass resourceModel, string mappingClassName, Dictionary<string, string> replacementsDictionary)
+		public string EmitMappingModel(ResourceClass resourceModel, string mappingClassName)
 		{
 			ThreadHelper.ThrowIfNotOnUIThread();
 			var codeService = ServiceFactory.GetService<ICodeService>();
@@ -481,8 +170,6 @@ namespace WizardInstaller.Template.Services
 			results.AppendLine("\t\t///\t</summary>");
 			results.AppendLine($"\t\tpublic {mappingClassName}()");
 			results.AppendLine("\t\t{");
-			results.AppendLine($"\t\t\t//\tGets the root URL of the service from the configuration settings.");
-			results.AppendLine("\t\t\tvar rootUrl = new Uri(\"http://localhost\");");
 
 			#region Create the Resource to Entity Mapping
 			results.AppendLine();
@@ -553,13 +240,6 @@ namespace WizardInstaller.Template.Services
 
 			#endregion
 
-			results.AppendLine($"\t\t\t//\tCreates a mapping to transform a collection of {resourceModel.Entity.ClassName} model instances (the source)");
-			results.AppendLine($"\t\t\t//\tinto a collection of {resourceModel.ClassName} model instances (the destination).");
-			results.AppendLine($"\t\t\tCreateMap<PagedCollection<{resourceModel.Entity.ClassName}>, PagedCollection<{resourceModel.ClassName}>>()");
-			results.AppendLine($"\t\t\t\t.ForMember(destination => destination.Href, opts => opts.MapFrom(source => new Uri(rootUrl, source.Href == null ? \"{nn.PluralCamelCase}\" : $\"{nn.PluralCamelCase}{{source.Href.Query}}\")))");
-			results.AppendLine($"\t\t\t\t.ForMember(destination => destination.First, opts => opts.MapFrom(source => source.First == null ? null : new Uri(rootUrl, source.First == null ? \"{nn.PluralCamelCase}\" : $\"{nn.PluralCamelCase}{{source.First.Query}}\")))");
-			results.AppendLine($"\t\t\t\t.ForMember(destination => destination.Next, opts => opts.MapFrom(source => source.Next == null ? null : new Uri(rootUrl, source.Next == null ? \"{nn.PluralCamelCase}\" : $\"{nn.PluralCamelCase}{{source.Next.Query}}\")))");
-			results.AppendLine($"\t\t\t\t.ForMember(destination => destination.Previous, opts => opts.MapFrom(source => source.Previous == null ? null : new Uri(rootUrl, source.Previous == null ? \"{nn.PluralCamelCase}\" : $\"{nn.PluralCamelCase}{{source.Previous.Query}}\")));");
 			results.AppendLine("\t\t}");
 			results.AppendLine("\t}");
 
@@ -911,7 +591,7 @@ namespace WizardInstaller.Template.Services
 		/// <param name="resourceClass">The <see cref="ResourceClass"/> to generate</param>
 		/// <param name="replacementsDictionary">The replacements dictionary</param>
 		/// <returns></returns>
-		public string EmitResourceModel(string resourceClassName, EntityClass entityModel, Dictionary<string, string> replacementsDictionary)
+		public string EmitResourceModel(string resourceClassName, EntityClass entityModel, bool useRql, Dictionary<string, string> replacementsDictionary)
 		{
 			ThreadHelper.ThrowIfNotOnUIThread();
 			List<DBColumn> resourceColumns = new List<DBColumn>();
@@ -925,7 +605,6 @@ namespace WizardInstaller.Template.Services
 			replacementsDictionary.Add("$annotations$", "false");
 
 			var results = new StringBuilder();
-			bool hasPrimary = false;
 
 			results.AppendLine("\t///\t<summary>");
 			results.AppendLine($"\t///\t{resourceClassName}");
@@ -966,10 +645,8 @@ namespace WizardInstaller.Template.Services
 			}
 			else
 			{
-				results.AppendLine($"\tpublic class {resourceClassName} : IValidatableObject");
+				results.AppendLine($"\tpublic class {resourceClassName}");
 				results.AppendLine("\t{");
-				var foreignTableList = new List<string>();
-
 				bool firstColumn = true;
 				foreach (var member in entityModel.Columns)
 				{
@@ -978,270 +655,273 @@ namespace WizardInstaller.Template.Services
 					else
 						results.AppendLine();
 
-					if (member.IsPrimaryKey)
+					var membername = codeService.CorrectForReservedNames(codeService.NormalizeClassName(member.ColumnName));
+
+					results.AppendLine("\t\t///\t<summary>");
+					results.AppendLine($"\t\t///\t{membername}");
+					results.AppendLine("\t\t///\t</summary>");
+
+					if (entityModel.ServerType == DBServerType.SQLSERVER)
 					{
-						if (!hasPrimary)
+						if (string.Equals(member.DBDataType, "Image", StringComparison.OrdinalIgnoreCase))
 						{
-							results.AppendLine("\t\t///\t<summary>");
-							results.AppendLine($"\t\t///\tThe hypertext reference that identifies the resource.");
-							results.AppendLine("\t\t///\t</summary>");
-							results.AppendLine("\t\t[Url]");
-							results.AppendLine($"\t\tpublic Uri Href {{ get; set; }} = new Uri(\"http:\\\\localhost\");");
-							hasPrimary = true;
+							replacementsDictionary["$resourceimage$"] = "true";
 						}
-
-						var resourceColumn = new DBColumn()
+						else if (string.Equals(member.DBDataType, "Date", StringComparison.OrdinalIgnoreCase))
 						{
-							ColumnName = "Href",
-							IsPrimaryKey = member.IsPrimaryKey,
-							IsForeignKey = member.IsForeignKey,
-							IsComputed = member.IsComputed,
-							IsFixed = member.IsFixed,
-							IsIdentity = member.IsIdentity,
-							IsIndexed = member.IsIndexed,
-							IsNullable = member.IsNullable,
-							ModelDataType = "Uri"
-						};
-
-						resourceColumns.Add(resourceColumn);
-
+							results.AppendLine("\t\t[JsonFormat(\"yyyy-MM-dd\")]");
+							replacementsDictionary["$annotations$"] = "true";
+						}
 					}
-					else if (member.IsForeignKey)
+					else if (entityModel.ServerType == DBServerType.POSTGRESQL)
 					{
-						//	This is a foreign key reference. Normally, that is simply an href to the table.
-						//	However, there is one exception.
-						//
-						//	If the foreign table is a lookup table (i.e., consists of a numeric key/value pair) then 
-						//	the user has the option of generating its resource model as an enum. If so, we need to 
-						//	treat it as an enum here.
-
-						//	If such a resource model exists, it will have a resource type of Enum, and it's corresponding
-						//	entity model will have the same table name as the foreign table name
-
-						var enumResourceModel = codeService.GetResourceClassBySchema(entityModel.SchemaName, member.ForeignTableName);
-
-						if (enumResourceModel != null && enumResourceModel.ResourceType == ResourceType.Enum)
+						if (string.Equals(member.DBDataType, "Inet", StringComparison.OrdinalIgnoreCase) ||
+							string.Equals(member.DBDataType, "Cidr", StringComparison.OrdinalIgnoreCase) ||
+							string.Equals(member.DBDataType, "MacAddr", StringComparison.OrdinalIgnoreCase))
 						{
-							//	This is the enum version
-							results.AppendLine("\t\t///\t<summary>");
-							results.AppendLine($"\t\t///\tThe enum for {member.ColumnName}");
-							results.AppendLine("\t\t///\t</summary>");
+							replacementsDictionary["$resourcenet$"] = "true";
+						}
+						else if (string.Equals(member.DBDataType, "MacAddr8", StringComparison.OrdinalIgnoreCase))
+						{
+							replacementsDictionary["$resourcenetinfo$"] = "true";
+						}
+						else if (string.Equals(member.DBDataType, "_Boolean", StringComparison.OrdinalIgnoreCase) ||
+								 string.Equals(member.DBDataType, "_Bit", StringComparison.OrdinalIgnoreCase) ||
+								 (string.Equals(member.DBDataType, "Bit", StringComparison.OrdinalIgnoreCase) && member.Length > 1) ||
+								 string.Equals(member.DBDataType, "VarBit", StringComparison.OrdinalIgnoreCase))
+						{
+							replacementsDictionary["$resourcebarray$"] = "true";
+						}
+						else if (string.Equals(member.DBDataType, "Point", StringComparison.OrdinalIgnoreCase) ||
+								 string.Equals(member.DBDataType, "LSeg", StringComparison.OrdinalIgnoreCase) ||
+								 string.Equals(member.DBDataType, "Path", StringComparison.OrdinalIgnoreCase) ||
+								 string.Equals(member.DBDataType, "Circle", StringComparison.OrdinalIgnoreCase) ||
+								 string.Equals(member.DBDataType, "Polygon", StringComparison.OrdinalIgnoreCase) ||
+								 string.Equals(member.DBDataType, "Line", StringComparison.OrdinalIgnoreCase) ||
+								 string.Equals(member.DBDataType, "Box", StringComparison.OrdinalIgnoreCase))
+						{
+							replacementsDictionary["$usenpgtypes$"] = "true";
+						}
+						else if (string.Equals(member.DBDataType, "Date", StringComparison.OrdinalIgnoreCase) ||
+								 string.Equals(member.DBDataType, "_Date", StringComparison.OrdinalIgnoreCase))
+						{
+							results.AppendLine("\t\t[JsonFormat(\"yyyy-MM-dd\")]");
+							replacementsDictionary["$annotations$"] = "true";
+						}
+						else if (string.Equals(member.DBDataType, "TimeTz", StringComparison.OrdinalIgnoreCase) ||
+								 string.Equals(member.DBDataType, "_TimeTz", StringComparison.OrdinalIgnoreCase))
+						{
+							results.AppendLine("\t\t[JsonFormat(\"HH:mm:ss.fffffffzzz\")]");
+							replacementsDictionary["$annotations$"] = "true";
+						}
+					}
+					else if (entityModel.ServerType == DBServerType.MYSQL)
+					{
+						if (string.Equals(member.DBDataType, "Date", StringComparison.OrdinalIgnoreCase))
+						{
+							results.AppendLine("\t\t[JsonFormat(\"yyyy-MM-dd\")]");
+							replacementsDictionary["$annotations$"] = "true";
+						}
+					}
 
-							if ( member.IsNullable )
-								results.AppendLine($"\t\tpublic {enumResourceModel.ClassName}? {member.ColumnName} {{ get; set; }}");
-							else
-								results.AppendLine($"\t\tpublic {enumResourceModel.ClassName} {member.ColumnName} {{ get; set; }} = ({enumResourceModel.ClassName}) 0;");
 
-							var resourceColumn = new DBColumn()
-							{
-								ColumnName = member.ColumnName,
-								IsPrimaryKey = member.IsPrimaryKey,
-								IsForeignKey = member.IsForeignKey,
-								IsComputed = member.IsComputed,
-								IsFixed = member.IsFixed,
-								IsIdentity = member.IsIdentity,
-								IsIndexed = member.IsIndexed,
-								IsNullable = member.IsNullable,
-								ModelDataType = enumResourceModel.ClassName
-							};
-
-							resourceColumns.Add(resourceColumn);
+					if (member.IsNullable)
+					{
+						if (member.ModelDataType.Equals("DateTime", StringComparison.OrdinalIgnoreCase))
+						{
+							results.AppendLine($"\t\tpublic DateTimeOffset? {membername} {{ get; set; }}");
+						}
+						else if (member.ModelDataType.Equals("DateTime?", StringComparison.OrdinalIgnoreCase))
+						{
+							results.AppendLine($"\t\tpublic DateTimeOffset? {membername} {{ get; set; }}");
+						}
+						else if (member.ModelDataType.EndsWith("?"))
+						{
+							results.AppendLine($"\t\tpublic {member.ModelDataType} {membername} {{ get; set; }}");
 						}
 						else
 						{
-							//	This is just the plain old foreign key reference
-							if (!foreignTableList.Contains(member.ForeignTableName))
-							{
-								var childResource = codeService.GetResourceClassBySchema(entityModel.SchemaName, member.ForeignTableName);
-								string memberName;
-
-								if (childResource != null)
-									memberName = childResource.ClassName;
-								else
-								{
-									var nn = new NameNormalizer(member.ForeignTableName);
-									memberName = nn.SingleForm;
-								}
-
-								memberName = codeService.CorrectForReservedNames(codeService.NormalizeClassName(memberName));
-
-								results.AppendLine("\t\t///\t<summary>");
-								results.AppendLine($"\t\t///\tA hypertext reference that identifies the associated {memberName}");
-								results.AppendLine("\t\t///\t</summary>");
-								results.AppendLine("\t\t[Url]");
-
-								if ( member.IsNullable)
-									results.AppendLine($"\t\tpublic Uri? {memberName} {{ get; set; }}");
-								else
-									results.AppendLine($"\t\tpublic Uri {memberName} {{ get; set; }} = new Uri(\"http:\\\\localhost\");");
-
-								foreignTableList.Add(member.ForeignTableName);
-
-								var resourceColumn = new DBColumn()
-								{
-									ColumnName = memberName,
-									IsPrimaryKey = member.IsPrimaryKey,
-									IsForeignKey = member.IsForeignKey,
-									IsComputed = member.IsComputed,
-									IsFixed = member.IsFixed,
-									IsIdentity = member.IsIdentity,
-									IsIndexed = member.IsIndexed,
-									IsNullable = member.IsNullable,
-									ForeignTableName = member.ForeignTableName,
-									ModelDataType = "Uri"
-								};
-
-								resourceColumns.Add(resourceColumn);
-							}
+							results.AppendLine($"\t\tpublic {member.ModelDataType}? {membername} {{ get; set; }}");
 						}
 					}
 					else
 					{
-						var membername = codeService.CorrectForReservedNames(codeService.NormalizeClassName(member.ColumnName));
-
-						results.AppendLine("\t\t///\t<summary>");
-						results.AppendLine($"\t\t///\t{membername}");
-						results.AppendLine("\t\t///\t</summary>");
-
-						if (entityModel.ServerType == DBServerType.SQLSERVER)
-						{
-							if (string.Equals(member.DBDataType, "Image", StringComparison.OrdinalIgnoreCase))
-							{
-								replacementsDictionary["$resourceimage$"] = "true";
-							}
-							else if (string.Equals(member.DBDataType, "Date", StringComparison.OrdinalIgnoreCase))
-							{
-								results.AppendLine("\t\t[JsonFormat(\"yyyy-MM-dd\")]");
-								replacementsDictionary["$annotations$"] = "true";
-							}
-						}
-						else if (entityModel.ServerType == DBServerType.POSTGRESQL)
-						{
-							if (string.Equals(member.DBDataType, "Inet", StringComparison.OrdinalIgnoreCase) ||
-								string.Equals(member.DBDataType, "Cidr", StringComparison.OrdinalIgnoreCase) ||
-								string.Equals(member.DBDataType, "MacAddr", StringComparison.OrdinalIgnoreCase))
-							{
-								replacementsDictionary["$resourcenet$"] = "true";
-							}
-							else if (string.Equals(member.DBDataType, "MacAddr8", StringComparison.OrdinalIgnoreCase))
-							{
-								replacementsDictionary["$resourcenetinfo$"] = "true";
-							}
-							else if (string.Equals(member.DBDataType, "_Boolean", StringComparison.OrdinalIgnoreCase) ||
-									 string.Equals(member.DBDataType, "_Bit", StringComparison.OrdinalIgnoreCase) ||
-									 (string.Equals(member.DBDataType, "Bit", StringComparison.OrdinalIgnoreCase) && member.Length > 1) ||
-									 string.Equals(member.DBDataType, "VarBit", StringComparison.OrdinalIgnoreCase))
-							{
-								replacementsDictionary["$resourcebarray$"] = "true";
-							}
-							else if (string.Equals(member.DBDataType, "Point", StringComparison.OrdinalIgnoreCase) ||
-									 string.Equals(member.DBDataType, "LSeg", StringComparison.OrdinalIgnoreCase) ||
-									 string.Equals(member.DBDataType, "Path", StringComparison.OrdinalIgnoreCase) ||
-									 string.Equals(member.DBDataType, "Circle", StringComparison.OrdinalIgnoreCase) ||
-									 string.Equals(member.DBDataType, "Polygon", StringComparison.OrdinalIgnoreCase) ||
-									 string.Equals(member.DBDataType, "Line", StringComparison.OrdinalIgnoreCase) ||
-									 string.Equals(member.DBDataType, "Box", StringComparison.OrdinalIgnoreCase))
-							{
-								replacementsDictionary["$usenpgtypes$"] = "true";
-							}
-							else if (string.Equals(member.DBDataType, "Date", StringComparison.OrdinalIgnoreCase) ||
-									 string.Equals(member.DBDataType, "_Date", StringComparison.OrdinalIgnoreCase))
-							{
-								results.AppendLine("\t\t[JsonFormat(\"yyyy-MM-dd\")]");
-								replacementsDictionary["$annotations$"] = "true";
-							}
-							else if (string.Equals(member.DBDataType, "TimeTz", StringComparison.OrdinalIgnoreCase) ||
-									 string.Equals(member.DBDataType, "_TimeTz", StringComparison.OrdinalIgnoreCase))
-							{
-								results.AppendLine("\t\t[JsonFormat(\"HH:mm:ss.fffffffzzz\")]");
-								replacementsDictionary["$annotations$"] = "true";
-							}
-						}
-						else if (entityModel.ServerType == DBServerType.MYSQL)
-						{
-							if (string.Equals(member.DBDataType, "Date", StringComparison.OrdinalIgnoreCase))
-							{
-								results.AppendLine("\t\t[JsonFormat(\"yyyy-MM-dd\")]");
-								replacementsDictionary["$annotations$"] = "true";
-							}
-						}
-
 						if (member.ModelDataType.Equals("string", StringComparison.OrdinalIgnoreCase))
-						{
-							if (!member.IsNullable)
-								results.AppendLine($"\t\t[Required(AllowEmptyStrings=false, ErrorMessage=\"{membername} cannot be blank or null.\")]");
-
-							results.AppendLine($"\t\t[StringLength({member.Length}, ErrorMessage=\"{membername} cannot exceed {member.Length} characters.\")]");
-						}
-						else if (member.ModelDataType.Equals("Uri"))
-						{
-							if (!member.IsNullable)
-							{
-								results.AppendLine($"\t\t[Required(ErrorMessage=\"{membername} cannot be null.\")]");
-							}
-
-							results.AppendLine("\t\t[Url]");
-						}
-						else if (!member.IsNullable)
-						{
-							results.AppendLine($"\t\t[Required(ErrorMessage=\"{membername} cannot be null.\")]");
-						}
-
-						if (member.IsNullable)
-						{
-							if (member.ModelDataType.EndsWith("?"))
-								results.AppendLine($"\t\tpublic {member.ModelDataType} {membername} {{ get; set; }}");
-							else
-								results.AppendLine($"\t\tpublic {member.ModelDataType}? {membername} {{ get; set; }}");
-						}
+							results.AppendLine($"\t\tpublic {member.ModelDataType} {membername} {{ get; set; }} = string.Empty;");
+						else if (member.ModelDataType.Equals("DateTime", StringComparison.OrdinalIgnoreCase))
+							results.AppendLine($"\t\tpublic DateTimeOffset {membername} {{ get; set; }} = DateTimeOffset.UtcNow.ToLocalTime();");
+						else if (member.ModelDataType.Equals("DateTimeOffset", StringComparison.OrdinalIgnoreCase))
+							results.AppendLine($"\t\tpublic {member.ModelDataType} {membername} {{ get; set; }} = DateTimeOffset.UtcNow.ToLocalTime();");
+						else if (member.ModelDataType.Equals("TimeSpan", StringComparison.OrdinalIgnoreCase))
+							results.AppendLine($"\t\tpublic {member.ModelDataType} {membername} {{ get; set; }} = TimeSpan.FromSeconds(0);");
+						else if (member.ModelDataType.Equals("Guid", StringComparison.OrdinalIgnoreCase))
+							results.AppendLine($"\t\tpublic {member.ModelDataType} {membername} {{ get; set; }} = Guid.Empty;");
 						else
-                        {
-							if (member.ModelDataType.Equals("string", StringComparison.OrdinalIgnoreCase))
-								results.AppendLine($"\t\tpublic {member.ModelDataType} {membername} {{ get; set; }} = string.Empty;");
-							else if (member.ModelDataType.Equals("DateTime", StringComparison.OrdinalIgnoreCase))
-								results.AppendLine($"\t\tpublic {member.ModelDataType} {membername} {{ get; set; }} = DateTime.UtcNow;");
-							else if (member.ModelDataType.Equals("DateTimeOffset", StringComparison.OrdinalIgnoreCase))
-								results.AppendLine($"\t\tpublic {member.ModelDataType} {membername} {{ get; set; }} = DateTimeOffset.UtcNow;");
-							else if (member.ModelDataType.Equals("TimeSpan", StringComparison.OrdinalIgnoreCase))
-								results.AppendLine($"\t\tpublic {member.ModelDataType} {membername} {{ get; set; }} = TimeSpan.FromSeconds(0);");
-							else if (member.ModelDataType.Equals("Guid", StringComparison.OrdinalIgnoreCase))
-								results.AppendLine($"\t\tpublic {member.ModelDataType} {membername} {{ get; set; }} = Guid.Empty;");
-							else
-								results.AppendLine($"\t\tpublic {member.ModelDataType} {membername} {{ get; set; }}");
-						}
-
-						var resourceColumn = new DBColumn()
-						{
-							ColumnName = membername,
-							IsPrimaryKey = member.IsPrimaryKey,
-							IsForeignKey = member.IsForeignKey,
-							IsComputed = member.IsComputed,
-							IsFixed = member.IsFixed,
-							IsIdentity = member.IsIdentity,
-							IsIndexed = member.IsIndexed,
-							IsNullable = member.IsNullable,
-							ModelDataType = member.ModelDataType
-						};
-
-						resourceColumns.Add(resourceColumn);
-
+							results.AppendLine($"\t\tpublic {member.ModelDataType} {membername} {{ get; set; }}");
 					}
+
+					var resourceColumn = new DBColumn()
+					{
+						ColumnName = membername,
+						IsPrimaryKey = member.IsPrimaryKey,
+						IsForeignKey = member.IsForeignKey,
+						IsComputed = member.IsComputed,
+						IsFixed = member.IsFixed,
+						IsIdentity = member.IsIdentity,
+						IsIndexed = member.IsIndexed,
+						IsNullable = member.IsNullable,
+						ModelDataType = member.ModelDataType
+					};
+
+					resourceColumns.Add(resourceColumn);
 				}
 
 				results.AppendLine();
 				results.AppendLine("\t\t///\t<summary>");
-				results.AppendLine($"\t\t///\tDetermines whether the specified object is valid.");
+				results.AppendLine($"\t\t///\tChecks the resource to see if it is in a valid state to update.");
 				results.AppendLine("\t\t///\t</summary>");
-				results.AppendLine("\t\t///\t<param name=\"validationContext\">The <see cref=\"ValidationContext\"/> for the validation.</param>");
-				results.AppendLine("\t\t///\t<returns>A collection that holds failed-validation information.</returns>");
-				results.AppendLine("\t\tpublic IEnumerable<ValidationResult> Validate(ValidationContext validationContext)");
+				results.AppendLine("\t\t///\t<param name=\"orchestrator\">The <see cref=\"IOrchestrator\"/> used to orchestrate operations.</param>");
+				if ( useRql ) 
+					results.AppendLine("\t\t///\t<param name=\"node\">The <see cref=\"RqlNode\"/> that restricts the update.</param>");
+				results.AppendLine("\t\t///\t<param name=\"errors\">The <see cref=\"ModelStateDictionary\"/> that will contain errors from failed validations.</param>");
+				results.AppendLine("\t\t///\t<returns><see langword=\"true\"/> if the resource can be updated; <see langword=\"false\"/> otherwise</returns>");
+				if ( useRql )
+					results.AppendLine("\t\tpublic async Task<bool> CanUpdateAsync(IOrchestrator orchestrator, RqlNode node, ModelStateDictionary errors)");
+				else
+					results.AppendLine("\t\tpublic async Task<bool> CanUpdateAsync(IOrchestrator orchestrator, ModelStateDictionary errors)");
 				results.AppendLine("\t\t{");
-				results.AppendLine("\t\t\tvar results = new List<ValidationResult>();");
-				results.AppendLine("\t\t\treturn results.ToArray();");
-				results.AppendLine("\t\t}");
-			}
+				results.AppendLine("\t\t\terrors.Clear();");
+				results.AppendLine();
 
-			results.AppendLine("\t}");
+				if (useRql)
+				{
+					results.AppendLine($"\t\t\tvar existingValues = await orchestrator.GetResourceCollectionAsync<{resourceClassName}>(node);");
+					results.AppendLine();
+					results.AppendLine("\t\t\tif (existingValues.Count == 0)");
+					results.AppendLine("\t\t\t{");
+					results.AppendLine($"\t\t\t\terrors.AddModelError(\"Search\", \"No matching {resourceClassName} was found.\");");
+					results.AppendLine("\t\t\t}");
+					results.AppendLine();
+					results.AppendLine("\t\t\tvar selectNode = node.ExtractSelectClause();");
+
+					foreach (var member in entityModel.Columns)
+					{
+						if (member.ModelDataType.Equals("string", StringComparison.OrdinalIgnoreCase))
+						{
+							var membername = codeService.CorrectForReservedNames(codeService.NormalizeClassName(member.ColumnName));
+
+							results.AppendLine($"\t\t\tif (selectNode is null || (selectNode is not null && selectNode.SelectContains(nameof({membername}))))");
+							results.AppendLine("\t\t\t{");
+
+							if (!member.IsNullable)
+							{
+								results.AppendLine($"\t\t\t\tif (string.IsNullOrWhiteSpace({membername}))");
+								results.AppendLine($"\t\t\t\t\terrors.AddModelError(nameof({membername}), \"{membername} cannot be blank or null.\");");
+							}
+
+							if (member.Length > 0)
+							{
+								results.AppendLine($"\t\t\t\tif ({membername} is not null && {membername}.Length > {member.Length})");
+								results.AppendLine($"\t\t\t\t\terrors.AddModelError(nameof({membername}), \"{membername} cannot exceed {member.Length} characters.\");");
+							}
+
+							results.AppendLine("\t\t\t}");
+						}
+					}
+				}
+				else
+                {
+					foreach (var member in entityModel.Columns)
+					{
+						if (member.ModelDataType.Equals("string", StringComparison.OrdinalIgnoreCase))
+						{
+							var membername = codeService.CorrectForReservedNames(codeService.NormalizeClassName(member.ColumnName));
+
+							if (!member.IsNullable)
+							{
+								results.AppendLine($"\t\t\tif (string.IsNullOrWhiteSpace({membername}))");
+								results.AppendLine($"\t\t\t\terrors.AddModelError(nameof({membername}), \"{membername} cannot be blank or null.\");");
+							}
+
+							if (member.Length > 0)
+							{
+								results.AppendLine($"\t\t\tif ({membername} is not null && {membername}.Length > {member.Length})");
+								results.AppendLine($"\t\t\t\terrors.AddModelError(nameof({membername}), \"{membername} cannot exceed {member.Length} characters.\");");
+							}
+						}
+					}
+				}
+
+				results.AppendLine("\t\t\treturn errors.IsValid;");
+				results.AppendLine("\t\t}");
+
+				results.AppendLine();
+				results.AppendLine("\t\t///\t<summary>");
+				results.AppendLine($"\t\t///\tChecks the resource to see if it is in a valid state to add.");
+				results.AppendLine("\t\t///\t</summary>");
+				results.AppendLine("\t\t/// <param name=\"orchestrator\">The <see cref=\"IOrchestrator\"/> used to orchestrate operations.</param>");
+				results.AppendLine("\t\t/// <param name=\"errors\">The <see cref=\"ModelStateDictionary\"/> that will contain errors from failed validations.</param>");
+				results.AppendLine("\t\t/// <returns><see langword=\"true\"/> if the resource can be updated; <see langword=\"false\"/> otherwise</returns>");
+				results.AppendLine("\t\tpublic async Task<bool> CanAddAsync(IOrchestrator orchestrator, ModelStateDictionary errors)");
+				results.AppendLine("\t\t{");
+				results.AppendLine("\t\t\terrors.Clear();");
+				results.AppendLine();
+
+				foreach (var member in entityModel.Columns)
+				{
+					var membername = codeService.CorrectForReservedNames(codeService.NormalizeClassName(member.ColumnName));
+
+					if (!member.IsNullable && member.ModelDataType.Equals("string", StringComparison.OrdinalIgnoreCase))
+					{
+						results.AppendLine($"\t\t\tif (string.IsNullOrWhiteSpace({membername}))");
+						results.AppendLine($"\t\t\t\terrors.AddModelError(nameof({membername}), \"{membername} cannot be blank or null.\");");
+					}
+
+					if (member.ModelDataType.Equals("string", StringComparison.OrdinalIgnoreCase) && member.Length > 0)
+					{
+						results.AppendLine($"\t\t\tif ({membername} is not null && {membername}.Length > {member.Length})");
+						results.AppendLine($"\t\t\t\terrors.AddModelError(nameof({membername}), \"{membername} cannot exceed {member.Length} characters.\");");
+					}
+				}
+
+				results.AppendLine();
+				results.AppendLine("\t\t\tawait Task.CompletedTask;");
+				results.AppendLine();
+				results.AppendLine("\t\t\treturn errors.IsValid;");
+				results.AppendLine("\t\t}");
+
+				results.AppendLine();
+				results.AppendLine("\t\t///\t<summary>");
+				results.AppendLine($"\t\t///\tChecks the resource to see if it is in a valid state to delete.");
+				results.AppendLine("\t\t///\t</summary>");
+				results.AppendLine("\t\t///\t<param name=\"orchestrator\">The <see cref=\"IOrchestrator\"/> used to orchestrate operations.</param>");
+				if ( useRql ) 
+					results.AppendLine("\t\t///\t<param name=\"node\">The <see cref=\"RqlNode\"/> that restricts the update.</param>");
+				results.AppendLine("\t\t///\t<param name=\"errors\">The <see cref=\"ModelStateDictionary\"/> that will contain errors from failed validations.</param>");
+				results.AppendLine("\t\t///\t<returns><see langword=\"true\"/> if the resource can be updated; <see langword=\"false\"/> otherwise</returns>");
+				if ( useRql)
+					results.AppendLine("\t\tpublic async Task<bool> CanDeleteAsync(IOrchestrator orchestrator, RqlNode node, ModelStateDictionary errors)");
+				else
+					results.AppendLine("\t\tpublic async Task<bool> CanDeleteAsync(IOrchestrator orchestrator, ModelStateDictionary errors)");
+				results.AppendLine("\t\t{");
+				results.AppendLine("\t\t\terrors.Clear();");
+				results.AppendLine();
+
+				if (useRql)
+				{
+					results.AppendLine($"\t\t\tvar existingValues = await orchestrator.GetResourceCollectionAsync<{resourceClassName}>(node);");
+					results.AppendLine();
+					results.AppendLine("\t\t\tif (existingValues.Count == 0)");
+					results.AppendLine("\t\t\t{");
+					results.AppendLine($"\t\t\t\terrors.AddModelError(\"Search\", \"No matching {resourceClassName} was found.\");");
+					results.AppendLine("\t\t\t}");
+					results.AppendLine();
+				}
+
+				results.AppendLine("\t\t\treturn errors.IsValid;");
+				results.AppendLine("\t\t}");
+				results.AppendLine("\t}");
+			}
 
 			return results.ToString();
 		}
@@ -1710,7 +1390,7 @@ namespace WizardInstaller.Template.Services
 		/// <param name="policy">The authentication policy used by the controller</param>
 		/// <param name="ValidationNamespace">The validation namespace/param>
 		/// <returns></returns>
-		public string EmitController(ResourceClass resourceClass, string moniker, string controllerClassName, string policy)
+		public string EmitController(ResourceClass resourceClass, string controllerClassName, string policy)
 		{
 			ThreadHelper.ThrowIfNotOnUIThread();
 			var mDte = Package.GetGlobalService(typeof(SDTE)) as DTE2;
@@ -1774,7 +1454,7 @@ namespace WizardInstaller.Template.Services
 				results.AppendLine($"\t\t[Authorize(\"{policy}\")]");
 
 			results.AppendLine($"\t\t[SwaggerResponse((int)HttpStatusCode.OK, Type = typeof(PagedCollection<{resourceClass.ClassName}>))]");
-			results.AppendLine($"\t\t[Produces(\"application/vnd.{moniker}.v1+json\", \"application/json\", \"text/json\")]");
+			results.AppendLine($"\t\t[Produces(\"application/vnd.v1+json\", \"application/json\", \"text/json\")]");
 			results.AppendLine($"\t\tpublic async Task<IActionResult> Get{nn.PluralForm}Async()");
 			results.AppendLine("\t\t{");
 			results.AppendLine("\t\t\tvar node = RqlNode.Parse(Request.QueryString.Value);");
@@ -1812,7 +1492,7 @@ namespace WizardInstaller.Template.Services
 
 				results.AppendLine($"\t\t[SwaggerResponse((int)HttpStatusCode.OK, Type = typeof({resourceClass.ClassName}))]");
 				results.AppendLine($"\t\t[SwaggerResponse((int)HttpStatusCode.NotFound)]");
-				results.AppendLine($"\t\t[Produces(\"application/vnd.{moniker}.v1+json\", \"application/json\", \"text/json\")]");
+				results.AppendLine($"\t\t[Produces(\"application/vnd.v1+json\", \"application/json\", \"text/json\")]");
 
 				EmitEndpoint(resourceClass.ClassName, "Get", results, pkcolumns);
 
@@ -1851,8 +1531,8 @@ namespace WizardInstaller.Template.Services
 				results.AppendLine($"\t\t[Authorize(\"{policy}\")]");
 
 			results.AppendLine($"\t\t[SwaggerResponse((int)HttpStatusCode.Created, Type = typeof({resourceClass.ClassName}))]");
-			results.AppendLine($"\t\t[Consumes(\"application/vnd.{moniker}.v1+json\", \"application/json\", \"text/json\")]");
-			results.AppendLine($"\t\t[Produces(\"application/vnd.{moniker}.v1+json\", \"application/json\", \"text/json\")]");
+			results.AppendLine($"\t\t[Consumes(\"application/vnd.v1+json\", \"application/json\", \"text/json\")]");
+			results.AppendLine($"\t\t[Produces(\"application/vnd.v1+json\", \"application/json\", \"text/json\")]");
 			results.AppendLine($"\t\tpublic async Task<IActionResult> Add{resourceClass.ClassName}Async([FromBody] {resourceClass.ClassName} item)");
 			results.AppendLine("\t\t{");
 
@@ -1882,10 +1562,9 @@ namespace WizardInstaller.Template.Services
 			if (!string.IsNullOrWhiteSpace(policy) && !policy.Equals("Anonymous", StringComparison.OrdinalIgnoreCase))
 				results.AppendLine($"\t\t[Authorize(\"{policy}\")]");
 
-
 			results.AppendLine($"\t\t[SwaggerResponse((int)HttpStatusCode.OK, Type = typeof({resourceClass.ClassName}))]");
-			results.AppendLine($"\t\t[Consumes(\"application/vnd.{moniker}.v1+json\", \"application/json\", \"text/json\")]");
-			results.AppendLine($"\t\t[Produces(\"application/vnd.{moniker}.v1+json\", \"application/json\", \"text/json\")]");
+			results.AppendLine($"\t\t[Consumes(\"application/vnd.v1+json\", \"application/json\", \"text/json\")]");
+			results.AppendLine($"\t\t[Produces(\"application/vnd.v1+json\", \"application/json\", \"text/json\")]");
 			results.AppendLine($"\t\tpublic async Task<IActionResult> Update{resourceClass.ClassName}Async([FromBody] {resourceClass.ClassName} item)");
 			results.AppendLine("\t\t{");
 

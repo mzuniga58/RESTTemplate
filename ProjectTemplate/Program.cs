@@ -7,10 +7,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Reflection;
+using System.Text.Json;
 using $safeprojectname$.Orchestration;
 using $safeprojectname$.Repositories;
-using $safeprojectname$.Services;
-$if$ ($userql$ == True)using Rql.Services;$endif$
+using $safeprojectname$.Services;$if$ ($userql$ == True)
+using Tense.Rql;$endif$$if$ ($usehal$ == True)
+using Tense.Hal;$endif$
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,7 +49,13 @@ builder.Services.AddDefaultCorrelationId(options =>
 builder.Services.AddCors();
 
 builder.Services.AddHealthChecks();
-builder.Services.AddControllers();
+
+builder.Services.AddControllers(config =>
+{$if$ ($usehal$ == True )
+    config.Filters.Add(new HalFilter());
+$endif$$if$ ($userql$ == True )
+    config.Filters.Add(new RqlFilter());
+$endif$}).AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase); 
 
 $if$ ($useauth$ == True)
 builder.Services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
@@ -78,20 +86,13 @@ builder.Services.AddAuthorization(options =>
             builder.RequireAuthenticatedUser();
             builder.RequireClaim("scope", scopes.ToArray());
         });
-
     }
 });$endif$
 
-builder.Services.AddSingleton<IRepositoryOptions>(
- new RepositoryOptions(
-          builder.Configuration.GetSection("ConnectionStrings").GetValue<string>("DefaultConnection"),
-          builder.Configuration.GetSection("ServiceSettings").GetValue<int>("BatchLimit"),
-          builder.Configuration.GetSection("ServiceSettings").GetValue<TimeSpan>("Timeout")
-    ));
 builder.Services.AddScoped<IRepository, Repository>();
 builder.Services.AddScoped<IOrchestrator, Orchestrator>();
-builder.Services.AddSingleton<IMapper>(new MapperConfiguration(cfg => cfg.AddMaps(Assembly.GetExecutingAssembly())).CreateMapper());
-
+builder.Services.AddSingleton<IMapper>(new MapperConfiguration(cfg => cfg.AddMaps(Assembly.GetExecutingAssembly())).CreateMapper());$if$ ($usehal$ == True)
+builder.Services.AddSingleton<IHalConfiguration>(new HalConfiguration());$endif$
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -153,8 +154,8 @@ app.UseCors(builder => builder.AllowAnyMethod()
                               .AllowCredentials()
                               .WithExposedHeaders(new string[] { "location" }));
 
-
-app.UseSwagger();
+$if$ ($userql$ == True)app.UseRql();
+$endif$app.UseSwagger();
 app.UseSwaggerUI(options =>
 {
     options.SwaggerEndpoint("/swagger/v1/swagger.json", "$safeprojectname$ V1");
