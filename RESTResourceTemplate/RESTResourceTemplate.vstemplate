@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Item" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" xmlns:sdk="http://schemas.microsoft.com/developer/vstemplate-sdkextension/2010">
+  <TemplateData>
+    <Name>REST Resource Model</Name>
+    <Description>Adds a resource model to a REST Service</Description>
+    <Icon>MZ.ico</Icon>
+    <TemplateID>6563a717-45e3-4e71-a065-19dc7749f1e2</TemplateID>
+    <ProjectType>CSharp</ProjectType>
+    <TemplateGroupID>AspNetCore</TemplateGroupID>
+    <RequiredFrameworkVersion>2.0</RequiredFrameworkVersion>
+    <NumberOfParentCategoriesToRollUp>2</NumberOfParentCategoriesToRollUp>
+    <DefaultName>Resource.cs</DefaultName>
+  </TemplateData>
+  <TemplateContent>
+    <References>
+      <Reference>
+        <Assembly>System</Assembly>
+      </Reference>
+    </References>
+    <ProjectItem ReplaceParameters="true" OpenInEditor="true" TargetFileName="$safeitemname$.cs">ResourceModel.cs</ProjectItem>
+  </TemplateContent>
+  <WizardExtension>
+    <Assembly>RESTInstaller, Version=1.0.0.0, Culture=neutral, PublicKeyToken=c9a91afd72f2c20b</Assembly>
+    <FullClassName>RESTInstaller.Wizards.ResourceModelWizard</FullClassName>
+  </WizardExtension>
+</VSTemplate>

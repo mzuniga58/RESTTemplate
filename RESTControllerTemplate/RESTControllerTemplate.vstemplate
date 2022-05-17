@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Item" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" xmlns:sdk="http://schemas.microsoft.com/developer/vstemplate-sdkextension/2010">
+  <TemplateData>
+    <Name>REST Web API Controller</Name>
+    <Description>Creates a Web API Controller for a REST Service using .NET Core</Description>
+    <Icon>MZ.ico</Icon>
+    <TemplateID>7bf13309-626f-4ee5-88ec-763755320b7d</TemplateID>
+    <ProjectType>CSharp</ProjectType>
+    <TemplateGroupID>AspNetCore</TemplateGroupID>
+    <RequiredFrameworkVersion>2.0</RequiredFrameworkVersion>
+    <NumberOfParentCategoriesToRollUp>2</NumberOfParentCategoriesToRollUp>
+    <DefaultName>ResourcesController.cs</DefaultName>
+  </TemplateData>
+  <TemplateContent>
+    <References>
+      <Reference>
+        <Assembly>System</Assembly>
+      </Reference>
+    </References>
+    <ProjectItem ReplaceParameters="true" TargetFileName="$safeitemname$.cs" OpenInEditor="true">Controller.cs</ProjectItem>
+  </TemplateContent>
+  <WizardExtension>
+    <Assembly>RESTInstaller, Version=1.0.0.0, Culture=neutral, PublicKeyToken=c9a91afd72f2c20b</Assembly>
+    <FullClassName>RESTInstaller.Wizards.ControllerWizard</FullClassName>
+  </WizardExtension>
+</VSTemplate>
