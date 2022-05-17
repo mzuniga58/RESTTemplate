@@ -7,9 +7,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("ProjectTemplate")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Cox Automotive")]
+[assembly: AssemblyCompany("Michael Zuniga")]
 [assembly: AssemblyProduct("ProjectTemplate")]
-[assembly: AssemblyCopyright("Copyright © Cox Automotive 2022")]
+[assembly: AssemblyCopyright("Copyright © Michael Zuniga 2022")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
