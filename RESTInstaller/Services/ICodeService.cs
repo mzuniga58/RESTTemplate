@@ -13,8 +13,19 @@ namespace RESTInstaller.Services
         DBServerType DefaultServerType { get; }
         List<string> Policies { get; }
         ProjectFolder InstallationFolder { get; }
+        ProjectFolder ConfigurationFolder { get; }
+        ProjectFolder ControllersFolder { get; }
+        ProjectFolder ResourceModelFolder { get; }
         List<EntityClass> EntityClassList { get; }
         List<ResourceClass> ResourceClassList { get; }
+
+        CodeClass2 FindClass(string className);
+
+        void AddLine(CodeFunction2 codeFunction, string codeLine);
+
+        List<string> GetListOfControllers();
+        List<string> GetListOfResourceModels();
+
         bool GetUseRql();
         bool GetUseHal();
         #endregion

@@ -229,13 +229,21 @@ namespace RESTInstaller.Wizards
 		// not for project templates.
 		public bool ShouldAddProjectItem(string filePath)
 		{
-			if ( filePath.Equals("HalConfiguration.cs", StringComparison.OrdinalIgnoreCase	))
-            {
+			if (filePath.Equals("Configuration", StringComparison.OrdinalIgnoreCase))
+			{
 				if (useHal)
 					return Proceed;
 
 				return false;
-            }
+			}
+
+			if (filePath.Equals("HalConfiguration.cs", StringComparison.OrdinalIgnoreCase))
+			{
+				if (useHal)
+					return Proceed;
+
+				return false;
+			}
 
 			if ( databaseTechnology.Equals("None", StringComparison.OrdinalIgnoreCase) )
             {

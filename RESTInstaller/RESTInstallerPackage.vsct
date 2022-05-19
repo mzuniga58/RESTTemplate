@@ -56,25 +56,20 @@
               <CommandFlag>DefaultInvisible</CommandFlag>
               <CommandFlag>DynamicVisibility</CommandFlag>
           If you do not want an image next to your command, remove the Icon node /> -->
-		  <Button guid="guidRESTInstallerPackageCmdSet" id="AddCollectionId" priority="0x0100" type="Button">
-			  <Parent guid="guidRESTInstallerPackageCmdSet" id="MyItemGroup" />
+		  <Button guid="guidRESTInstallerPackageCmdSet" id="AddHalConfigurationId" priority="0x0100" type="Button">
+			  <Parent guid="guidRESTInstallerPackageCmdSet" id="MyFolderGroup" />
+			  <Icon id="1" guid="guidImages"/>
 			  <CommandFlag>DefaultInvisible</CommandFlag>
 			  <CommandFlag>DynamicVisibility</CommandFlag>
 			  <Strings>
-				  <ButtonText>Add Collection...</ButtonText>
-			  </Strings>
-		  </Button>
-
-		  <Button guid="guidRESTInstallerPackageCmdSet" id="EditMappingId" priority="0x0100" type="Button">
-			  <Parent guid="guidRESTInstallerPackageCmdSet" id="MyItemGroup" />
-			  <CommandFlag>DynamicVisibility</CommandFlag>
-			  <Strings>
-				  <ButtonText>Reset Mapping...</ButtonText>
+				  <ToolTipText>Adds a Hal Configuration to your project.</ToolTipText>
+				  <ButtonText>Add Hal Configuration...</ButtonText>
 			  </Strings>
 		  </Button>
 
 		  <Button guid="guidRESTInstallerPackageCmdSet" id="AddEntityId" priority="0x0100" type="Button">
 			  <Parent guid="guidRESTInstallerPackageCmdSet" id="MyFolderGroup" />
+			  <Icon id="1" guid="guidImages"/>
 			  <CommandFlag>DefaultInvisible</CommandFlag>
 			  <CommandFlag>DynamicVisibility</CommandFlag>
 			  <Strings>
@@ -84,6 +79,7 @@
 
 		  <Button guid="guidRESTInstallerPackageCmdSet" id="AddResourceId" priority="0x0100" type="Button">
 			  <Parent guid="guidRESTInstallerPackageCmdSet" id="MyFolderGroup" />
+			  <Icon id="1" guid="guidImages"/>
 			  <CommandFlag>DefaultInvisible</CommandFlag>
 			  <CommandFlag>DynamicVisibility</CommandFlag>
 			  <Strings>
@@ -93,6 +89,7 @@
 
 		  <Button guid="guidRESTInstallerPackageCmdSet" id="AddProfileId" priority="0x0100" type="Button">
 			  <Parent guid="guidRESTInstallerPackageCmdSet" id="MyFolderGroup" />
+			  <Icon id="1" guid="guidImages"/>
 			  <CommandFlag>DefaultInvisible</CommandFlag>
 			  <CommandFlag>DynamicVisibility</CommandFlag>
 			  <Strings>
@@ -100,39 +97,13 @@
 			  </Strings>
 		  </Button>
 
-		  <Button guid="guidRESTInstallerPackageCmdSet" id="AddExampleId" priority="0x0100" type="Button">
-			  <Parent guid="guidRESTInstallerPackageCmdSet" id="MyFolderGroup" />
-			  <CommandFlag>DefaultInvisible</CommandFlag>
-			  <CommandFlag>DynamicVisibility</CommandFlag>
-			  <Strings>
-				  <ButtonText>Add REST Example...</ButtonText>
-			  </Strings>
-		  </Button>
-
-		  <Button guid="guidRESTInstallerPackageCmdSet" id="GenerateConverterId" priority="0x0100" type="Button">
-			  <Parent guid="guidRESTInstallerPackageCmdSet" id="MyFolderGroup" />
-			  <CommandFlag>DefaultInvisible</CommandFlag>
-			  <CommandFlag>DynamicVisibility</CommandFlag>
-			  <Strings>
-				  <ButtonText>Generate JSON Converter...</ButtonText>
-			  </Strings>
-		  </Button>
-
 		  <Button guid="guidRESTInstallerPackageCmdSet" id="AddControllerId" priority="0x0100" type="Button">
 			  <Parent guid="guidRESTInstallerPackageCmdSet" id="MyFolderGroup" />
+			  <Icon id="1" guid="guidImages"/>
 			  <CommandFlag>DefaultInvisible</CommandFlag>
 			  <CommandFlag>DynamicVisibility</CommandFlag>
 			  <Strings>
 				  <ButtonText>Add REST Controller...</ButtonText>
-			  </Strings>
-		  </Button>
-
-		  <Button guid="guidRESTInstallerPackageCmdSet" id="AddFullControllerId" priority="0x0100" type="Button">
-			  <Parent guid="guidRESTInstallerPackageCmdSet" id="MyFolderGroup" />
-			  <CommandFlag>DefaultInvisible</CommandFlag>
-			  <CommandFlag>DynamicVisibility</CommandFlag>
-			  <Strings>
-				  <ButtonText>Add REST Controller (with full stack)...</ButtonText>
 			  </Strings>
 		  </Button>
 	  </Buttons>
@@ -156,15 +127,11 @@
     <GuidSymbol name="guidRESTInstallerPackageCmdSet" value="{2badb8a1-54a6-4ad8-8f80-4c67668ee954}">
 		<IDSymbol name="MyItemGroup" value="0x1020" />
 		<IDSymbol name="MyFolderGroup" value ="0x1021"/>
-		<IDSymbol name="AddCollectionId" value="0x0100" />
-		<IDSymbol name="EditMappingId" value="0x0101" />
+		<IDSymbol name="AddHalConfigurationId" value="0x0101" />
 		<IDSymbol name="AddEntityId" value="0x0102" />
 		<IDSymbol name="AddResourceId" value="0x0103" />
 		<IDSymbol name="AddControllerId" value="0x0104" />
-		<IDSymbol name="AddFullControllerId" value="0x0105" /> 
-		<IDSymbol name="AddProfileId" value="0x0106" />
-		<IDSymbol name="AddExampleId" value="0x0108" />
-		<IDSymbol name="GenerateConverterId" value="0x0109" />
+		<IDSymbol name="AddProfileId" value="0x0105" />
 	</GuidSymbol>
 
     <GuidSymbol name="guidImages" value="{b525c1f4-42ee-4226-8338-edc1e4260127}" >

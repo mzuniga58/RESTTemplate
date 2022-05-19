@@ -44,9 +44,11 @@
 				<ProjectItem ReplaceParameters="true" >launchSettings.json</ProjectItem>
 			</Folder>
 			<Folder Name="Services">
-				<ProjectItem ReplaceParameters="true">HalConfiguration.cs</ProjectItem>
 				<ProjectItem ReplaceParameters="true">HealthResponseWriter.cs</ProjectItem>
 				<ProjectItem ReplaceParameters="true">HeaderVersionReader.cs</ProjectItem>
+			</Folder>
+			<Folder Name="Configuration">
+				<ProjectItem ReplaceParameters="true">HalConfiguration.cs</ProjectItem>
 			</Folder>
 			<Folder Name="Repositories">
 				<ProjectItem ReplaceParameters="true">IRepository.cs</ProjectItem>

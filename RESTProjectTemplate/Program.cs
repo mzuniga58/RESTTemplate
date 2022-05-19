@@ -12,7 +12,8 @@ using $safeprojectname$.Orchestration;
 using $safeprojectname$.Repositories;
 using $safeprojectname$.Services;$if$ ($userql$ == True)
 using Tense.Rql;$endif$$if$ ($usehal$ == True)
-using Tense.Hal;$endif$
+using Tense.Hal;
+using $safeprojectname$.Configuration;$endif$
 
 var builder = WebApplication.CreateBuilder(args);
 

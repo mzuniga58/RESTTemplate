@@ -1,0 +1,32 @@
+﻿<ui:DialogWindow x:Class="RESTInstaller.Dialogs.NewHalConfigurationDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:vsui="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+             ShowInTaskbar="False"
+             WindowStartupLocation="CenterOwner"
+             SizeToContent="WidthAndHeight" Loaded="OnLoad"
+             WindowStyle="ToolWindow" Title="REST Service (.NET Core)" >
+    <ui:DialogWindow.Resources>
+        <Style TargetType="{x:Type Grid}">
+            <Setter Property="Background" Value="{DynamicResource {x:Static vsui:VsBrushes.ToolboxBackgroundKey}}" />
+        </Style>
+        <Style TargetType="{x:Type TextBlock}">
+            <Setter Property="Background" Value="{DynamicResource {x:Static vsui:VsBrushes.ToolboxBackgroundKey}}" />
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:VsBrushes.ToolWindowTextKey}}" />
+        </Style>
+    </ui:DialogWindow.Resources>
+    <Grid x:Name="MainGrid" Width="401" Height="175">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="35*"/>
+            <ColumnDefinition Width="366*"/>
+        </Grid.ColumnDefinitions>
+        <Label x:Name="Label_Generator" Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogLabelStyleKey}}" Content="Generate Hal Configuration" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" FontSize="20" Grid.ColumnSpan="2"/>
+        <Label x:Name="Label_ClassName" Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogLabelStyleKey}}" Content="Class Name" HorizontalAlignment="Left" Margin="10,63,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
+        <ComboBox x:Name="Combobox_ClassName" Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogComboBoxStyleKey}}" HorizontalAlignment="Left" Margin="75,63,0,0" VerticalAlignment="Top" Width="265" Grid.Column="1"/>
+        <Label x:Name="Label_Controller" Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogLabelStyleKey}}" Content="Controller" HorizontalAlignment="Left" Margin="10,94,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
+        <ComboBox x:Name="Combobox_Controller" Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogComboBoxStyleKey}}" HorizontalAlignment="Left" Margin="75,98,0,0" VerticalAlignment="Top" Width="265" Grid.Column="1"/>
+        <Button x:Name="Button_OK" Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogButtonStyleKey}}" Content="OK" HorizontalAlignment="Left" Margin="183,140,0,0" VerticalAlignment="Top" Width="65" IsDefault="true" Click="OK_Click" Grid.Column="1"/>
+        <Button x:Name="Button_Cancel" Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogButtonStyleKey}}" Content="Cancel" HorizontalAlignment="Left" Margin="275,140,0,0" VerticalAlignment="Top" Width="65" IsCancel="true" Click="Cancel_Click" Grid.Column="1"/>
+    </Grid>
+</ui:DialogWindow>

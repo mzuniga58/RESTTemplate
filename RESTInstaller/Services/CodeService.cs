@@ -13,6 +13,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using RESTInstaller.Models;
 using Constants = EnvDTE.Constants;
+using System.Reflection;
 
 namespace RESTInstaller.Services
 {
@@ -28,7 +29,209 @@ namespace RESTInstaller.Services
 		{
 		}
 
+
 		#region Properties
+
+		public void AddLine(CodeFunction2 codeFunction, string codeLine)
+        {
+			ThreadHelper.ThrowIfNotOnUIThread();
+
+			var editPoint = (EditPoint2)codeFunction.StartPoint.CreateEditPoint();
+			bool foundit = editPoint.FindPattern(codeLine);
+			foundit = foundit && editPoint.LessThan(codeFunction.EndPoint);
+
+			if ( !foundit )
+            {
+				editPoint = (EditPoint2)codeFunction.EndPoint.CreateEditPoint();
+				editPoint.LineUp();
+				editPoint.EndOfLine();
+
+				editPoint.InsertNewLine();
+				editPoint.Indent(null, 3);
+				editPoint.Insert(codeLine);
+			}
+		}
+
+
+		public List<string> GetListOfControllers()
+		{
+			ThreadHelper.ThrowIfNotOnUIThread();
+			var results = new List<string>();
+
+			var _controllers = FindFolder("Controllers");
+
+			if (_controllers != null)
+			{
+				foreach (ProjectItem child in _controllers.ProjectItems)
+				{
+					FileCodeModel2 code = (FileCodeModel2)child.FileCodeModel;
+
+					if (code != null)
+					{
+						foreach (CodeNamespace namespaceElement in code.CodeElements.OfType<CodeNamespace>())
+						{
+							foreach (CodeClass2 classElement in namespaceElement.Members.OfType<CodeClass2>())
+							{
+								if (classElement.Name.Contains("Controller"))
+									results.Add(classElement.Name);
+							}
+						}
+					}
+				}
+			}
+			return results;
+		}
+
+		public List<string> GetListOfResourceModels()
+		{
+			ThreadHelper.ThrowIfNotOnUIThread();
+			var results = new List<string>();
+			ProjectItem _resourceModels = FindFolder("ResourceModels");
+
+			if (_resourceModels != null)
+			{
+				foreach (ProjectItem child in _resourceModels.ProjectItems)
+				{
+					FileCodeModel2 code = (FileCodeModel2)child.FileCodeModel;
+
+					if (code != null)
+					{
+						foreach (CodeNamespace namespaceElement in code.CodeElements.OfType<CodeNamespace>())
+						{
+							foreach (CodeClass2 classElement in namespaceElement.Members.OfType<CodeClass2>())
+							{
+								results.Add(classElement.Name);
+							}
+						}
+					}
+				}
+			}
+
+			return results;
+		}
+
+		public CodeClass2 FindClass(string className)
+		{
+			ThreadHelper.ThrowIfNotOnUIThread();
+
+			var mDte = Package.GetGlobalService(typeof(SDTE)) as DTE2;
+			foreach (Project project in mDte.Solution.Projects)
+			{
+				foreach (ProjectItem projectItem in project.ProjectItems)
+				{
+					if (projectItem.Kind == Constants.vsProjectItemKindPhysicalFolder ||
+						 projectItem.Kind == Constants.vsProjectItemKindVirtualFolder)
+					{
+						var result = FindClass(projectItem, className);
+
+						if (result != null)
+							return result;
+					}
+					else if (projectItem.Kind == Constants.vsProjectItemKindPhysicalFile)
+					{
+						FileCodeModel2 codeFile = (FileCodeModel2)projectItem.FileCodeModel;
+
+						if (codeFile != null)
+						{
+							foreach (CodeNamespace namespaceElement in codeFile.CodeElements.OfType<CodeNamespace>())
+							{
+								foreach (CodeClass2 classElement in namespaceElement.Members.OfType<CodeClass2>())
+								{
+									if (classElement.Name.Equals(className, StringComparison.OrdinalIgnoreCase))
+										return classElement;
+								}
+							}
+						}
+					}
+				}
+			}
+
+			return null;
+		}
+		internal CodeClass2 FindClass(ProjectItem parent, string className)
+		{
+			ThreadHelper.ThrowIfNotOnUIThread();
+
+			foreach (ProjectItem projectItem in parent.ProjectItems)
+			{
+				if (projectItem.Kind == Constants.vsProjectItemKindPhysicalFolder ||
+					 projectItem.Kind == Constants.vsProjectItemKindVirtualFolder)
+				{
+					var result = FindClass(projectItem, className);
+
+					if (result != null)
+						return result;
+				}
+				else if (projectItem.Kind == Constants.vsProjectItemKindPhysicalFile)
+				{
+					FileCodeModel2 codeFile = (FileCodeModel2)projectItem.FileCodeModel;
+
+					if (codeFile != null)
+					{
+						foreach (CodeNamespace namespaceElement in codeFile.CodeElements.OfType<CodeNamespace>())
+						{
+							foreach (CodeClass2 classElement in namespaceElement.Members.OfType<CodeClass2>())
+							{
+								if (classElement.Name.Equals(className, StringComparison.OrdinalIgnoreCase))
+									return classElement;
+							}
+						}
+					}
+				}
+			}
+
+			return null;
+		}
+
+
+		public ProjectItem FindFolder(string FolderName)
+		{
+			ThreadHelper.ThrowIfNotOnUIThread();
+			var mDte = Package.GetGlobalService(typeof(SDTE)) as DTE2;
+
+			foreach (Project project in mDte.Solution.Projects)
+			{
+				foreach (ProjectItem item in project.ProjectItems)
+				{
+					if (item.Kind == Constants.vsProjectItemKindPhysicalFolder ||
+						 item.Kind == Constants.vsProjectItemKindVirtualFolder)
+					{
+						if (item.Name.Equals(FolderName, StringComparison.OrdinalIgnoreCase))
+							return item;
+
+						var result = FindFolder(item, FolderName);
+
+						if (result != null)
+							return result;
+					}
+				}
+			}
+
+			return null;
+		}
+
+		public ProjectItem FindFolder(ProjectItem parent, string FolderName)
+		{
+			ThreadHelper.ThrowIfNotOnUIThread();
+
+			foreach (ProjectItem item in parent.ProjectItems)
+			{
+				if (item.Kind == Constants.vsProjectItemKindPhysicalFolder ||
+					 item.Kind == Constants.vsProjectItemKindVirtualFolder)
+				{
+					if (item.Name.Equals(FolderName, StringComparison.OrdinalIgnoreCase))
+						return item;
+
+					var result = FindFolder(item, FolderName);
+
+					if (result != null)
+						return result;
+				}
+			}
+
+			return null;
+		}
+
 		public string ConnectionString
 		{
 			get
@@ -181,6 +384,93 @@ namespace RESTInstaller.Services
 
 			var json = JsonConvert.SerializeObject(theMap);
 			File.WriteAllText(mappingPath, json);
+		}
+
+		/// <summary>
+		/// Returns the <see cref="ProjectFolder"/> where the new item is being installed.
+		/// </summary>
+		/// <param name="solution">The <see cref="Solution"/> that contains the projects</param>
+		/// <param name="replacementsDictionary">The dictionary of replacement values</param>
+		/// <returns>The <see cref="ProjectFolder"/> where the new item is being installed.</returns>
+
+		public ProjectFolder ConfigurationFolder
+		{
+			get
+			{
+				ThreadHelper.ThrowIfNotOnUIThread();
+				var mDte = Package.GetGlobalService(typeof(SDTE)) as DTE2;
+
+				var _configurationFoler = mDte.Solution.FindProjectItem("Configuration");
+
+				if (_configurationFoler != null)
+				{
+					var project = _configurationFoler.ContainingProject;
+
+					var projectFolder = new ProjectFolder
+					{
+						ProjectName = project.Name,
+						Folder = _configurationFoler.Properties.Item("FullPath").Value.ToString(),
+						Namespace = _configurationFoler.Properties.Item("DefaultNamespace").Value.ToString(),
+						Name = _configurationFoler.Name
+					};
+
+					return projectFolder;
+				}
+
+				return null;
+			}
+		}
+		public ProjectFolder ControllersFolder
+		{
+			get
+			{
+				ThreadHelper.ThrowIfNotOnUIThread();
+				var mDte = Package.GetGlobalService(typeof(SDTE)) as DTE2;
+
+				var _controllersFolder = mDte.Solution.FindProjectItem("Controllers");
+
+				if (_controllersFolder != null)
+				{
+					var project = _controllersFolder.ContainingProject;
+
+					var projectFolder = new ProjectFolder
+					{
+						ProjectName = project.Name,
+						Folder = _controllersFolder.Properties.Item("FullPath").Value.ToString(),
+						Namespace = _controllersFolder.Properties.Item("DefaultNamespace").Value.ToString(),
+						Name = _controllersFolder.Name
+					};
+
+					return projectFolder;
+				}
+
+				return null;
+			}
+		}
+		public ProjectFolder ResourceModelFolder
+		{
+			get
+			{
+				ThreadHelper.ThrowIfNotOnUIThread();
+				var _resourceModelFolder = FindFolder("ResourceModels");
+				
+				if (_resourceModelFolder != null)
+				{
+					var project = _resourceModelFolder.ContainingProject;
+
+					var projectFolder = new ProjectFolder
+					{
+						ProjectName = project.Name,
+						Folder = _resourceModelFolder.Properties.Item("FullPath").Value.ToString(),
+						Namespace = _resourceModelFolder.Properties.Item("DefaultNamespace").Value.ToString(),
+						Name = _resourceModelFolder.Name
+					};
+
+					return projectFolder;
+				}
+
+				return null;
+			}
 		}
 
 

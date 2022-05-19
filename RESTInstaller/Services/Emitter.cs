@@ -2,7 +2,9 @@
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Newtonsoft.Json.Linq;
+using REST.Template.Models;
+using RESTInstaller.Extensions;
+using RESTInstaller.Models;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
@@ -10,17 +12,208 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using RESTInstaller.Extensions;
-using RESTInstaller.Models;
 
 namespace RESTInstaller.Services
 {
-	internal class Emitter
+    internal class Emitter
 	{
+
+		public string EmitHalConfiguration(ICodeService codeService, string controllerName, string className, Dictionary<string, string> replacementsDictionary)
+        {
+			ThreadHelper.ThrowIfNotOnUIThread();
+			StringBuilder code = new StringBuilder();
+
+			code.AppendLine("\t///\t<summary>");
+			code.AppendLine($"\t///\t///Hal Configuration for the {controllerName}.");
+			code.AppendLine("\t///\t</summary>");
+			code.AppendLine($"\tpublic class {replacementsDictionary["$safeitemname$"]} : BaseConfiguration");
+			code.AppendLine("\t{");
+			code.AppendLine("\t\t///\t<summary>");
+			code.AppendLine($"\t///\t///Configure Hal for the {controllerName}.");
+			code.AppendLine("\t\t///\t</summary>");
+			code.AppendLine($"\t\tpublic {replacementsDictionary["$safeitemname$"]}()");
+			code.AppendLine("\t\t{");
+
+			CodeClass2 resourceClass = codeService.FindClass(className);
+			CodeClass2 controllerClass = codeService.FindClass(controllerName);
+			CodeClass2 halConfigurationClass = codeService.FindClass("HalConfiguration");
+
+			CodeFunction2 halCode = (CodeFunction2) halConfigurationClass.Children.OfType<CodeFunction>().FirstOrDefault(c => { ThreadHelper.ThrowIfNotOnUIThread(); return c.Name.Equals("HalConfiguration"); });
+
+			if ( halCode != null )
+            {
+				codeService.AddLine(halCode, $"Links.Register(new {replacementsDictionary["$safeitemname$"]}());");
+            }
+
+			var configSpecs = new List<ConfigurationSpec>();
+
+			foreach (CodeFunction2 codeFunction in controllerClass.Children.OfType<CodeFunction2>())
+			{
+				CodeAttribute2 getAttribute = codeFunction.Attributes.OfType<CodeAttribute2>().FirstOrDefault(c => c.Name.Equals("HttpGet", StringComparison.OrdinalIgnoreCase));
+
+				if (getAttribute != null)
+				{
+					CodeAttribute2 routeAttribute = codeFunction.Attributes.OfType<CodeAttribute2>().FirstOrDefault(c => c.Name.Equals("Route", StringComparison.OrdinalIgnoreCase));
+					CodeAttribute2 swaggerResponseAttribute = codeFunction.Attributes.OfType<CodeAttribute2>().FirstOrDefault(c => c.Name.Equals("SwaggerResponse", StringComparison.OrdinalIgnoreCase));
+
+					if (routeAttribute != null && swaggerResponseAttribute != null)
+					{
+						var theRoute = routeAttribute.Value;
+						var swag = swaggerResponseAttribute.Value;
+
+						var match = Regex.Match(swag, "Type[ ]*=[ ]*typeof\\((?<returntype>[a-zA-Z0-9_\\<\\>]+)\\)");
+
+						if (match.Success)
+						{
+							var spec = new ConfigurationSpec()
+							{
+								ResourceType = match.Groups["returntype"].Value,
+								Route = theRoute.Substring(1, theRoute.Length - 2),
+								FunctionName = codeFunction.Name
+							};
+
+							configSpecs.Add(spec);
+						}
+					}
+				}
+			}
+
+			//	Generate the single spec
+			foreach ( var spec in configSpecs )
+            {
+				if ( spec.ResourceType.Equals(className, StringComparison.OrdinalIgnoreCase))
+                {
+					code.AppendLine($"\t\t\tLinks.AddLink<{spec.ResourceType}>(");
+					code.AppendLine("\t\t\t\t\"self\",");
+					code.AppendLine($"\t\t\t\tnameof({controllerName}.{spec.FunctionName}),");
+
+					string nativeRoot = spec.Route;
+					StringBuilder translatedRoot = new StringBuilder();
+					bool isFinished = false;
+
+					while (!isFinished)
+					{
+						var match2 = Regex.Match(nativeRoot, "\\{(?<member>[a-zA-Z0-9_]+)\\}");
+
+						if (match2.Success)
+						{
+							var memberName = resourceClass.Members.OfType<CodeElement2>().FirstOrDefault(m => m.Name.Equals(match2.Groups["member"].Value, StringComparison.OrdinalIgnoreCase));
+
+							translatedRoot.Append(nativeRoot.Substring(0, match2.Groups["member"].Index));
+							translatedRoot.Append("c.");
+							translatedRoot.Append(memberName.Name);
+
+							nativeRoot = nativeRoot.Substring(match2.Groups["member"].Index + match2.Groups["member"].Length);
+						}
+						else
+						{
+							translatedRoot.Append(nativeRoot);
+							isFinished = true;
+						}
+					}
+
+					code.AppendLine($"\t\t\t\tc => $\"/{translatedRoot}\",");
+					code.AppendLine("\t\t\t\tx => true);");
+					code.AppendLine();
+					bool hasExtensions = false;
+
+					foreach ( var childspec in configSpecs )
+                    {
+						if (!childspec.ResourceType.Equals(className, StringComparison.OrdinalIgnoreCase) &&
+							!childspec.ResourceType.Equals($"PagedSet<{className}>", StringComparison.OrdinalIgnoreCase) )
+						{
+							var extensionPath = childspec.Route.Substring(spec.Route.Length);
+							var pathName = extensionPath.Substring(1);
+
+							code.AppendLine($"\t\t\tLinks.AddLink<{spec.ResourceType}>(");
+							code.AppendLine($"\t\t\t\t\"ex:{pathName}\",");
+							code.AppendLine($"\t\t\t\tnameof({controllerName}.{spec.FunctionName}),");
+							code.AppendLine($"\t\t\t\tc => \"{extensionPath}\",");
+							code.AppendLine("\t\t\t\tx => true);");
+							code.AppendLine();
+							hasExtensions = true;
+						}
+					}
+
+					if ( hasExtensions)
+                    {
+						var index = translatedRoot.ToString().IndexOf('{');
+
+						if (index != -1)
+						{
+							var basePath = translatedRoot.ToString().Substring(0, index);
+							var templatePath = translatedRoot.ToString().Substring(index);
+
+							code.AppendLine($"\t\t\tLinks.AddLinkTemplate<{spec.ResourceType}>(");
+							code.AppendLine($"\t\t\t\t\"curies\",");
+							code.AppendLine($"\t\t\t\tnameof({controllerName}.{spec.FunctionName}),");
+							code.AppendLine("\t\t\t\t\"ex\",");
+							code.AppendLine($"\t\t\t\t\"{basePath}\",");
+							code.AppendLine($"\t\t\t\t(c, template) => $\"/{{template}}{templatePath}{{{{rel}}}}\",");
+							code.AppendLine("\t\t\t\tx => true);");
+							code.AppendLine();
+						}
+					}
+				}
+				else if ( spec.ResourceType.Equals($"PagedSet<{className}>", StringComparison.OrdinalIgnoreCase))
+                {
+					code.AppendLine($"\t\t\tLinks.AddLink<{spec.ResourceType}>(");
+					code.AppendLine($"\t\t\t\t\"self\",");
+					code.AppendLine($"\t\t\t\tnameof({controllerName}.{spec.FunctionName}),");
+					code.AppendLine($"\t\t\t\tc => $\"/{spec.Route}?limit({{c.Start}},{{c.PageSize}})\",");
+					code.AppendLine("\t\t\t\tx => true);");
+					code.AppendLine();
+
+					code.AppendLine($"\t\t\tLinks.AddLink<{spec.ResourceType}>(");
+					code.AppendLine($"\t\t\t\t\"next\",");
+					code.AppendLine($"\t\t\t\tnameof({controllerName}.{spec.FunctionName}),");
+					code.AppendLine($"\t\t\t\tc => $\"/{spec.Route}?limit({{c.Start + c.PageSize}},{{c.PageSize}})\",");
+					code.AppendLine("\t\t\t\tx => x.Start + x.PageSize <= x.Count);");
+					code.AppendLine();
+
+					code.AppendLine($"\t\t\tLinks.AddLink<{spec.ResourceType}>(");
+					code.AppendLine($"\t\t\t\t\"previous\",");
+					code.AppendLine($"\t\t\t\tnameof({controllerName}.{spec.FunctionName}),");
+					code.AppendLine("\t\t\t\tc => {");
+					code.AppendLine("\t\t\t\t\tvar startRecord = c.Start - c.PageSize;");
+					code.AppendLine("\t\t\t\t\tif (startRecord < 1)");
+					code.AppendLine("\t\t\t\t\t\tstartRecord = 1;");
+					code.AppendLine($"\t\t\t\t\treturn $\"/{spec.Route}?limit({{startRecord}},{{c.PageSize}})\";");
+					code.AppendLine("\t\t\t\t},");
+					code.AppendLine("\t\t\t\tx => x.Start > 1);");
+					code.AppendLine();
+
+					code.AppendLine($"\t\t\tLinks.AddLink<{spec.ResourceType}>(");
+					code.AppendLine($"\t\t\t\t\"first\",");
+					code.AppendLine($"\t\t\t\tnameof({controllerName}.{spec.FunctionName}),");
+					code.AppendLine($"\t\t\t\tc => $\"/{spec.Route}?limit(1,{{c.PageSize}})\",");
+					code.AppendLine("\t\t\t\tx => x.Count < x.PageSize);");
+					code.AppendLine();
+
+					code.AppendLine($"\t\t\tLinks.AddLink<{spec.ResourceType}>(");
+					code.AppendLine($"\t\t\t\t\"last\",");
+					code.AppendLine($"\t\t\t\tnameof({controllerName}.{spec.FunctionName}),");
+					code.AppendLine("\t\t\t\tc => {");
+					code.AppendLine("\t\t\t\t\tvar remainder = c.Count % c.PageSize;");
+					code.AppendLine("\t\t\t\t\tif (remainder == 0)");
+					code.AppendLine("\t\t\t\t\t\tremainder = c.PageSize;");
+					code.AppendLine("\t\t\t\t\tvar startRecord = c.Count - remainder + 1;");
+					code.AppendLine($"\t\t\t\t\treturn $\"/{spec.Route}?limit({{startRecord}},{{c.PageSize}})\";");
+					code.AppendLine("\t\t\t\t},");
+					code.AppendLine("\t\t\t\tx => x.Count < x.PageSize);");
+					code.AppendLine();
+				}
+			}
+
+			code.AppendLine("\t\t}");
+			code.AppendLine("\t}");
+
+			return code.ToString();
+        }
+
 		public string EmitResourceEnum(ICodeService codeService, string resourceClassName, EntityClass model)
 		{
-			ThreadHelper.ThrowIfNotOnUIThread();
-
+			ThreadHelper.ThrowIfNotOnUIThread(); 
 			if (model.ServerType == DBServerType.MYSQL)
 				return EmitResourceMySqlEnum(codeService, resourceClassName, model);
 			else if (model.ServerType == DBServerType.POSTGRESQL)
@@ -1871,5 +2064,6 @@ namespace RESTInstaller.Services
 
 			results.AppendLine("\")]");
 		}
+
 	}
 }
