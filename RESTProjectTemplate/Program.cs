@@ -141,8 +141,10 @@ c.AddSecurityRequirement(new OpenApiSecurityRequirement
         }
     });$endif$
 
+    $if$ ($userql$ == True)c.OperationFilter<RqlSwaggerFilter>();
+    $endif$
 #pragma warning disable CS8604 // Possible null reference argument.
-    c.IncludeXmlComments(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "$safeprojectname$.xml"));
+c.IncludeXmlComments(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "$safeprojectname$.xml"));
 #pragma warning restore CS8604 // Possible null reference argument.
 });
 
