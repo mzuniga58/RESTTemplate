@@ -86,7 +86,7 @@ Open Microsoft SQL Server Management Studio and create a database called Booksto
 ### Adding Entity Models ###
 Okay, now that we have some data, we're going to want to add our first endpoints to our service to manimulate that data. Before we can create that endpoint, we need to do a few things. First, we need to create an entity model of the data we want to manipulate. The first bit of data we want to manipulate is the categories table. The categories table is the list of categories that a book can belong to, such as Science Fiction or Romance. 
 
-To do that, with your Bookstore service open in Visual Studio, expand the Models folder. Under the Models folder you will see tow child folders, EntityModels and ResourceModels. We want to create an entity model for the Categories table, so right-click on the EntityModels folder. When you do, a pop-up menu will appear. On that menu, click on Add REST Entity Model... It should be 3rd on the menu, with the Blue and White MZ logo next to it.
+To do that, with your Bookstore service open in Visual Studio, expand the Models folder. Under the Models folder you will see two child folders, EntityModels and ResourceModels. We want to create an entity model for the Categories table, so right-click on the EntityModels folder. When you do, a pop-up menu will appear. On that menu, click on Add REST Entity Model... It should be 3rd on the menu, with the Blue and White MZ logo next to it.
 
 >What are you talking about? I don't see any menu item called "Add REST Entity Model..." with a blue and white MZ logo?
 >
