@@ -1,8 +1,7 @@
 # RESTTemplate
 REST Service Visual Studio Extension
 
-The REST Service Visual Studio Extension aids the user in the creation of REST Services. The
-REST Service generated comes with these features automaitcally included.
+The REST Service Visual Studio Extension aids the user in the creation of REST Services. The REST Service generated comes with these features automaitcally included.
 
 - Api Versioning using headers versioning
 - Serilog logging - can log to any sink supported by Serilog
@@ -32,7 +31,7 @@ In addition, if the user chooses to include Hal, Hateoas support, the service wi
 ## OAuth / OpenId-Connect Support ##
 In the appSettings.json configuration files contain an OAuth section.
 
-...
+```json
   "OAuth2": {
     "Policies": [
       {
@@ -41,11 +40,9 @@ In the appSettings.json configuration files contain an OAuth section.
       }
     ]
   }
-...
+```
 
-The user can define any many policies as desired. Each policy supports a list of scopes. Only users or principals 
-with one of those scopes can call the endpoint protected by a policy. To protect and endpoint, use the following
-attribute 
+The user can define any many policies as desired. Each policy supports a list of scopes. Only users or principals with one of those scopes can call the endpoint protected by a policy. To protect and endpoint, use the following attribute 
 
 '[Authorize(Policy="name")]'
 
@@ -66,17 +63,16 @@ RQL, if included, is supported on GET and PUT endpoints. To include RQL support 
 
 attribute at the endpoint. 
 
-> Note: In order to support RQL in swagger, we internally generate an RQL = parameter. This parameter will unfortunately
-show up in the curl like this:
-
-...
-curl -X 'GET' \
-  'https://localhost:50499/apiScopes?RQL=select(id,name)' \
-  -H 'accept: application/hal+json'
-...
-
-However, the RQL= paramter is not necessary. It is only there because of a limitation in swagger. This url call
-
-'https://localhost:50499/apiScopes?select(id,name)' 
-
-would produce the exact same result.
+> Note: In order to support RQL in swagger, we internally generate an RQL = parameter. This parameter will unfortunately show up in the curl like this:
+>
+>.```
+>curl -X 'GET' \
+>  'https://localhost:50499/apiScopes?RQL=select(id,name)' \
+>  -H 'accept: application/hal+json'
+>```
+>
+>However, the RQL= paramter is not necessary. It is only there because of a limitation in swagger. This url call
+>
+>'https://localhost:50499/apiScopes?select(id,name)' 
+>
+>would produce the exact same result.
