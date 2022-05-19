@@ -226,4 +226,279 @@ namespace Bookstore.Models.ResourceModels
 }
 ```
 
+Now, we can't manipulate the categories table with an enum. If we wanted to manipulate that table, we'd need to create an additional resource model that is not an enum. But that isn't very interesting, as this table isn't likely to change in the near future. We can always do that later, if the need arises. For now, we're going to use the enum version and treat categories as if it is carved in stone. 
+
+So, that's it for categories. Now, let's do something a bit more interesting. Let's create an entity model and resource model for something that does change. Go back to the EntityModles folder and create an entity model for books (remember to call it EBooks). Then create a Resource Model for Books.
+
+Your code should look like this:
+
+```
+using System;
+using System.Collections.Generic;
+using Tense;
+
+namespace Bookstore.Models.EntityModels
+{
+	///	<summary>
+	///	EBooks
+	///	</summary>
+	[Table("Books", Schema = "dbo", DBType = "SQLSERVER")]
+	public class EBooks
+	{
+		///	<summary>
+		///	BookId
+		///	</summary>
+		[Member(IsPrimaryKey = true, IsIdentity = true, AutoField = true, IsIndexed = true, IsNullable = false, NativeDataType="int")]
+		public int BookId { get; set; }
+
+		///	<summary>
+		///	Title
+		///	</summary>
+		[Member(IsNullable = false, Length = 50, IsFixed = false, NativeDataType="varchar")]
+		public string Title { get; set; } = string.Empty;
+
+		///	<summary>
+		///	PublishDate
+		///	</summary>
+		[Member(IsNullable = false, NativeDataType="datetime")]
+		public DateTime PublishDate { get; set; } = DateTime.UtcNow;
+
+		///	<summary>
+		///	CategoryId
+		///	</summary>
+		[Member(IsIndexed = true, IsForeignKey = true, ForeignTableName="Categories", IsNullable = false, NativeDataType="int")]
+		public int CategoryId { get; set; }
+
+		///	<summary>
+		///	Synopsis
+		///	</summary>
+		[Member(IsNullable = true, IsFixed = false, NativeDataType="varchar")]
+		public string? Synopsis { get; set; }
+	}
+}
+```
+
+```
+using System;
+using Tense;
+using Tense.Rql;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Bookstore.Orchestration;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using Bookstore.Models.EntityModels;
+
+namespace Bookstore.Models.ResourceModels
+{
+	///	<summary>
+	///	Books
+	///	</summary>
+	[Entity(typeof(EBooks))]
+	public class Books
+	{
+		///	<summary>
+		///	BookId
+		///	</summary>
+		public int BookId { get; set; }
+
+		///	<summary>
+		///	Title
+		///	</summary>
+		public string Title { get; set; } = string.Empty;
+
+		///	<summary>
+		///	PublishDate
+		///	</summary>
+		public DateTimeOffset PublishDate { get; set; } = DateTimeOffset.UtcNow.ToLocalTime();
+
+		///	<summary>
+		///	CategoryId
+		///	</summary>
+		public int CategoryId { get; set; }
+
+		///	<summary>
+		///	Synopsis
+		///	</summary>
+		public string? Synopsis { get; set; }
+
+		///	<summary>
+		///	Checks the resource to see if it is in a valid state to update.
+		///	</summary>
+		///	<param name="orchestrator">The <see cref="IOrchestrator"/> used to orchestrate operations.</param>
+		///	<param name="node">The <see cref="RqlNode"/> that restricts the update.</param>
+		///	<param name="errors">The <see cref="ModelStateDictionary"/> that will contain errors from failed validations.</param>
+		///	<returns><see langword="true"/> if the resource can be updated; <see langword="false"/> otherwise</returns>
+		public async Task<bool> CanUpdateAsync(IOrchestrator orchestrator, RqlNode node, ModelStateDictionary errors)
+		{
+			errors.Clear();
+
+			var existingValues = await orchestrator.GetResourceCollectionAsync<Books>(node);
+
+			if (existingValues.Count == 0)
+			{
+				errors.AddModelError("Search", "No matching Books was found.");
+			}
+
+			var selectNode = node.ExtractSelectClause();
+			if (selectNode is null || (selectNode is not null && selectNode.SelectContains(nameof(Title))))
+			{
+				if (string.IsNullOrWhiteSpace(Title))
+					errors.AddModelError(nameof(Title), "Title cannot be blank or null.");
+				if (Title is not null && Title.Length > 50)
+					errors.AddModelError(nameof(Title), "Title cannot exceed 50 characters.");
+			}
+			if (selectNode is null || (selectNode is not null && selectNode.SelectContains(nameof(Synopsis))))
+			{
+			}
+			return errors.IsValid;
+		}
+
+		///	<summary>
+		///	Checks the resource to see if it is in a valid state to add.
+		///	</summary>
+		/// <param name="orchestrator">The <see cref="IOrchestrator"/> used to orchestrate operations.</param>
+		/// <param name="errors">The <see cref="ModelStateDictionary"/> that will contain errors from failed validations.</param>
+		/// <returns><see langword="true"/> if the resource can be updated; <see langword="false"/> otherwise</returns>
+		public async Task<bool> CanAddAsync(IOrchestrator orchestrator, ModelStateDictionary errors)
+		{
+			errors.Clear();
+
+			if (string.IsNullOrWhiteSpace(Title))
+				errors.AddModelError(nameof(Title), "Title cannot be blank or null.");
+			if (Title is not null && Title.Length > 50)
+				errors.AddModelError(nameof(Title), "Title cannot exceed 50 characters.");
+
+			await Task.CompletedTask;
+
+			return errors.IsValid;
+		}
+
+		///	<summary>
+		///	Checks the resource to see if it is in a valid state to delete.
+		///	</summary>
+		///	<param name="orchestrator">The <see cref="IOrchestrator"/> used to orchestrate operations.</param>
+		///	<param name="node">The <see cref="RqlNode"/> that restricts the update.</param>
+		///	<param name="errors">The <see cref="ModelStateDictionary"/> that will contain errors from failed validations.</param>
+		///	<returns><see langword="true"/> if the resource can be updated; <see langword="false"/> otherwise</returns>
+		public static async Task<bool> CanDeleteAsync(IOrchestrator orchestrator, RqlNode node, ModelStateDictionary errors)
+		{
+			errors.Clear();
+
+			var existingValues = await orchestrator.GetResourceCollectionAsync<Books>(node);
+
+			if (existingValues.Count == 0)
+			{
+				errors.AddModelError("Search", "No matching Books was found.");
+			}
+
+			return errors.IsValid;
+		}
+	}
+}
+```
+
+Notice that the new resource model looks pretty much like we'd expect, it has members for each column in the database. However, it has a member called CategoryId, and that member matches the CategoryId in the entity model. But that isn't what we want. We took the trouble to create an enum to represent categories in our resource models, and that is what we want to use here.
+
+Change the line of code from
+
+```
+		public int CategoryId { get; set; }
+```
+
+to
+
+```
+		public Category Category { get; set; }
+```
+
+There, now we are using our category enum to represent the category for the book.
+
+Also notice, however, that at the bottom we have three pre-defined method for validating a book model.
+
+- **CanUpdateAsync** - this method will be called just before we attempt to update a book in the datastore.
+- **CanAddAsync** - this method will be called just before we attempt to add a new book to the datastore.
+- **CanDeleteAsync** - this method will be called just before we attempt to delete a book from the datastore.
+
+Let's look at each of these a bit more closely.
+
+In the CanUpdateAsync function, we have a reference to the **IOrchestrator** interface, an **RqlNode** and a **ModelStateDictionary** list of errors. We begin by clearing the list of errors. It should be empty anyway, but it's alwasy a good practice to make sure. During the validation process, if we find anything amiss, we will add the error to the list of errors. If at the end of the validation process, there are any errors present in our list, then the update will be abandoned, and the service will return a BadRequest, listing all the errors we found.
+
+In Rql, the Rql node is going to contain the information needed to create the WHERE clause in the SQL that will eventually be generated. In other words, the Rql node tells us which book, or books, are to be updated. The first question we have in our update validation is, does this Rql node actually specify any books to be updated?
+
+To answer this question, we make this call
+
+```
+			var existingValues = await orchestrator.GetResourceCollectionAsync<Books>(node);
+```
+
+This call tells the orchestrator to get the collection of books that matches the Rql node specification. If no books are returned, then there are no books that match the specification, and therefore, there is nothing to update. IF the **Count** property is zero, then there are no books to update, and we record that as an error. It is a BadRequest, because the user has asked us to update books that don't exist.
+
+In Rql, an update does not have to be limited to one single resource. The update can update many resources at once. But when you update many resources, you don't want them all to be the same, you typicallyl just want one or two columns to be the same. Now, the book design we have doesn't really lend itself to mass updates, but there are database schemas that do. We can however, conjure up a scenario where we would want to do multiple updates, albiet, not a very realistic one for books.
+
+In books, the synopsis can be null. So, given our list of books, we might want to update all books with a null synopsis, whose publish date was before 1950, and make the synopsis say "classic literature".
+
+To do this, we would first have to generate an RQL statement to select such books:
+
+```
+PublishDate<01/01/1950&Synopsis=null
+```
+
+This Rql statement will select all the books whose Synopsis is null, and whose publish date was before January 1, 1950. In the incoming model, we would have set the Synopsis value to "classic literature". 
+
+But what about the title? We only care to update the synopsis, so the title in our model is likely to be null. But whatever value it is, we don't want to set the title of every book published before 1950 with a null synopsis to that value. We want to leave the value alone. Likewise, we don't want to change the publish date or the category either. To accomplish our task, we add a select statement to the Rql.
+
+```
+PublishDate<01/01/1950&Synopsis=null&select(Synopsis)
+```
+
+The select statement, in the case of an update, tells us we only want to update the values included in the select statement (in this case, we only update the synopsis column). All the other columns are to be left unchanged.
+
+In the end, this is the SQL that will be generated for this Rql statement:
+
+```
+UPDATE [dbo].[Books]
+   SET Synopsis = @P0
+ WHERE PublishDate<@P1
+   AND Synopsis IS NULL
+```
+
+Where the @P0 and @P1 represent SQL parameters, where the value of @P0 is 'classic literature' and the value of @P1 is '01/01/1950T00:00:00.000-0500'.
+
+What this means for our validation routine, is we don't want to inspect the values of columns that are not going to be included in the update statement. We don't care, for example, what the value of Title is in our incoming model, because in this case, the Title value will never be used and won't have any effect on the operation.
+
+So, the next thing we do in our validation code is to extract the select clause from the Rql statement. There may not be a select clause in the statement, so the returned select clause may be null.
+
+Now, it time to check if the Title value is valid.
+
+```
+			if (selectNode is null || (selectNode is not null && selectNode.SelectContains(nameof(Title))))
+			{
+				if (string.IsNullOrWhiteSpace(Title))
+					errors.AddModelError(nameof(Title), "Title cannot be blank or null.");
+				if (Title is not null && Title.Length > 50)
+					errors.AddModelError(nameof(Title), "Title cannot exceed 50 characters.");
+			}
+```
+
+If the select statement is null then all columns in the table will be updated, and so we do have to check the validity of the Title member. If the select clause is not null, then we only have to check the validity of the Title member if the Title member is included in the select clause.
+
+Finally, if we do have to check the validity of the Title, we do so in the enclose code. We verify that the Title is not null or composed entirely of whitespace. A book must have a title. Blank titles are not allowed. Finally, we only have room for 50 characters in the title column, so the title the user gives us must be 50 characters or less.
+
+The validation routine is not intended to be considered complete. You can, and should, add your own business logic to it. For example, one bit of logic we may wish to add is to ensure that the new Title (it may, or may not have changed) does not conflict with any other books. We could implement a unique constraint on the book title member in our SQL definition, or we could ensure that uniqueness here with code. However you want to do it is up to you. In our design, the size of the synopsis is unlimited (well, limited to the maximum text size that SQL Server supports, which is 8000 characters.) You might decide to limit it to something smaller, 2000 characters say. 
+
+Notice that the select clause logic is missing from the CanAddAsync function. That is because the add function does not recognize Rql. You can put an Rql statement in there if you wish, but it will be ignored.
+
+Likewise, in the delete validation, we do use the Rql statement to generate the WHERE clause, but the select statement is ignored. When deleting, we don't care about individual columns, we're going to delete them anyway. We just want to know which records to delete.
+
+The validation routines aren't limited to just the object being validated. You can also include dependency validations. For example, you may not wish to delete any books if there are existing reviews assigned to them. You may require the user to first delete all reviews associated with a book before you delete the book. Or, in your orchestration, you can delete all reviews assigned to a book before you delete the book. It's up to you how you want to design your system.
+
+### Mapping Between Resource and Entity ###
+When we eventually get to writing our controller, the user is going to give us a resource model. But, the repository doesn't understand resource models. It understands Entity models. It goes without saying then, that we need a method to translate between Entity and Resource models. We need a Resource -> Entity transformation, and we need an Entity -> Resource translation.
+
+To do this, we use Automapper. Let's create the translation routines for Books.
+
+Right-click on the Mapping folder. When you do, you will see an entry called Add REST Mapping... Chose that entry. You will be given a dialog to enter the new class name. Call it BooksProfile.
+
+![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateMapping.png "Create Mapping")
+
 
