@@ -81,6 +81,27 @@ It is worth noting that a repository layer need not referene a database. Sometim
 ## Extending our Service ##
 Before we begin to extend our service, we will need a database to hold all of our book and authors information. Since, at this time, we only support SQL Server, we have a database definition, located at [Bookstore.sql](https://github.com/mzuniga58/RESTTemplate/blob/main/Scripts/Bookstore.sql). 
 
-Open Microsoft SQL Server Management Studio and create a database called Bookstore. Then, open the above file while connected to that database, and run it. It will create the Bookstore database we will be using in this tutorial.
+Open Microsoft SQL Server Management Studio and create a database called Bookstore. Then, open the above file in Microsoft SQL Server Management Studio while connected to that database, and run it. It will create the Bookstore database we will be using in this tutorial.
+
+### Adding Entity Models ###
+Okay, now that we have some data, we're going to want to add our first endpoints to our service to manimulate that data. Before we can create that endpoint, we need to do a few things. First, we need to create an entity model of the data we want to manipulate. The first bit of data we want to manipulate is the categories table. The categories table is the list of categories that a book can belong to, such as Science Fiction or Romance. 
+
+To do that, with your Bookstore service open in Visual Studio, expand the Models folder. Under the Models folder you will see tow child folders, EntityModels and ResourceModels. We want to create an entity model for the Categories table, so right-click on the EntityModels folder. When you do, a pop-up menu will appear. On that menu, click on Add REST Entity Model... It should be 3rd on the menu, with the Blue and White MZ logo next to it.
+
+>What are you talking about? I don't see any menu item called "Add REST Entity Model..." with a blue and white MZ logo?
+>
+>Did you install the Wizard, by clicking on the RESTInstaller.vsix file as described at the beginning of this tutorial? And if so, did it run to completion?
+>If you did that, and the menu item still isn't showing, that can sometimes happen if Visual Studio is running a bit slow. Try closing Visual Studio and running it again.
+>If after all that, it still isn't showing, try the second method.
+>
+>Right click on the EntityModels menu and select "Add -> New Item...", or press Shift+Ctrl+A
+>On the resulting dialog, on the left-hand side, navigate to Visual C# / ASP .NET Core / Web / REST Services
+>There you should see a number of items, all with the blue and white MZ logo. REST Entity Model should be one of those options. Click on that.
+
+Alright, now you should have a dialog asking for the name of your new class. A good standard is to name models in singular form, so call your class ECategory. The E stands for "entity". An alternative is Entity_Category, or EntityCategory. It doesn't really matter, we just need a name to differentiate it from the Resource Category class that we will be making later. I'm going to call mine ECategory.cs.
+
+
+
+
 
 
