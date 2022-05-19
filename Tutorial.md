@@ -79,7 +79,7 @@ Consequently, because we have Resource Models and Entity Models, we need a way t
 It is worth noting that a repository layer need not referene a database. Sometimes, a repository layer will be used to interact with a foreign service, or even interact with a file system or any other type of device. At present, the REST Service Wizard only provides support for database oriented repositories, but that doesn't mean you can't include other types of repositories in your service. Neither does it mean that the repository is limited to just the pre-configured generic functions. The author can add new functions to the repository as needed to support custom requirements. 
 
 ## Extending our Service ##
-Before we begin to extend our service, we will need a database to hold all of our book and authors information. Since, at this time, we only support SQL Server, we have a database definition, located at [Bookstore.sql (https://github.com/mzuniga58/RESTTemplate/blob/main/Scripts/Bookstore.sql)]. 
+Before we begin to extend our service, we will need a database to hold all of our book and authors information. Since, at this time, we only support SQL Server, we have a database definition, located at [Bookstore.sql](https://github.com/mzuniga58/RESTTemplate/blob/main/Scripts/Bookstore.sql). 
 
 Open Microsoft SQL Server Management Studio and create a database called Bookstore. Then, open the above file while connected to that database, and run it. It will create the Bookstore database we will be using in this tutorial.
 
