@@ -94,11 +94,11 @@ To do that, with your Bookstore service open in Visual Studio, expand the Models
 >If you did that, and the menu item still isn't showing, that can sometimes happen if Visual Studio is running a bit slow. Try closing Visual Studio and running it again.
 >If after all that, it still isn't showing, try the second method.
 >
->Right click on the EntityModels menu and select "Add -> New Item...", or press Shift+Ctrl+A
->On the resulting dialog, on the left-hand side, navigate to Visual C# / ASP .NET Core / Web / REST Services
+>Right click on the EntityModels menu and select "Add -> New Item...", or press Shift+Ctrl+A. 
+>On the resulting dialog, on the left-hand side, navigate to Visual C# / ASP .NET Core / Web / REST Services.
 >There you should see a number of items, all with the blue and white MZ logo. REST Entity Model should be one of those options. Click on that.
 
-Alright, now you should have a dialog asking for the name of your new class. A good standard is to name models in singular form, so call your class ECategory. The E stands for "entity". An alternative is Entity_Category, or EntityCategory. It doesn't really matter, we just need a name to differentiate it from the Resource Category class that we will be making later. I'm going to call mine ECategory.cs.
+Alright, now you should have a dialog asking for the name of your new class. A good standard is to name models in singular form, so call your class **ECategory**. The E stands for "entity". An alternative is **Entity_Category**, or **EntityCategory**. It doesn't really matter, we just need a name to differentiate it from the Resource Category class that we will be making later. I'm going to call mine **ECategory.cs**. (P.S., if you forgot to add the trailing .cs, don't worry, Visual Studio will add it for you.)
 
 
 
