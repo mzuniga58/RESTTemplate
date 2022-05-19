@@ -142,5 +142,88 @@ namespace Bookstore.Models.EntityModels
 }
 ```
 
+You notice that the generator has added some annotations to further describe the table. The Table attribute tells us that this model is for the Categories table under the dbo schema on a SQL Server. The Member attribute gives us information about each member. The CategoryId member is a primary key and it is an identity field. It is not nullable, and the native SQL Server data type is int. Likewise, the Name field is not nullable, and it has a native SQL Server data type of varchar, and is limited to 50 characters.
+
+### Adding a Resource Model ###
+But, users don't see entity models, they see resource models. So, let's do that again, this time creating a resource model for the Categories table. Go back to the models folder, but this time, right-click on the ResourceModels folder. Once again, there should be an Add REST Resource Model... menu item. Click on that. A dialog appears where you enter the class name. Enter Category this time. Category is the resource model, and ECategory is the entity model. This naming convention makes it easy to find the corresponding entity model or resource model, as the case may be. Press Ok to get the Resource Model Generator.
+
+![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateResourceModel.png "Add New Resource")
+
+This time, a list of entity models appears. Select the entity model you wish to make a Resource model for. That's pretty easy at this point, since we only have one entity model defined. Select ECategory.
+
+Now, we could create a resource model for Category that matches the database table. But the category of books don't channge very often. In fact, there hasn't been a new category of books in years. So, instead of creating a table look-up every time we want to know which cateogory a book belongs to, it makes more sense to create an enum. You will notice there is a render as enum check box on the form. Check it and press OK.
+
+The resulting code should look like this:
+
+```
+using System;
+using Tense;
+using Tense.Rql;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Bookstore.Orchestration;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using Bookstore.Models.EntityModels;
+
+namespace Bookstore.Models.ResourceModels
+{
+	///	<summary>
+	///	Category
+	///	</summary>
+	[Entity(typeof(ECategory))]
+	public enum Category : int
+	{
+		///	<summary>
+		///	Action and Adventure
+		///	</summary>
+		ActionandAdventure = 1,
+
+		///	<summary>
+		///	Classics
+		///	</summary>
+		Classics = 2,
+
+		///	<summary>
+		///	Comic Books or Graphic Novels
+		///	</summary>
+		ComicBooksorGraphicNovels = 3,
+
+		///	<summary>
+		///	Detective and Mystery
+		///	</summary>
+		DetectiveandMystery = 4,
+
+		///	<summary>
+		///	Fantasy
+		///	</summary>
+		Fantasy = 5,
+
+		///	<summary>
+		///	Historical Fiction
+		///	</summary>
+		HistoricalFiction = 6,
+
+		///	<summary>
+		///	Horror
+		///	</summary>
+		Horror = 7,
+
+		///	<summary>
+		///	Literary Fiction
+		///	</summary>
+		LiteraryFiction = 8,
+
+		///	<summary>
+		///	Romance
+		///	</summary>
+		Romance = 9,
+
+		///	<summary>
+		///	Science Fiction
+		///	</summary>
+		ScienceFiction = 10
+	}
+}
+```
 
 
