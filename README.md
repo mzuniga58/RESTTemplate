@@ -1,4 +1,4 @@
-# RESTTemplate
+# RESTTemplate #
 REST Service Visual Studio Extension
 
 The REST Service Visual Studio Extension aids the user in the creation of REST Services. The REST Service generated comes with these features automaitcally included.
