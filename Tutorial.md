@@ -54,16 +54,16 @@ These generic functions are sufficient for simple resources. However, for more c
 
 One other thing about the orchestration layer is its use of RQL. The **RqlNode** is a compiled version of an RQL Statement. The RQL Statement can be provided by the user in the query portion of the URL (basically, everything after the ?), or it can be hardcoded in the presentation layer by the programmer. Here are two examples:
 
-'''
+```
 var node = RqlNode.Parse(Request.QueryString.Value);
 var node = RqlNode.Parse($"Author={authorId});
-'''
+```
 
 The first example compiles the query string of the requested Url into an RqlNode object. The second takes the RQL Statement "Author=nnn", and compiles it into an RqlNode object. The RqlNode object contains a structured representation of the statement, or a statement of NOOP if there is no statement. RqlNode.Parse("") will return an RqlNode of NOOP, for example. RQL statments can be simple, like the one shown above, or they can become quite complex. 
 
-'''
+```
 (in(AuthorId,{auth1},{auth2},{auth3})&category=Sifi)|(like(AuthorName,T*)&category=Fantasy)&select(bookTitle,pubishDate,AuthorName)&limit(1,20)
-'''
+```
 
 This RQL statement will return the collection of books who where written by either auth1, auth2 or auth3 (these are Author Ids) and whose category is Sifi, OR any Fantasy book written by an auther whose name beings with 'T' (i.e., Thomson, Tiller, Tanner, etc.). It limits the results to include only the book title, the publish date of the book and the authorname, and it gives you only the first 20 results.
 
@@ -79,7 +79,7 @@ Consequently, because we have Resource Models and Entity Models, we need a way t
 It is worth noting that a repository layer need not referene a database. Sometimes, a repository layer will be used to interact with a foreign service, or even interact with a file system or any other type of device. At present, the REST Service Wizard only provides support for database oriented repositories, but that doesn't mean you can't include other types of repositories in your service. Neither does it mean that the repository is limited to just the pre-configured generic functions. The author can add new functions to the repository as needed to support custom requirements. 
 
 ## Extending our Service ##
-Before we begin to extend our service, we will need a database to hold all of our book and authors information. Since, at this time, we only support SQL Server, we have a database definition, located at link here. 
+Before we begin to extend our service, we will need a database to hold all of our book and authors information. Since, at this time, we only support SQL Server, we have a database definition, located at [Bookstore.sql (https://github.com/mzuniga58/RESTTemplate/blob/main/Scripts/Bookstore.sql). 
 
 Open Microsoft SQL Server Management Studio and create a database called Bookstore. Then, open the above file while connected to that database, and run it. It will create the Bookstore database we will be using in this tutorial.
 
