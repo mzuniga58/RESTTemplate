@@ -100,8 +100,47 @@ To do that, with your Bookstore service open in Visual Studio, expand the Models
 
 Alright, now you should have a dialog asking for the name of your new class. A good standard is to name models in singular form, so call your class **ECategory**. The E stands for "entity". An alternative is **Entity_Category**, or **EntityCategory**. It doesn't really matter, we just need a name to differentiate it from the Resource Category class that we will be making later. I'm going to call mine **ECategory.cs**. (P.S., if you forgot to add the trailing .cs, don't worry, Visual Studio will add it for you.)
 
+Now you will be presented with the Entity Model Generator dialog.
 
+![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateEntityModel.png "Entity Model Generator")
 
+The first time you try to create an entity model, the wizard doesn't know anything about your databases, so the top part of the dialog is empty. Click on the Add New Server button.
+
+![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/AddNewServer.png "Add New Server")
+
+Select the database technology you want to connect to. Remember, we created our database in SQL Server, so choose SQL Server here. Then type in the name of your server, and select either Windows Authority or SQL Server Authority, whichever is appropriate to your installation. If you select SQL Server Authority, you will need to enter your username and password. Once you have it all complete, click on the "check" button to ensure the wizard can talk to your database. Once you have established a connection, hit OK.
+
+Now, your database is shown at the top of the Entity Model Generator dialog, and the list of databases on that server are shown in the left-hand list box. Select the Bookstore database in that list. When you do, the list of tables for the Bookstore database should appear in the right-hand list. One of those tables should be the Categories table. Select that table and press OK.
+
+The generator will now generate an entity model for you. The resulting code should look like this:
+
+```
+using System;
+using System.Collections.Generic;
+using Tense;
+
+namespace Bookstore.Models.EntityModels
+{
+	///	<summary>
+	///	ECategory
+	///	</summary>
+	[Table("Categories", Schema = "dbo", DBType = "SQLSERVER")]
+	public class ECategory
+	{
+		///	<summary>
+		///	CategoryId
+		///	</summary>
+		[Member(IsPrimaryKey = true, IsIdentity = true, AutoField = true, IsIndexed = true, IsNullable = false, NativeDataType="int")]
+		public int CategoryId { get; set; }
+
+		///	<summary>
+		///	Name
+		///	</summary>
+		[Member(IsNullable = false, Length = 50, IsFixed = false, NativeDataType="varchar")]
+		public string Name { get; set; } = string.Empty;
+	}
+}
+```
 
 
 
