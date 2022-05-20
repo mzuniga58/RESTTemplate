@@ -140,7 +140,7 @@ namespace Bookstore.Models.EntityModels
 	///	Enumerates a list of Categories
 	///	</summary>
 	[Table("Categories", Schema = "dbo", DBType = "SQLSERVER")]
-	public enum Category
+	public enum Category : int
 	{
 		///	<summary>
 		///	ActionAndAdventure
@@ -487,8 +487,57 @@ When we eventually get to writing our controller, the user is going to give us a
 
 To do this, we use Automapper. Let's create the translation routines for Books.
 
-Right-click on the Mapping folder. When you do, you will see an entry called Add REST Mapping... Chose that entry. You will be given a dialog to enter the new class name. Call it BooksProfile.
+Right-click on the Mapping folder. When you do, you will see an entry called Add REST Mapping... Chose that entry. You will be given a dialog to enter the new class name. Call it BooksProfile. Next you'll be presented with a dialog that contains a dropdown list of all the resource models. Select **Books** and press OK.
 
 ![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateMapping.png "Create Mapping")
+
+The resulting code should look like this:
+
+```
+using System;
+using System.Linq;
+using Microsoft.Extensions.Configuration;
+using System.Collections.Generic;
+using Bookstore.Models.EntityModels;
+using Bookstore.Models.ResourceModels;
+using AutoMapper;
+
+namespace Bookstore.Mapping
+{
+	///	<summary>
+	///	Book Profile for AutoMapper
+	///	</summary>
+	public class BookProfile : Profile
+	{
+		///	<summary>
+		///	Initializes the Book Profile
+		///	</summary>
+		public BookProfile()
+		{
+
+			//	Creates a mapping to transform a Book model instance (the source)
+			//	into a EBook model instance (the destination).
+			CreateMap<Book, EBook>()
+				.ForMember(destination => destination.BookId, opts => opts.MapFrom(source =>source.BookId))
+				.ForMember(destination => destination.Title, opts => opts.MapFrom(source =>source.Title))
+				.ForMember(destination => destination.PublishDate, opts => opts.MapFrom(source =>source.PublishDate.UtcDateTime))
+				.ForMember(destination => destination.CategoryId, opts => opts.MapFrom(source =>(int) source.Genre))
+				.ForMember(destination => destination.Synopsis, opts => opts.MapFrom(source =>source.Synopsis));
+
+			//	Creates a mapping to transform a EBook model instance (the source)
+			//	into a Book model instance (the destination).
+			CreateMap<EBook, Book>()
+				.ForMember(destination => destination.BookId, opts => opts.MapFrom(source => source.BookId))
+				.ForMember(destination => destination.Title, opts => opts.MapFrom(source => source.Title))
+				.ForMember(destination => destination.PublishDate, opts => opts.MapFrom(source => new DateTimeOffset(source.PublishDate).ToLocalTime()))
+				.ForMember(destination => destination.Genre, opts => opts.MapFrom(source => (Category) source.CategoryId))
+				.ForMember(destination => destination.Synopsis, opts => opts.MapFrom(source => source.Synopsis));
+
+		}
+	}
+}
+```
+
+This is a standard Automapper mapping. The CreateMap<source,destination> function translates the source type to the destination type. The first translations translates an **EBook** entity model to a **Book** resource Model. The second translations does the opposite, translating a **Book** resource model to an **EBook** entity model. Notice that the **CategoryId** is mapped to the **Genre** column in both transformations.
 
 
