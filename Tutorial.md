@@ -487,7 +487,7 @@ When we eventually get to writing our controller, the user is going to give us a
 
 To do this, we use Automapper. Let's create the translation routines for Books.
 
-Right-click on the Mapping folder. When you do, you will see an entry called Add REST Mapping... Chose that entry. You will be given a dialog to enter the new class name. Call it BooksProfile. Next you'll be presented with a dialog that contains a dropdown list of all the resource models. Select **Books** and press OK.
+Right-click on the Mapping folder. When you do, you will see an entry called Add REST Mapping... Choose that entry. You will be given a dialog to enter the new class name. Call it BooksProfile. Next you'll be presented with a dialog that contains a dropdown list of all the resource models. Select **Books** and press OK.
 
 ![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateMapping.png "Create Mapping")
 
@@ -538,6 +538,239 @@ namespace Bookstore.Mapping
 }
 ```
 
-This is a standard Automapper mapping. The CreateMap<source,destination> function translates the source type to the destination type. The first translations translates an **EBook** entity model to a **Book** resource Model. The second translations does the opposite, translating a **Book** resource model to an **EBook** entity model. Notice that the **CategoryId** is mapped to the **Genre** column in both transformations.
+This is a standard Automapper mapping. The CreateMap<source,destination> function translates the source type to the destination type. The first translations translates a **Book** resource model to an **EBook** entity Model. The second translations does the opposite, translating an **EBook** entity model to a **Book** resource model. Notice that the **CategoryId** is mapped to the **Genre** column in both transformations.
+
+Now that we have our models, and our translations, we can finally create some endpoints.
+
+### Creating a Controller ###
+Endpoints live in controllers, and the standard naming convention for a controller is resourcesController. That is to say, the plural name of the resource followed by "Controller." We have our book models so now we need to create the **BooksController**.
+
+Right-click on the **Controllers** folder, and select "Add REST Controller...". For the class name, enter **BooksController** and press OK. The Controller Generator dialog appears.
+
+![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateController.png "Create Controller")
+
+The top dropdown box contains the list of resource models. Select **Book**. The second dropdown lists the set of OAuth policies that you have defined for your service. These policies are defined in the appSettings.json file.
+
+```
+  "OAuth2": {
+    "Policies": [
+      {
+        "Policy": "policy",
+        "Scopes": [ "scope" ]
+      }
+    ]
+  }
+```
+
+The "Policy" entry defines the name of the policy. It is these names you see in the dropdown. The "Scopes" entry defines the list of scopes that this policy supports. Given an access token (which you obtain from your identity provider) that contains at least one of these scopes, then this policy will allow you to access the function. If your access token does not contain any of these scopes, you will not be allowed to access the function, and the service will return **Unauthorized**.
+
+When this wizard creates the controller, all of the endpoints will be protected with the policy you choose. Or, you can choose the default value of **anonymous**. The **anonymous** policy allows anyone to hit your endpoint. 
+
+Not all endpoints in a controller must have the same policy. You can pick and choose. For example, you might set your GET functions to **anonymous**, allowing anyone to read data from your server, while setting the PUT, POST and DELETE funtions to some other policy you define. That means, anyone can read the data, but they will need a specific access token to manipulate the data.
+
+For now, let's just leave the policy at **anonymous**, letting anyone use our service.
+
+Press OK to generate the controller. The resulting code should look like this...
+
+```
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Mime;
+using System.Security.Claims;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
+using Bookstore.Models.ResourceModels;
+using Bookstore.Orchestration;
+using Tense;
+using Tense.Rql;
+using Serilog.Context;
+using Swashbuckle.AspNetCore.Annotations;
+
+namespace Bookstore.Controllers
+{
+	///	<summary>
+	///	Book Controller
+	///	</summary>
+	[ApiVersion("1.0")]
+	[ApiController]
+	public class BooksController : ControllerBase
+	{
+		///	<value>A generic interface for logging where the category name is derrived from
+		///	the specified <see cref="BooksController"/> type name.</value>
+		private readonly ILogger<BooksController> _logger;
+
+		///	<value>The interface to the orchestration layer.</value>
+		private readonly IOrchestrator _orchestrator;
+
+		///	<summary>
+		///	Instantiates a BooksController
+		///	</summary>
+		///	<param name="logger">A generic interface for logging where the category name is derrived from
+		///	the specified <see cref="BooksController"/> type name. The logger is activated from dependency injection.</param>
+		///	<param name="orchestrator">The <see cref="IOrchestrator"/> interface for the Orchestration layer. The orchestrator is activated from dependency injection.</param>
+		public BooksController(ILogger<BooksController> logger, IOrchestrator orchestrator)
+		{
+			_logger = logger;
+			_orchestrator = orchestrator;
+		}
+
+		///	<summary>
+		///	Returns a collection of Books
+		///	</summary>
+		///	<response code="200">A collection of Books</response>
+		///	<response code="400">The RQL query was malformed.</response>
+		///	<response code="401">The user is not authorized to acquire this resource.</response>
+		///	<response code="403">The user is not allowed to acquire this resource.</response>
+		[HttpGet]
+		[Route("books")]
+		[AllowAnonymous]
+		[SupportRQL]
+		[SwaggerResponse((int)HttpStatusCode.OK, Type = typeof(PagedSet<Book>))]
+		[Produces("application/hal+json", "application/hal.v1+json", MediaTypeNames.Application.Json, "application/vnd.v1+json")]
+		public async Task<IActionResult> GetBooksAsync()
+		{
+			var node = RqlNode.Parse(Request.QueryString.Value);
+
+			_logger.LogInformation("{s1} {s2}", Request.Method, Request.Path);
+
+			var resourceCollection = await _orchestrator.GetResourceCollectionAsync<Book>(node);
+			return Ok(resourceCollection);
+		}
+
+		///	<summary>
+		///	Returns a Book
+		///	</summary>
+		///	<param name="BookId" example="123">The BookId of the Book.</param>
+		///	<response code="400">The RQL query was malformed.</response>
+		///	<response code="401">The user is not authorized to acquire this resource.</response>
+		///	<response code="403">The user is not allowed to acquire this resource.</response>
+		///	<response code="404">The requested resource was not found.</response>
+		[HttpGet]
+		[Route("books/{bookid}")]
+		[AllowAnonymous]
+		[SupportRQL]
+		[SwaggerResponse((int)HttpStatusCode.OK, Type = typeof(Book))]
+		[Produces("application/hal+json", "application/hal.v1+json", MediaTypeNames.Application.Json, "application/vnd.v1+json")]
+		public async Task<IActionResult> GetBookAsync(int BookId)
+		{
+			var node = RqlNode.Parse($"BookId={BookId}")
+							  .Merge(RqlNode.Parse(Request.QueryString.Value));
+
+			_logger.LogInformation("{s1} {s2}", Request.Method, Request.Path);
+			var resource = await _orchestrator.GetSingleResourceAsync<Book>(node);
+
+			if (resource is null)
+				return NotFound();
+
+			return Ok(resource);
+		}
+
+		///	<summary>
+		///	Adds a Book
+		///	</summary>
+		///	<remarks>Add a Book to the datastore.</remarks>
+		///	<response code="201">The new Book was successfully added.</response>
+		///	<response code="400">The request failed one or more validations.</response>
+		///	<response code="401">The user is not authorized to acquire this resource.</response>
+		///	<response code="403">The user is not allowed to acquire this resource.</response>
+		[HttpPost]
+		[Route("books")]
+		[AllowAnonymous]
+		[SwaggerResponse((int)HttpStatusCode.Created, Type = typeof(Book))]
+		[Produces("application/hal+json", "application/hal.v1+json", MediaTypeNames.Application.Json, "application/vnd.v1+json")]
+		[Consumes("application/hal+json", "application/hal.v1+json", MediaTypeNames.Application.Json, "application/vnd.v1+json")]
+		public async Task<IActionResult> AddBookAsync([FromBody] Book resource)
+		{
+			_logger.LogInformation("{s1} {s2}", Request.Method, Request.Path);
+
+			ModelStateDictionary errors = new();
+
+			if (await resource.CanAddAsync(_orchestrator, errors))
+			{
+				resource = await _orchestrator.AddResourceAsync<Book>(resource);
+				return Created($"{Request.Scheme}://{Request.Host}/books/{resource.BookId}", resource);
+			}
+			else
+				return BadRequest(errors);
+		}
+
+		///	<summary>
+		///	Update a Book
+		///	</summary>
+		///	<remarks>Update a Book in the datastore.</remarks>
+		///	<response code="204">The Book was successfully updated in the datastore.</response>
+		///	<response code="400">The request failed one or more validations.</response>
+		///	<response code="401">The user is not authorized to acquire this resource.</response>
+		///	<response code="403">The user is not allowed to acquire this resource.</response>
+		[HttpPut]
+		[Route("books")]
+		[AllowAnonymous]
+		[SwaggerResponse((int)HttpStatusCode.NoContent)]
+		[Produces("application/hal+json", "application/hal.v1+json", MediaTypeNames.Application.Json, "application/vnd.v1+json")]
+		[Consumes("application/hal+json", "application/hal.v1+json", MediaTypeNames.Application.Json, "application/vnd.v1+json")]
+		public async Task<IActionResult> UpdateBookAsync([FromBody] Book resource)
+		{
+			_logger.LogInformation("{s1} {s2}", Request.Method, Request.Path);
+
+			var node = RqlNode.Parse($"BookId={resource.BookId}")
+							  .Merge(RqlNode.Parse(Request.QueryString.Value));
+
+			ModelStateDictionary errors = new();
+
+			if (await resource.CanUpdateAsync(_orchestrator, node, errors))
+			{
+				await _orchestrator.UpdateResourceAsync<Book>(resource, node);
+				return NoContent();
+			}
+			else
+				return BadRequest(errors);
+		}
+
+		///	<summary>
+		///	Delete a Book
+		///	</summary>
+		///	<param name="BookId" example="123">The BookId of the Book.</param>
+		///	<remarks>Deletes a Book in the datastore.</remarks>
+		///	<response code="204">The Book was successfully deleted.</response>
+		///	<response code="400">The request failed one or more validations.</response>
+		///	<response code="401">The user is not authorized to acquire this resource.</response>
+		///	<response code="403">The user is not allowed to acquire this resource.</response>
+		[HttpDelete]
+		[Route("books/{bookid}")]
+		[AllowAnonymous]
+		[SwaggerResponse((int)HttpStatusCode.NoContent)]
+		[Produces("application/hal+json", "application/hal.v1+json", MediaTypeNames.Application.Json, "application/vnd.v1+json")]
+		[Consumes("application/hal+json", "application/hal.v1+json", MediaTypeNames.Application.Json, "application/vnd.v1+json")]
+		public async Task<IActionResult> DeleteBookAsync(int BookId)
+		{
+			var node = RqlNode.Parse($"&BookId={BookId}");
+
+			_logger.LogInformation("{s1} {s2}", Request.Method, Request.Path);
+
+
+			ModelStateDictionary errors = new();
+
+			if (await Book.CanDeleteAsync(_orchestrator, node, errors))
+			{
+				await _orchestrator.DeleteResourceAsync<Book>(node);
+				return NoContent();
+			}
+			else
+				return BadRequest(errors);
+		}
+	}
+}
+```
+
+
+
+
 
 
