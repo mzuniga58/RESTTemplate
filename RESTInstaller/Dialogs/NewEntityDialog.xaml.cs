@@ -626,20 +626,24 @@ select c.name as column_name,
 
 							if (DatabaseColumns.Count == 2)
 							{
-								if ( DatabaseColumns[0].IsPrimaryKey == true )
-                                {
-									if ( DatabaseColumns[1].ModelDataType.Equals("string"))
-                                    {
-										Checkbox_RenderAsEnum.IsEnabled = true;
-									}
-									else
-                                    {
-										Checkbox_RenderAsEnum.IsEnabled = false;
-										Checkbox_RenderAsEnum.IsChecked = false;
-									}
+								if (DatabaseColumns[0].IsPrimaryKey == true &&
+									 DatabaseColumns[1].IsPrimaryKey == false &&
+									 DatabaseColumns[1].ModelDataType.Equals("string", StringComparison.OrdinalIgnoreCase) &&
+									 (DatabaseColumns[0].ModelDataType.Equals("byte", StringComparison.OrdinalIgnoreCase) ||
+									   DatabaseColumns[0].ModelDataType.Equals("sbyte", StringComparison.OrdinalIgnoreCase) ||
+									   DatabaseColumns[0].ModelDataType.Equals("short", StringComparison.OrdinalIgnoreCase) ||
+									   DatabaseColumns[0].ModelDataType.Equals("ushort", StringComparison.OrdinalIgnoreCase) ||
+									   DatabaseColumns[0].ModelDataType.Equals("int", StringComparison.OrdinalIgnoreCase) ||
+									   DatabaseColumns[0].ModelDataType.Equals("uint", StringComparison.OrdinalIgnoreCase) ||
+									   DatabaseColumns[0].ModelDataType.Equals("long", StringComparison.OrdinalIgnoreCase) ||
+									   DatabaseColumns[0].ModelDataType.Equals("ulong", StringComparison.OrdinalIgnoreCase)
+									 ))
+								{
+									Checkbox_RenderAsEnum.IsEnabled = true;
+									Checkbox_RenderAsEnum.IsChecked = false;
 								}
 								else
-                                {
+								{
 									Checkbox_RenderAsEnum.IsEnabled = false;
 									Checkbox_RenderAsEnum.IsChecked = false;
 								}

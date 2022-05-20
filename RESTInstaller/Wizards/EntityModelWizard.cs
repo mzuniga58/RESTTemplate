@@ -123,6 +123,8 @@ namespace RESTInstaller.Wizards
                                                      true,
                                                      out fpCanceled);
 
+                            var enumDataType = form.DatabaseColumns[0].ModelDataType;
+
                             var columns = DBHelper.GenerateEnumColumns(form.ServerType, 
                                                                        form.DatabaseTable.Schema,
                                                                        form.DatabaseTable.Table,
@@ -133,6 +135,7 @@ namespace RESTInstaller.Wizards
                                                            form.ServerType,
                                                            form.DatabaseTable.Schema,
                                                            form.DatabaseTable.Table,
+                                                           enumDataType,
                                                            columns);
 
                         }

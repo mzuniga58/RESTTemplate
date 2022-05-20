@@ -4659,105 +4659,122 @@ namespace RESTInstaller.Services
 				var resourceMember = resourceModel.Columns.FirstOrDefault(u =>
 														u.ColumnName.Equals(entityMember.ColumnName, StringComparison.OrdinalIgnoreCase));
 
-				var matchedColumn = unmappedMembers.FirstOrDefault(c => c.Equals(entityMember.EntityName, StringComparison.OrdinalIgnoreCase));
-
-				if (!string.IsNullOrWhiteSpace(matchedColumn))
-				{
-					unmappedMembers.Remove(matchedColumn);
-					//  Construct a data row for this entity member, and populate the column name
-					var entityProfile = new EntityProfile
+				if ( resourceMember == null )
+                {
+					if (!string.IsNullOrWhiteSpace(entityMember.ForeignTableName))
 					{
-						EntityColumnName = entityMember.ColumnName
-					};
-
-					if (resourceMember != null)
-					{
-						MapResourceDestinationFromSource(entityMember, entityProfile, resourceMember);
+						var entityClasses = codeService.GetEntityClassList();
+						var entityClass = entityClasses.FirstOrDefault(c => c.TableName.Equals(entityMember.ForeignTableName, StringComparison.OrdinalIgnoreCase));
+			
+						if ( entityClass != null )
+                        {
+							resourceMember = resourceModel.Columns.FirstOrDefault(c => c.ModelDataType.Equals(entityClass.ClassName, StringComparison.OrdinalIgnoreCase));
+                        }
 					}
-					else
+                }
+
+				if (resourceMember != null)
+				{
+					var matchedColumn = unmappedMembers.FirstOrDefault(c => c.Equals(entityMember.EntityName, StringComparison.OrdinalIgnoreCase));
+
+					if (!string.IsNullOrWhiteSpace(matchedColumn))
 					{
-						var rp = profileMap.ResourceProfiles.FirstOrDefault(c => c.MapFunction.IndexOf(entityMember.ColumnName, 0, StringComparison.CurrentCultureIgnoreCase) != -1);
-
-						if (rp != null)
+						unmappedMembers.Remove(matchedColumn);
+						//  Construct a data row for this entity member, and populate the column name
+						var entityProfile = new EntityProfile
 						{
-							if (rp.ResourceColumnName.Contains("."))
+							EntityColumnName = entityMember.ColumnName
+						};
+
+						if (resourceMember != null)
+						{
+							MapResourceDestinationFromSource(entityMember, entityProfile, resourceMember);
+						}
+						else
+						{
+							var rp = profileMap.ResourceProfiles.FirstOrDefault(c => c.MapFunction.IndexOf(entityMember.ColumnName, 0, StringComparison.CurrentCultureIgnoreCase) != -1);
+
+							if (rp != null)
 							{
-								var parts = rp.ResourceColumnName.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
-								StringBuilder mapFunction = new StringBuilder();
-								StringBuilder parent = new StringBuilder("");
-								string NullValue = "null";
-
-								var parentModel = GetParentModel(resourceModel, parts);
-
-								if (parentModel != null)
+								if (rp.ResourceColumnName.Contains("."))
 								{
-									var parentColumn = parentModel.Columns.FirstOrDefault(c => string.Equals(c.ColumnName, parts[parts.Count() - 1], StringComparison.OrdinalIgnoreCase));
+									var parts = rp.ResourceColumnName.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+									StringBuilder mapFunction = new StringBuilder();
+									StringBuilder parent = new StringBuilder("");
+									string NullValue = "null";
 
-									if (parentColumn != null)
+									var parentModel = GetParentModel(resourceModel, parts);
+
+									if (parentModel != null)
 									{
-										if (string.Equals(parentColumn.ModelDataType.ToString(), "string", StringComparison.OrdinalIgnoreCase))
-										{
-											NullValue = "string.Empty";
-										}
-										else
-										{
-											var theDataType = Type.GetType(parentColumn.ModelDataType.ToString());
+										var parentColumn = parentModel.Columns.FirstOrDefault(c => string.Equals(c.ColumnName, parts[parts.Count() - 1], StringComparison.OrdinalIgnoreCase));
 
-											if (theDataType != null)
+										if (parentColumn != null)
+										{
+											if (string.Equals(parentColumn.ModelDataType.ToString(), "string", StringComparison.OrdinalIgnoreCase))
 											{
-												NullValue = "default";
+												NullValue = "string.Empty";
 											}
 											else
 											{
-												NullValue = "default";
+												var theDataType = Type.GetType(parentColumn.ModelDataType.ToString());
+
+												if (theDataType != null)
+												{
+													NullValue = "default";
+												}
+												else
+												{
+													NullValue = "default";
+												}
 											}
 										}
 									}
-								}
 
-								for (int i = 0; i < parts.Count() - 1; i++)
+									for (int i = 0; i < parts.Count() - 1; i++)
+									{
+										var parentClass = parts[i];
+
+										if (string.IsNullOrWhiteSpace(parent.ToString()))
+											mapFunction.Append($"source.{parentClass} == null ? {NullValue} : ");
+										else
+											mapFunction.Append($"source.{parent}.{parentClass} == null ? {NullValue} : ");
+										parent.Append($"source.{parentClass}");
+
+									}
+
+									mapFunction.Append($"{parent}.{parts[parts.Count() - 1]}");
+									entityProfile.MapFunction = mapFunction.ToString();
+
+									StringBuilder childColumn = new StringBuilder();
+
+									foreach (var p in parts)
+									{
+										if (childColumn.Length > 0)
+											childColumn.Append(".");
+										childColumn.Append(p);
+									}
+
+									var cc = parentModel.Columns.FirstOrDefault(c => string.Equals(c.ColumnName, childColumn.ToString(), StringComparison.OrdinalIgnoreCase));
+									if (cc != null)
+									{
+										entityProfile.ResourceColumns = new string[] { cc.ColumnName };
+									}
+								}
+								else
 								{
-									var parentClass = parts[i];
+									StringBuilder mc = new StringBuilder();
 
-									if (string.IsNullOrWhiteSpace(parent.ToString()))
-										mapFunction.Append($"source.{parentClass} == null ? {NullValue} : ");
-									else
-										mapFunction.Append($"source.{parent}.{parentClass} == null ? {NullValue} : ");
-									parent.Append($"source.{parentClass}");
+									resourceMember = resourceModel.Columns.FirstOrDefault(c =>
+										string.Equals(c.ModelDataType.ToString(), rp.ResourceColumnName, StringComparison.OrdinalIgnoreCase));
 
+									MapResourceDestinationFromSource(entityMember, entityProfile, resourceMember);
 								}
-
-								mapFunction.Append($"{parent}.{parts[parts.Count() - 1]}");
-								entityProfile.MapFunction = mapFunction.ToString();
-
-								StringBuilder childColumn = new StringBuilder();
-
-								foreach (var p in parts)
-								{
-									if (childColumn.Length > 0)
-										childColumn.Append(".");
-									childColumn.Append(p);
-								}
-
-								var cc = parentModel.Columns.FirstOrDefault(c => string.Equals(c.ColumnName, childColumn.ToString(), StringComparison.OrdinalIgnoreCase));
-								if (cc != null)
-								{
-									entityProfile.ResourceColumns = new string[] { cc.ColumnName };
-								}
-							}
-							else
-							{
-								StringBuilder mc = new StringBuilder();
-
-								resourceMember = resourceModel.Columns.FirstOrDefault(c =>
-									string.Equals(c.ModelDataType.ToString(), rp.ResourceColumnName, StringComparison.OrdinalIgnoreCase));
-
-								MapResourceDestinationFromSource(entityMember, entityProfile, resourceMember);
 							}
 						}
-					}
 
-					result.Add(entityProfile);
+						result.Add(entityProfile);
+					}
 				}
 			}
 
@@ -4813,7 +4830,25 @@ namespace RESTInstaller.Services
 					}
 					else
 					{
-						if (resourceMember.ModelDataType.Contains("[]"))
+						//	Is this resource member an entity?
+						var entityModel = codeService.GetEntityClass(resourceMember.ModelDataType.ToString());
+						if ( entityModel != null )
+                        {
+							if (entityModel.ElementType == ElementType.Enum)
+                            {
+								var resourceProfile = new ResourceProfile
+								{
+									ResourceColumnName = resourceMember.ColumnName
+								};
+
+								var entityColumn = resourceModel.Entity.Columns.FirstOrDefault(c => !string.IsNullOrWhiteSpace(c.ForeignTableName) && c.ForeignTableName.Equals(entityModel.TableName, StringComparison.OrdinalIgnoreCase));
+								resourceProfile.EntityColumnNames = new string[] { entityColumn.ColumnName };
+
+								MapEntityDestinationFromSource(resourceMember, ref resourceProfile, entityColumn);
+								result.Add(resourceProfile);
+							}
+						}
+						else if (resourceMember.ModelDataType.Contains("[]"))
 						{
 							var resourceProfile = new ResourceProfile
 							{
@@ -4915,6 +4950,7 @@ namespace RESTInstaller.Services
 			var codeService = ServiceFactory.GetService<ICodeService>();
 			var EnumClassName = destinationMember.ModelDataType.ToString().Trim('?');
 
+			var enumClass = codeService.GetEntityClass(EnumClassName);
 			var resourceModel = codeService.GetResourceClass(EnumClassName);
 
 			if (string.Equals(destinationMember.ModelDataType.ToString(), sourceMember.ModelDataType.ToString(), StringComparison.OrdinalIgnoreCase))
@@ -4923,9 +4959,9 @@ namespace RESTInstaller.Services
 				resourceProfile.EntityColumnNames = new string[] { sourceMember.ColumnName };
 				resourceProfile.IsDefined = true;
 			}
-			else if (resourceModel != null)
+			else if (enumClass != null)
 			{
-				if (resourceModel.ResourceType == ResourceType.Enum)
+				if (enumClass.ElementType == ElementType.Enum)
 				{
 					if (string.Equals(sourceMember.ModelDataType, "byte", StringComparison.OrdinalIgnoreCase) ||
 						string.Equals(sourceMember.ModelDataType, "sbyte", StringComparison.OrdinalIgnoreCase) ||
@@ -4936,7 +4972,7 @@ namespace RESTInstaller.Services
 						string.Equals(sourceMember.ModelDataType, "long", StringComparison.OrdinalIgnoreCase) ||
 						string.Equals(sourceMember.ModelDataType, "ulong", StringComparison.OrdinalIgnoreCase))
 					{
-						resourceProfile.MapFunction = $"({resourceModel.ClassName}) source.{sourceMember.ColumnName}";
+						resourceProfile.MapFunction = $"({enumClass.ClassName}) source.{sourceMember.ColumnName}";
 						resourceProfile.EntityColumnNames = new string[] { sourceMember.ColumnName };
 						resourceProfile.IsDefined = true;
 					}
@@ -4949,7 +4985,7 @@ namespace RESTInstaller.Services
 						string.Equals(sourceMember.ModelDataType, "long?", StringComparison.OrdinalIgnoreCase) ||
 						string.Equals(sourceMember.ModelDataType, "ulong?", StringComparison.OrdinalIgnoreCase))
 					{
-						resourceProfile.MapFunction = $"source.{sourceMember.ColumnName}.HasValue ? ({resourceModel.ClassName}) source.{sourceMember.ColumnName}.Value : ({resourceModel.ClassName}?) null";
+						resourceProfile.MapFunction = $"source.{sourceMember.ColumnName}.HasValue ? ({enumClass.ClassName}) source.{sourceMember.ColumnName}.Value : ({enumClass.ClassName}?) null";
 						resourceProfile.EntityColumnNames = new string[] { sourceMember.ColumnName };
 						resourceProfile.IsDefined = true;
 					}
@@ -4957,16 +4993,34 @@ namespace RESTInstaller.Services
 					{
 						if (destinationMember.ModelDataType.EndsWith("?"))
 						{
-							resourceProfile.MapFunction = $"string.IsNullOrWhiteSpace(source.{sourceMember.ColumnName}) ? ({resourceModel.ClassName}?) null : Enum.Parse<{resourceModel.ClassName}>(source.{sourceMember.ColumnName})";
+							resourceProfile.MapFunction = $"string.IsNullOrWhiteSpace(source.{sourceMember.ColumnName}) ? ({enumClass.ClassName}?) null : Enum.Parse<{enumClass.ClassName}>(source.{sourceMember.ColumnName})";
 							resourceProfile.EntityColumnNames = new string[] { sourceMember.ColumnName };
 							resourceProfile.IsDefined = true;
 						}
 						else
 						{
-							resourceProfile.MapFunction = $"Enum.Parse<{resourceModel.ClassName}>(source.{sourceMember.ColumnName})";
+							resourceProfile.MapFunction = $"Enum.Parse<{enumClass.ClassName}>(source.{sourceMember.ColumnName})";
 							resourceProfile.EntityColumnNames = new string[] { sourceMember.ColumnName };
 							resourceProfile.IsDefined = true;
 						}
+					}
+					else
+					{
+						resourceProfile.MapFunction = $"({enumClass.ClassName}) AFunc(source.{sourceMember.ColumnName})";
+						resourceProfile.EntityColumnNames = new string[] { sourceMember.ColumnName };
+						resourceProfile.IsDefined = false;
+					}
+				}
+			}
+			else if ( resourceModel != null )
+			{
+				if (string.Equals(sourceMember.ModelDataType, "string", StringComparison.OrdinalIgnoreCase))
+				{
+					if (ContainsParseFunction(resourceModel))
+					{
+						resourceProfile.MapFunction = $"{resourceModel.ClassName}.Parse(source.{sourceMember.ColumnName})";
+						resourceProfile.EntityColumnNames = new string[] { sourceMember.ColumnName };
+						resourceProfile.IsDefined = true;
 					}
 					else
 					{
@@ -4977,27 +5031,9 @@ namespace RESTInstaller.Services
 				}
 				else
 				{
-					if (string.Equals(sourceMember.ModelDataType, "string", StringComparison.OrdinalIgnoreCase))
-					{
-						if (ContainsParseFunction(resourceModel))
-						{
-							resourceProfile.MapFunction = $"{resourceModel.ClassName}.Parse(source.{sourceMember.ColumnName})";
-							resourceProfile.EntityColumnNames = new string[] { sourceMember.ColumnName };
-							resourceProfile.IsDefined = true;
-						}
-						else
-						{
-							resourceProfile.MapFunction = $"({resourceModel.ClassName}) AFunc(source.{sourceMember.ColumnName})";
-							resourceProfile.EntityColumnNames = new string[] { sourceMember.ColumnName };
-							resourceProfile.IsDefined = false;
-						}
-					}
-					else
-					{
-						resourceProfile.MapFunction = $"({resourceModel.ClassName}) AFunc(source.{sourceMember.ColumnName})";
-						resourceProfile.EntityColumnNames = new string[] { sourceMember.ColumnName };
-						resourceProfile.IsDefined = true;
-					}
+					resourceProfile.MapFunction = $"({resourceModel.ClassName}) AFunc(source.{sourceMember.ColumnName})";
+					resourceProfile.EntityColumnNames = new string[] { sourceMember.ColumnName };
+					resourceProfile.IsDefined = true;
 				}
 			}
 			else if (string.Equals(destinationMember.ModelDataType.ToString(), "byte", StringComparison.OrdinalIgnoreCase))
@@ -5252,8 +5288,9 @@ namespace RESTInstaller.Services
 		{
 			ThreadHelper.ThrowIfNotOnUIThread();
 			var codeService = ServiceFactory.GetService<ICodeService>();
-			var enumClassName = sourceMember.ModelDataType.ToString().Trim('?');
-			var model = codeService.GetResourceClass(enumClassName);
+			var className = sourceMember.ModelDataType.ToString().Trim('?');
+			var enumModel = codeService.GetEntityClass(className);
+			var resourceModel = codeService.GetResourceClass(className);
 
 			if (string.Equals(destinationMember.ModelDataType.ToString(), sourceMember.ModelDataType.ToString(), StringComparison.OrdinalIgnoreCase))
 			{
@@ -5261,9 +5298,9 @@ namespace RESTInstaller.Services
 				entityProfile.ResourceColumns = new string[] { sourceMember.ColumnName };
 				entityProfile.IsDefined = true;
 			}
-			else if (model != null)
+			else if (enumModel != null)
 			{
-				if (model.ResourceType == ResourceType.Enum)
+				if (enumModel.ElementType == ElementType.Enum)
 				{
 					if (string.Equals(destinationMember.ModelDataType, "byte", StringComparison.OrdinalIgnoreCase) ||
 						string.Equals(destinationMember.ModelDataType, "sbyte", StringComparison.OrdinalIgnoreCase) ||
@@ -5313,13 +5350,13 @@ namespace RESTInstaller.Services
 						entityProfile.IsDefined = false;
 					}
 				}
-				else
+				else if ( resourceModel != null )
 				{
 					if (string.Equals(sourceMember.ModelDataType, "string", StringComparison.OrdinalIgnoreCase))
 					{
-						if (ContainsParseFunction(model))
+						if (ContainsParseFunction(resourceModel))
 						{
-							entityProfile.MapFunction = $"{model.ClassName}.Parse(source.{sourceMember.ColumnName})";
+							entityProfile.MapFunction = $"{enumModel.ClassName}.Parse(source.{sourceMember.ColumnName})";
 							entityProfile.ResourceColumns = new string[] { sourceMember.ColumnName };
 							entityProfile.IsDefined = true;
 						}
@@ -5782,8 +5819,16 @@ namespace RESTInstaller.Services
 
 								if (entityAttribute != null)
 								{
-									var resourceClass = new ResourceClass((CodeElement2)classElement, GetEntityClass(entityAttribute.Value));
-									resourceClasses.Add(resourceClass);
+									var match = Regex.Match(entityAttribute.Value, "typeof\\((?<entityClass>[a-zA-Z0-9_]+)\\)");
+
+									if (match.Success)
+									{
+										var entityClassName = match.Groups["entityClass"].Value;
+										var entityClass = GetEntityClass(entityClassName);
+
+										var resourceClass = new ResourceClass((CodeElement2)classElement, entityClass);
+										resourceClasses.Add(resourceClass);
+									}
 								}
 							}
 							foreach (CodeEnum enumElement in namespaceElement.Members.OfType<CodeEnum>())
@@ -5792,8 +5837,16 @@ namespace RESTInstaller.Services
 
 								if (entityAttribute != null)
 								{
-									var resourceClass = new ResourceClass((CodeElement2)enumElement, GetEntityClass(entityAttribute.Value));
-									resourceClasses.Add(resourceClass);
+									var match = Regex.Match(entityAttribute.Value, "typeof\\((?<entityClass>[a-zA-Z0-9_]+)\\)");
+
+									if (match.Success)
+									{
+										var entityClassName = match.Groups["entityClass"].Value;
+										var entityClass = GetEntityClass(entityClassName);
+
+										var resourceClass = new ResourceClass((CodeElement2)enumElement, entityClass);
+										resourceClasses.Add(resourceClass);
+									}
 								}
 							}
 						}
@@ -5831,18 +5884,34 @@ namespace RESTInstaller.Services
 
 							if (entityAttribute != null)
 							{
-								var resourceClass = new ResourceClass((CodeElement2)classElement, GetEntityClass(entityAttribute.Value));
-								resourceClasses.Add(resourceClass);
+								var match = Regex.Match(entityAttribute.Value, "typeof\\((?<entityClass>[a-zA-Z0-9_]+)\\)");
+
+								if (match.Success)
+								{
+									var entityClassName = match.Groups["entityClass"].Value;
+									var entityClass = GetEntityClass(entityClassName);
+
+									var resourceClass = new ResourceClass((CodeElement2)classElement, entityClass);
+									resourceClasses.Add(resourceClass);
+								}
 							}
 						}
-						foreach (CodeEnum classElement in namespaceElement.Members.OfType<CodeEnum>())
+						foreach (CodeEnum enumElement in namespaceElement.Members.OfType<CodeEnum>())
 						{
-							CodeAttribute2 entityAttribute = classElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Entity"));
+							CodeAttribute2 entityAttribute = enumElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Entity"));
 
 							if (entityAttribute != null)
 							{
-								var resourceClass = new ResourceClass((CodeElement2)classElement, GetEntityClass(entityAttribute.Value));
-								resourceClasses.Add(resourceClass);
+								var match = Regex.Match(entityAttribute.Value, "typeof\\((?<entityClass>[a-zA-Z0-9_]+)\\)");
+
+								if (match.Success)
+								{
+									var entityClassName = match.Groups["entityClass"].Value;
+									var entityClass = GetEntityClass(entityClassName);
+
+									var resourceClass = new ResourceClass((CodeElement2)enumElement, entityClass);
+									resourceClasses.Add(resourceClass);
+								}
 							}
 						}
 					}
@@ -6001,9 +6070,9 @@ namespace RESTInstaller.Services
 						{
 							foreach (CodeClass2 classElement in namespaceElement.Members.OfType<CodeClass2>())
 							{
-								CodeAttribute2 entityAttribute = classElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Table"));
+								CodeAttribute2 tableAttribute = classElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Table"));
 
-								if (entityAttribute != null)
+								if (tableAttribute != null)
 								{
 									if (classElement.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
 									{
@@ -6015,9 +6084,9 @@ namespace RESTInstaller.Services
 							}
 							foreach (CodeEnum enumElement in namespaceElement.Members.OfType<CodeEnum>())
 							{
-								CodeAttribute2 entityAttribute = enumElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Table"));
+								CodeAttribute2 tableAttribute = enumElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Table"));
 
-								if (entityAttribute != null)
+								if (tableAttribute != null)
 								{
 									if (enumElement.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
 									{
@@ -6059,9 +6128,9 @@ namespace RESTInstaller.Services
 					{
 						foreach (CodeClass2 classElement in namespaceElement.Members.OfType<CodeClass2>())
 						{
-							CodeAttribute2 entityAttribute = classElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Entity"));
+							CodeAttribute2 tableAttribute = classElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Table"));
 
-							if (entityAttribute != null)
+							if (tableAttribute != null)
 							{
 								if (classElement.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
 								{
@@ -6073,9 +6142,9 @@ namespace RESTInstaller.Services
 
 						foreach (CodeEnum enumElement in namespaceElement.Members.OfType<CodeEnum>())
 						{
-							CodeAttribute2 entityAttribute = enumElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Entity"));
+							CodeAttribute2 tableAttribute = enumElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Table"));
 
-							if (entityAttribute != null)
+							if (tableAttribute != null)
 							{
 								if (enumElement.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
 								{

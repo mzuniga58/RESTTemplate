@@ -988,7 +988,7 @@ namespace RESTInstaller.Services
             }
         }
 
-        public string EmitEntityEnum(string className, DBServerType serverType, string schema, string tablename, List<EnumValue> columns)
+        public string EmitEntityEnum(string className, DBServerType serverType, string schema, string tablename, string enumDataType, List<EnumValue> columns)
 		{
 			var codeService = ServiceFactory.GetService<ICodeService>();
 			var nn = new NameNormalizer(className);
@@ -1004,7 +1004,7 @@ namespace RESTInstaller.Services
 			else
 				builder.AppendLine($"\t[Table(\"{tablename}\", Schema = \"{schema}\", DBType = \"{serverType}\")]");
 
-			builder.AppendLine($"\tpublic enum {className}");
+			builder.AppendLine($"\tpublic enum {className} : {enumDataType}");
 			builder.AppendLine("\t{");
 			bool firstUse = true;
 
