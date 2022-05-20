@@ -26,8 +26,6 @@ namespace RESTInstaller.Wizards
 
         public void ProjectItemFinishedGenerating(ProjectItem projectItem)
         {
-            var codeService = ServiceFactory.GetService<ICodeService>();
-            codeService.AddEntity(projectItem);
         }
 
         public void RunFinished()
@@ -113,25 +111,6 @@ namespace RESTInstaller.Wizards
                         replacementsDictionary["$entityClass$"] = className;
 
                         var emitter = new Emitter();
-
-                        if (form.ServerType == DBServerType.POSTGRESQL && form.UndefinedEntityModels != null && form.UndefinedEntityModels.Count > 0)
-                        {
-                            //	Generate any undefined composits before we construct our entity model (because, 
-                            //	the entity model depends upon them)
-
-                            waitDialog.UpdateProgress($"Building entity model",
-                                                      $"Building composites",
-                                                      $"Building composites",
-                                                      0,
-                                                      0,
-                                                      true,
-                                                      out fpCanceled);
-
-                            emitter.GenerateComposites(form.UndefinedEntityModels,
-                                                       form.ConnectionString,
-                                                       replacementsDictionary);
-                        }
-
                         string model = string.Empty;
 
                         if (form.EType == ElementType.Enum)
@@ -144,62 +123,18 @@ namespace RESTInstaller.Wizards
                                                      true,
                                                      out fpCanceled);
 
-                            var columns = DBHelper.GenerateEnumColumns(form.DatabaseTable.Schema,
+                            var columns = DBHelper.GenerateEnumColumns(form.ServerType, 
+                                                                       form.DatabaseTable.Schema,
                                                                        form.DatabaseTable.Table,
-                                                                       form.ConnectionString);
+                                                                       form.ConnectionString,
+                                                                       form.DatabaseColumns);
 
                             model = emitter.EmitEntityEnum(replacementsDictionary["$safeitemname$"],
-                                                                   form.DatabaseTable.Schema,
-                                                                   form.DatabaseTable.Table,
-                                                                   columns);
+                                                           form.ServerType,
+                                                           form.DatabaseTable.Schema,
+                                                           form.DatabaseTable.Table,
+                                                           columns);
 
-                            replacementsDictionary["$npgsqltypes$"] = "true";
-
-                            waitDialog.UpdateProgress($"Building entity model",
-                                                     $"Registering {replacementsDictionary["$safeitemname$"]}",
-                                                     $"Registering {replacementsDictionary["$safeitemname$"]}",
-                                                     0,
-                                                     0,
-                                                     true,
-                                                     out fpCanceled);
-
-                            codeService.RegisterComposite(replacementsDictionary["$safeitemname$"],
-                                                                   replacementsDictionary["$rootnamespace$"],
-                                                                   ElementType.Enum,
-                                                                   form.DatabaseTable.Table);
-                        }
-                        else if (form.EType == ElementType.Composite)
-                        {
-                            var columns = DBHelper.GenerateColumns(form.DatabaseTable.Schema, form.DatabaseTable.Table, form.ServerType, form.ConnectionString);
-
-                            waitDialog.UpdateProgress($"Building entity model",
-                                                     $"Building {replacementsDictionary["$safeitemname$"]}",
-                                                     $"Building {replacementsDictionary["$safeitemname$"]}",
-                                                     0,
-                                                     0,
-                                                     true,
-                                                     out fpCanceled);
-
-                            model = emitter.EmitComposite(replacementsDictionary["$safeitemname$"],
-                                                                  form.DatabaseTable.Schema,
-                                                                  form.DatabaseTable.Table,
-                                                                  columns,
-                                                                  replacementsDictionary);
-
-                            replacementsDictionary["$npgsqltypes$"] = "true";
-
-                            waitDialog.UpdateProgress($"Building entity model",
-                                                    $"Registering {replacementsDictionary["$safeitemname$"]}",
-                                                    $"Registering {replacementsDictionary["$safeitemname$"]}",
-                                                    0,
-                                                    0,
-                                                    true,
-                                                    out fpCanceled);
-
-                            codeService.RegisterComposite(replacementsDictionary["$safeitemname$"],
-                                                                   replacementsDictionary["$rootnamespace$"],
-                                                                   ElementType.Enum,
-                                                                   form.DatabaseTable.Table);
                         }
                         else
                         {

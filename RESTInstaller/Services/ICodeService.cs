@@ -16,8 +16,6 @@ namespace RESTInstaller.Services
         ProjectFolder ConfigurationFolder { get; }
         ProjectFolder ControllersFolder { get; }
         ProjectFolder ResourceModelFolder { get; }
-        List<EntityClass> EntityClassList { get; }
-        List<ResourceClass> ResourceClassList { get; }
 
         CodeClass2 FindClass(string className);
 
@@ -37,11 +35,6 @@ namespace RESTInstaller.Services
 
         void AddEntityMap(EntityDBMap entityDBMap);
 
-        void OnProjectItemRemoved(ProjectItem ProjectItem);
-        void OnProjectItemAdded(ProjectItem ProjectItem);
-
-        void OnSolutionOpened();
-
         EntityClass GetEntityClassBySchema(string schema, string tableName);
 
         ResourceClass GetResourceClassBySchema(string schema, string tableName);
@@ -49,17 +42,15 @@ namespace RESTInstaller.Services
         EntityClass GetEntityClass(string name);
 
         ResourceClass GetResourceClass(string name);
+        List<ResourceClass> GetResourceClassList();
 
-        void AddEntity(ProjectItem projectItem);
+        List<EntityClass> GetEntityClassList();
 
-        void AddResource(ProjectItem projectItem);
 
-        void LoadEntityClassList(string folder = "");
-
-        void LoadResourceClassList(string folder = "");
 
 
         string NormalizeClassName(string className);
+        string NormalizeEnumName(string name);
 
         string CorrectForReservedNames(string columnName);
         DBColumn[] LoadEntityColumns(CodeClass2 codeClass);

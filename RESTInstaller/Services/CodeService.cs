@@ -19,9 +19,7 @@ namespace RESTInstaller.Services
 {
 	internal class CodeService : ICodeService
 	{
-		private ProjectMapping projectMapping = null;
-		private readonly List<EntityClass> entityClassList = new List<EntityClass>();
-		private readonly List<ResourceClass> resourceClassList = new List<ResourceClass>();
+		private readonly ProjectMapping projectMapping = null;
 		private ProjectItem _localSettingsFile = null;
 		private ProjectItem _globalSettingsFile = null;
 
@@ -31,6 +29,21 @@ namespace RESTInstaller.Services
 
 
 		#region Properties
+
+		public string NormalizeEnumName(string name)
+		{
+			var normalizedName = new StringBuilder();
+			var parts = name.Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+
+			foreach ( var part in parts)
+            {
+				normalizedName.Append(part.Substring(0, 1).ToUpper());
+				normalizedName.Append(part.Substring(1));
+            }
+
+			return normalizedName.ToString();
+		}
+
 
 		public void AddLine(CodeFunction2 codeFunction, string codeLine)
         {
@@ -677,96 +690,7 @@ namespace RESTInstaller.Services
 				return results;
 			}
 		}
-
-
-		public List<EntityClass> EntityClassList
-		{
-			get
-			{
-				ThreadHelper.ThrowIfNotOnUIThread();
-				if (entityClassList == null || entityClassList.Count == 0)
-					LoadEntityClassList();
-
-				return entityClassList;
-			}
-		}
-
-		public List<ResourceClass> ResourceClassList
-		{
-			get
-			{
-				ThreadHelper.ThrowIfNotOnUIThread();
-				if (resourceClassList.Count == 0)
-					LoadResourceClassList();
-
-				return resourceClassList;
-			}
-		}
 		#endregion
-
-		public void OnProjectItemRemoved(ProjectItem ProjectItem)
-		{
-			ThreadHelper.ThrowIfNotOnUIThread();
-
-			var entity = entityClassList.FirstOrDefault(c =>
-			{
-				ThreadHelper.ThrowIfNotOnUIThread();
-				try
-				{
-					return c.ProjectItem != null && (!string.IsNullOrWhiteSpace(c.ProjectItem.Name) && c.ProjectItem.Name.Equals(ProjectItem.Name));
-				}
-				catch (Exception ex)
-				{
-					var ss = ex.Message;
-					return false;
-				}
-			});
-
-			if (entity != null)
-				entityClassList.Remove(entity);
-
-			var resource = resourceClassList.FirstOrDefault(c =>
-			{
-				ThreadHelper.ThrowIfNotOnUIThread();
-				try
-				{
-					return c.ProjectItem != null && (!string.IsNullOrWhiteSpace(c.ProjectItem.Name) && c.ProjectItem.Name.Equals(ProjectItem.Name));
-				}
-				catch (Exception ex)
-				{
-					var ss = ex.Message;
-					return false;
-				}
-			});
-
-			if (resource != null)
-				resourceClassList.Remove(resource);
-		}
-
-		public void OnProjectItemAdded(ProjectItem ProjectItem)
-		{
-			ThreadHelper.ThrowIfNotOnUIThread();
-
-			AddEntity(ProjectItem);
-			AddResource(ProjectItem);
-		}
-
-		public void OnSolutionOpened()
-		{
-			ThreadHelper.ThrowIfNotOnUIThread();
-			var mDte = Package.GetGlobalService(typeof(SDTE)) as DTE2;
-
-			entityClassList.Clear();
-			resourceClassList.Clear();
-			projectMapping = null;
-
-			projectMapping = LoadProjectMapping();
-			LoadEntityClassList();
-			LoadResourceClassList();
-
-			_localSettingsFile = mDte.Solution.FindProjectItem("appsettings.Local.json");
-			_globalSettingsFile = mDte.Solution.FindProjectItem("appsettings.json");
-		}
 
 		public ProjectMapping LoadProjectMapping()
 		{
@@ -835,8 +759,7 @@ namespace RESTInstaller.Services
 		public EntityClass GetEntityClassBySchema(string schema, string tableName)
 		{
 			ThreadHelper.ThrowIfNotOnUIThread();
-			if (entityClassList.Count == 0)
-				LoadEntityClassList();
+			var entityClassList = GetEntityClassList();
 
 			return entityClassList.FirstOrDefault(c => c.SchemaName.Equals(schema, StringComparison.OrdinalIgnoreCase) &&
 													   c.TableName.Equals(tableName, StringComparison.OrdinalIgnoreCase));
@@ -845,166 +768,11 @@ namespace RESTInstaller.Services
 		public ResourceClass GetResourceClassBySchema(string schema, string tableName)
 		{
 			ThreadHelper.ThrowIfNotOnUIThread();
-			if (resourceClassList == null || resourceClassList.Count == 0)
-				LoadResourceClassList();
+			var resourceClassList = GetResourceClassList();
 
 			return resourceClassList.FirstOrDefault(c => c.Entity != null &&
 														 c.Entity.SchemaName.Equals(schema, StringComparison.OrdinalIgnoreCase) &&
 														 c.Entity.TableName.Equals(tableName, StringComparison.OrdinalIgnoreCase));
-		}
-
-		public EntityClass GetEntityClass(string name)
-		{
-			ThreadHelper.ThrowIfNotOnUIThread();
-
-			if (entityClassList.Count == 0)
-				LoadEntityClassList();
-
-			return entityClassList.FirstOrDefault(c => c.ClassName.Equals(name, StringComparison.OrdinalIgnoreCase));
-		}
-
-		public ResourceClass GetResourceClass(string name)
-		{
-			ThreadHelper.ThrowIfNotOnUIThread();
-			if (resourceClassList.Count == 0)
-				LoadResourceClassList();
-
-			return resourceClassList.FirstOrDefault(c => c.ClassName.Equals(name, StringComparison.OrdinalIgnoreCase));
-		}
-
-		public void AddEntity(ProjectItem projectItem)
-		{
-			ThreadHelper.ThrowIfNotOnUIThread();
-			if (entityClassList.Count == 0)
-			{
-				LoadEntityClassList();
-			}
-			else
-			{
-				FileCodeModel2 model = (FileCodeModel2)projectItem.FileCodeModel;
-
-				if (model != null)
-				{
-					foreach (CodeNamespace namespaceElement in model.CodeElements.OfType<CodeNamespace>())
-					{
-						var projectMapping = LoadProjectMapping();
-						if (namespaceElement.Name.Contains(projectMapping.EntityNamespace))
-						{
-							foreach (CodeClass2 classElement in namespaceElement.Members.OfType<CodeClass2>())
-							{
-								CodeAttribute2 tableAttribute = classElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Table"));
-
-								if (tableAttribute != null)
-								{
-									var code = new EntityClass((CodeElement2)classElement);
-									var existingClass = entityClassList.FirstOrDefault(c => c.ClassName.Equals(code.ClassName));
-
-									if (existingClass == null)
-										entityClassList.Add(code);
-								}
-								else
-								{
-									CodeAttribute2 compositeAttribute = classElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("PgComposite"));
-
-									if (compositeAttribute != null)
-									{
-										var code = new EntityClass((CodeElement2)classElement);
-										var existingClass = entityClassList.FirstOrDefault(c => c.ClassName.Equals(code.ClassName));
-
-										if (existingClass == null)
-											entityClassList.Add(code);
-									}
-								}
-							}
-
-							foreach (CodeEnum enumElement in namespaceElement.Members.OfType<CodeEnum>())
-							{
-								CodeAttribute2 enumAttribute = enumElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("PgEnum"));
-
-								if (enumAttribute != null)
-								{
-									var code = new EntityClass((CodeElement2)enumElement);
-									var existingClass = entityClassList.FirstOrDefault(c => c.ClassName.Equals(code.ClassName));
-
-									if (existingClass == null)
-										entityClassList.Add(code);
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		public void AddResource(ProjectItem projectItem)
-		{
-			ThreadHelper.ThrowIfNotOnUIThread();
-			if (resourceClassList.Count == 0)
-			{
-				LoadResourceClassList();
-			}
-			else
-			{
-				FileCodeModel2 model = (FileCodeModel2)projectItem.FileCodeModel;
-
-				if (model != null)
-				{
-					foreach (CodeNamespace namespaceElement in model.CodeElements.OfType<CodeNamespace>())
-					{
-						var projectMapping = LoadProjectMapping();
-						if (namespaceElement.Name.Contains(projectMapping.ResourceNamespace))
-						{
-							foreach (CodeClass2 classElement in namespaceElement.Members.OfType<CodeClass2>())
-							{
-								CodeAttribute2 entityAttribute = classElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Entity"));
-								EntityClass entityClass = null;
-
-								if (entityAttribute != null)
-								{
-									var entityTypeArgument = entityAttribute.Children.OfType<CodeAttributeArgument>().FirstOrDefault(a => a.Name.Equals(""));
-
-									var match = Regex.Match(entityTypeArgument.Value, "^typeof\\((?<entityClass>[a-zA-Z0-9_]+)\\)");
-
-									if (match.Success)
-									{
-										entityClass = GetEntityClass(match.Groups["entityClass"].Value);
-									}
-								}
-
-								var code = new ResourceClass((CodeElement2)classElement, entityClass);
-								var existingClass = resourceClassList.FirstOrDefault(c => c.ClassName.Equals(code.ClassName));
-
-								if (existingClass == null)
-									resourceClassList.Add(code);
-							}
-
-							foreach (CodeEnum enumElement in namespaceElement.Members.OfType<CodeEnum>())
-							{
-								CodeAttribute2 entityAttribute = enumElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Entity"));
-								EntityClass entityClass = null;
-
-								if (entityAttribute != null)
-								{
-									var entityTypeArgument = entityAttribute.Children.OfType<CodeAttributeArgument>().FirstOrDefault(a => a.Name.Equals(""));
-
-									var match = Regex.Match(entityTypeArgument.Value, "^typeof\\((?<entityClass>[a-zA-Z0-9_]+)\\)");
-
-									if (match.Success)
-									{
-										entityClass = GetEntityClass(match.Groups["entityClass"].Value);
-									}
-								}
-
-								var code = new ResourceClass((CodeElement2)enumElement, entityClass);
-								var existingClass = resourceClassList.FirstOrDefault(c => c.ClassName.Equals(code.ClassName));
-
-								if (existingClass == null)
-									resourceClassList.Add(code);
-							}
-						}
-					}
-				}
-			}
 		}
 
 		public bool GetUseRql()
@@ -1050,138 +818,6 @@ namespace RESTInstaller.Services
 			}
 
 			return false;
-		}
-
-		public void LoadEntityClassList(string folder = "")
-		{
-			ThreadHelper.ThrowIfNotOnUIThread();
-			var projectMapping = LoadProjectMapping();  //	Contains the names and projects where various source file exist.
-			var mDte = (DTE2)Package.GetGlobalService(typeof(SDTE));
-
-			var entityFolder = string.IsNullOrWhiteSpace(folder) ? mDte.Solution.FindProjectItem(projectMapping.GetEntityModelsFolder().Folder) :
-																   mDte.Solution.FindProjectItem(folder);
-
-			foreach (ProjectItem projectItem in entityFolder.ProjectItems)
-			{
-				if (projectItem.Kind == Constants.vsProjectItemKindPhysicalFolder ||
-					 projectItem.Kind == Constants.vsProjectItemKindVirtualFolder)
-				{
-					LoadEntityClassList(projectItem.Name);
-				}
-				else if (projectItem.Kind == Constants.vsProjectItemKindPhysicalFile &&
-						 projectItem.FileCodeModel != null &&
-						 projectItem.FileCodeModel.Language == CodeModelLanguageConstants.vsCMLanguageCSharp &&
-						 Convert.ToInt32(projectItem.Properties.Item("BuildAction").Value) == 1)
-				{
-					FileCodeModel2 model = (FileCodeModel2)projectItem.FileCodeModel;
-
-					foreach (CodeNamespace namespaceElement in model.CodeElements.OfType<CodeNamespace>())
-					{
-						foreach (CodeClass2 classElement in namespaceElement.Members.OfType<CodeClass2>())
-						{
-							CodeAttribute2 tableAttribute = classElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Table"));
-
-							if (tableAttribute != null)
-							{
-								var code = new EntityClass((CodeElement2)classElement);
-								entityClassList.Add(code);
-							}
-							else
-							{
-								CodeAttribute2 compositeAttribute = classElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("PgComposite"));
-
-								if (compositeAttribute != null)
-								{
-									var code = new EntityClass((CodeElement2)classElement);
-									entityClassList.Add(code);
-								}
-							}
-						}
-
-						foreach (CodeEnum enumElement in namespaceElement.Members.OfType<CodeEnum>())
-						{
-							CodeAttribute2 tableAttribute = enumElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("PgEnum"));
-
-							if (tableAttribute != null)
-							{
-								var code = new EntityClass((CodeElement2)enumElement);
-								entityClassList.Add(code);
-							}
-						}
-					}
-				}
-			}
-		}
-
-		public void LoadResourceClassList(string folder = "")
-		{
-			ThreadHelper.ThrowIfNotOnUIThread();
-			var projectMapping = LoadProjectMapping();  //	Contains the names and projects where various source file exist.
-			var mDte = (DTE2)Package.GetGlobalService(typeof(SDTE));
-
-			var entityFolder = string.IsNullOrWhiteSpace(folder) ? mDte.Solution.FindProjectItem(projectMapping.GetResourceModelsFolder().Folder) :
-																   mDte.Solution.FindProjectItem(folder);
-
-			foreach (ProjectItem projectItem in entityFolder.ProjectItems)
-			{
-				if (projectItem.Kind == Constants.vsProjectItemKindPhysicalFolder ||
-					 projectItem.Kind == Constants.vsProjectItemKindVirtualFolder)
-				{
-					LoadEntityClassList(projectItem.Name);
-				}
-				else if (projectItem.Kind == Constants.vsProjectItemKindPhysicalFile &&
-						 projectItem.FileCodeModel != null &&
-						 projectItem.FileCodeModel.Language == CodeModelLanguageConstants.vsCMLanguageCSharp &&
-						 Convert.ToInt32(projectItem.Properties.Item("BuildAction").Value) == 1)
-				{
-					FileCodeModel2 model = (FileCodeModel2)projectItem.FileCodeModel;
-
-					foreach (CodeNamespace namespaceElement in model.CodeElements.OfType<CodeNamespace>())
-					{
-						foreach (CodeClass2 classElement in namespaceElement.Members.OfType<CodeClass2>())
-						{
-							CodeAttribute2 entityAttribute = classElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Entity"));
-							EntityClass entityClass = null;
-
-							if (entityAttribute != null)
-							{
-								var entityTypeArgument = entityAttribute.Children.OfType<CodeAttributeArgument>().FirstOrDefault(a => a.Name.Equals(""));
-
-								var match = Regex.Match(entityTypeArgument.Value, "^typeof\\((?<entityClass>[a-zA-Z0-9_]+)\\)");
-
-								if (match.Success)
-								{
-									entityClass = GetEntityClass(match.Groups["entityClass"].Value);
-								}
-							}
-
-							var code = new ResourceClass((CodeElement2)classElement, entityClass);
-							resourceClassList.Add(code);
-						}
-
-						foreach (CodeEnum enumElement in namespaceElement.Members.OfType<CodeEnum>())
-						{
-							CodeAttribute2 entityAttribute = enumElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("PgEnum"));
-							EntityClass entityClass = null;
-
-							if (entityAttribute != null)
-							{
-								var entityTypeArgument = entityAttribute.Children.OfType<CodeAttributeArgument>().FirstOrDefault(a => a.Name.Equals(""));
-
-								var match = Regex.Match(entityTypeArgument.Value, "^typeof\\((?<entityClass>[a-zA-Z0-9_]+)\\)");
-
-								if (match.Success)
-								{
-									entityClass = GetEntityClass(match.Groups["entityClass"].Value);
-								}
-							}
-
-							var code = new ResourceClass((CodeElement2)enumElement, entityClass);
-							resourceClassList.Add(code);
-						}
-					}
-				}
-			}
 		}
 
 		#region Miscellaneous Operations
@@ -3253,7 +2889,7 @@ namespace RESTInstaller.Services
 			var codeService = ServiceFactory.GetService<ICodeService>();
 			var column = resourceColumns.FirstOrDefault(c => c.ColumnName.Equals(columnName));
 			var enumClassName = column.ModelDataType.Trim('?');
-			var parentResource = codeService.ResourceClassList.FirstOrDefault(r => r.ClassName.Equals(enumClassName));
+			var parentResource = codeService.GetResourceClassList().FirstOrDefault(r => r.ClassName.Equals(enumClassName));
 
 			if (parentResource != null && parentResource.ResourceType == ResourceType.Enum)
 			{
@@ -6011,7 +5647,449 @@ namespace RESTInstaller.Services
 
 			return string.Empty;
 		}
+		#endregion
 
+		#region GetEntityClassList
+		public List<EntityClass> GetEntityClassList()
+		{
+			ThreadHelper.ThrowIfNotOnUIThread();
+			var mDte = (DTE2)Package.GetGlobalService(typeof(SDTE));
+			List<EntityClass> entityClasses = new List<EntityClass>();
+
+			foreach (Project project in mDte.Solution.Projects)
+			{
+				foreach (ProjectItem projectItem in project.ProjectItems)
+				{
+					if (projectItem.Kind == Constants.vsProjectItemKindPhysicalFolder ||
+						 projectItem.Kind == Constants.vsProjectItemKindVirtualFolder)
+					{
+						entityClasses.AddRange(GetEntityClassList(projectItem));
+					}
+					else if (projectItem.Kind == Constants.vsProjectItemKindPhysicalFile &&
+						 projectItem.FileCodeModel != null &&
+						 projectItem.FileCodeModel.Language == CodeModelLanguageConstants.vsCMLanguageCSharp &&
+						 Convert.ToInt32(projectItem.Properties.Item("BuildAction").Value) == 1)
+					{
+						FileCodeModel2 model = (FileCodeModel2)projectItem.FileCodeModel;
+
+						foreach (CodeNamespace namespaceElement in model.CodeElements.OfType<CodeNamespace>())
+						{
+							foreach (CodeClass2 classElement in namespaceElement.Members.OfType<CodeClass2>())
+							{
+								CodeAttribute2 entityAttribute = classElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Table"));
+
+								if (entityAttribute != null)
+								{
+									var entityClass = new EntityClass((CodeElement2)classElement);
+									entityClasses.Add(entityClass);
+								}
+							}
+							foreach (CodeEnum enumElement in namespaceElement.Members.OfType<CodeEnum>())
+							{
+								CodeAttribute2 entityAttribute = enumElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Table"));
+
+								if (entityAttribute != null)
+								{
+									var entityClass = new EntityClass((CodeElement2)enumElement);
+									entityClasses.Add(entityClass);
+								}
+							}
+						}
+					}
+				}
+			}
+
+			return entityClasses;
+		}
+
+		internal List<EntityClass> GetEntityClassList(ProjectItem parent)
+		{
+			ThreadHelper.ThrowIfNotOnUIThread();
+			List<EntityClass> entityClasses = new List<EntityClass>();
+
+			foreach (ProjectItem projectItem in parent.ProjectItems)
+			{
+				if (projectItem.Kind == Constants.vsProjectItemKindPhysicalFolder ||
+					 projectItem.Kind == Constants.vsProjectItemKindVirtualFolder)
+				{
+					entityClasses.AddRange(GetEntityClassList(projectItem));
+				}
+				else if (projectItem.Kind == Constants.vsProjectItemKindPhysicalFile &&
+					 projectItem.FileCodeModel != null &&
+					 projectItem.FileCodeModel.Language == CodeModelLanguageConstants.vsCMLanguageCSharp &&
+					 Convert.ToInt32(projectItem.Properties.Item("BuildAction").Value) == 1)
+				{
+					FileCodeModel2 model = (FileCodeModel2)projectItem.FileCodeModel;
+
+					foreach (CodeNamespace namespaceElement in model.CodeElements.OfType<CodeNamespace>())
+					{
+						foreach (CodeClass2 classElement in namespaceElement.Members.OfType<CodeClass2>())
+						{
+							CodeAttribute2 entityAttribute = classElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Table"));
+
+							if (entityAttribute != null)
+							{
+								var entityClass = new EntityClass((CodeElement2)classElement);
+								entityClasses.Add(entityClass);
+							}
+						}
+						foreach (CodeEnum enumElement in namespaceElement.Members.OfType<CodeEnum>())
+						{
+							CodeAttribute2 entityAttribute = enumElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Table"));
+
+							if (entityAttribute != null)
+							{
+								var entityClass = new EntityClass((CodeElement2)enumElement);
+								entityClasses.Add(entityClass);
+							}
+						}
+					}
+				}
+			}
+
+			return entityClasses;
+		}
+		#endregion
+
+		#region GetResourceClassList
+		public List<ResourceClass> GetResourceClassList()
+		{
+			ThreadHelper.ThrowIfNotOnUIThread();
+			var mDte = (DTE2)Package.GetGlobalService(typeof(SDTE));
+			List<ResourceClass> resourceClasses = new List<ResourceClass>();
+
+			foreach (Project project in mDte.Solution.Projects)
+			{
+				foreach (ProjectItem projectItem in project.ProjectItems)
+				{
+					if (projectItem.Kind == Constants.vsProjectItemKindPhysicalFolder ||
+						 projectItem.Kind == Constants.vsProjectItemKindVirtualFolder)
+					{
+						resourceClasses.AddRange(GetResourceClassList(projectItem));
+					}
+					else if (projectItem.Kind == Constants.vsProjectItemKindPhysicalFile &&
+						 projectItem.FileCodeModel != null &&
+						 projectItem.FileCodeModel.Language == CodeModelLanguageConstants.vsCMLanguageCSharp &&
+						 Convert.ToInt32(projectItem.Properties.Item("BuildAction").Value) == 1)
+					{
+						FileCodeModel2 model = (FileCodeModel2)projectItem.FileCodeModel;
+
+						foreach (CodeNamespace namespaceElement in model.CodeElements.OfType<CodeNamespace>())
+						{
+							foreach (CodeClass2 classElement in namespaceElement.Members.OfType<CodeClass2>())
+							{
+								CodeAttribute2 entityAttribute = classElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Entity"));
+
+								if (entityAttribute != null)
+								{
+									var resourceClass = new ResourceClass((CodeElement2)classElement, GetEntityClass(entityAttribute.Value));
+									resourceClasses.Add(resourceClass);
+								}
+							}
+							foreach (CodeEnum enumElement in namespaceElement.Members.OfType<CodeEnum>())
+							{
+								CodeAttribute2 entityAttribute = enumElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Entity"));
+
+								if (entityAttribute != null)
+								{
+									var resourceClass = new ResourceClass((CodeElement2)enumElement, GetEntityClass(entityAttribute.Value));
+									resourceClasses.Add(resourceClass);
+								}
+							}
+						}
+					}
+				}
+			}
+
+			return resourceClasses;
+		}
+
+		internal List<ResourceClass> GetResourceClassList(ProjectItem parent)
+		{
+			ThreadHelper.ThrowIfNotOnUIThread();
+			List<ResourceClass> resourceClasses = new List<ResourceClass>();
+
+			foreach (ProjectItem projectItem in parent.ProjectItems)
+			{
+				if (projectItem.Kind == Constants.vsProjectItemKindPhysicalFolder ||
+					 projectItem.Kind == Constants.vsProjectItemKindVirtualFolder)
+				{
+					resourceClasses.AddRange(GetResourceClassList(projectItem));
+				}
+				else if (projectItem.Kind == Constants.vsProjectItemKindPhysicalFile &&
+					 projectItem.FileCodeModel != null &&
+					 projectItem.FileCodeModel.Language == CodeModelLanguageConstants.vsCMLanguageCSharp &&
+					 Convert.ToInt32(projectItem.Properties.Item("BuildAction").Value) == 1)
+				{
+					FileCodeModel2 model = (FileCodeModel2)projectItem.FileCodeModel;
+
+					foreach (CodeNamespace namespaceElement in model.CodeElements.OfType<CodeNamespace>())
+					{
+						foreach (CodeClass2 classElement in namespaceElement.Members.OfType<CodeClass2>())
+						{
+							CodeAttribute2 entityAttribute = classElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Entity"));
+
+							if (entityAttribute != null)
+							{
+								var resourceClass = new ResourceClass((CodeElement2)classElement, GetEntityClass(entityAttribute.Value));
+								resourceClasses.Add(resourceClass);
+							}
+						}
+						foreach (CodeEnum classElement in namespaceElement.Members.OfType<CodeEnum>())
+						{
+							CodeAttribute2 entityAttribute = classElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Entity"));
+
+							if (entityAttribute != null)
+							{
+								var resourceClass = new ResourceClass((CodeElement2)classElement, GetEntityClass(entityAttribute.Value));
+								resourceClasses.Add(resourceClass);
+							}
+						}
+					}
+				}
+			}
+
+			return resourceClasses;
+		}
+		#endregion
+
+		#region GetResourceClass
+		public ResourceClass GetResourceClass(string name)
+		{
+			ThreadHelper.ThrowIfNotOnUIThread();
+			var mDte = (DTE2)Package.GetGlobalService(typeof(SDTE));
+			List<ResourceClass> resourceClasses = new List<ResourceClass>();
+
+			foreach (Project project in mDte.Solution.Projects)
+			{
+				foreach (ProjectItem projectItem in project.ProjectItems)
+				{
+					if (projectItem.Kind == Constants.vsProjectItemKindPhysicalFolder ||
+						projectItem.Kind == Constants.vsProjectItemKindVirtualFolder)
+					{
+						var resourceClass = GetResourceClass(projectItem, name);
+
+						if (resourceClass != null)
+							return resourceClass;
+					}
+					else if (projectItem.Kind == Constants.vsProjectItemKindPhysicalFile &&
+						 projectItem.FileCodeModel != null &&
+						 projectItem.FileCodeModel.Language == CodeModelLanguageConstants.vsCMLanguageCSharp &&
+						 Convert.ToInt32(projectItem.Properties.Item("BuildAction").Value) == 1)
+					{
+						FileCodeModel2 model = (FileCodeModel2)projectItem.FileCodeModel;
+
+						foreach (CodeNamespace namespaceElement in model.CodeElements.OfType<CodeNamespace>())
+						{
+							foreach (CodeClass2 classElement in namespaceElement.Members.OfType<CodeClass2>())
+							{
+								CodeAttribute2 entityAttribute = classElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Entity"));
+
+								if (entityAttribute != null)
+								{
+									if (classElement.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+									{
+										var resourceClass = new ResourceClass((CodeElement2)classElement, GetEntityClass(entityAttribute.Value));
+										resourceClasses.Add(resourceClass);
+									}
+								}
+							}
+							foreach (CodeEnum enumElement in namespaceElement.Members.OfType<CodeEnum>())
+							{
+								CodeAttribute2 entityAttribute = enumElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Entity"));
+
+								if (entityAttribute != null)
+								{
+									if (enumElement.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+									{
+										var resourceClass = new ResourceClass((CodeElement2)enumElement, GetEntityClass(entityAttribute.Value));
+										resourceClasses.Add(resourceClass);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+			return null;
+		}
+
+		internal ResourceClass GetResourceClass(ProjectItem parent, string name)
+		{
+			ThreadHelper.ThrowIfNotOnUIThread();
+
+			foreach (ProjectItem projectItem in parent.ProjectItems)
+			{
+				if (projectItem.Kind == Constants.vsProjectItemKindPhysicalFolder ||
+					projectItem.Kind == Constants.vsProjectItemKindVirtualFolder)
+				{
+					var resourceClass = GetResourceClass(projectItem, name);
+
+					if (resourceClass != null)
+						return resourceClass;
+				}
+				else if (projectItem.Kind == Constants.vsProjectItemKindPhysicalFile &&
+					 projectItem.FileCodeModel != null &&
+					 projectItem.FileCodeModel.Language == CodeModelLanguageConstants.vsCMLanguageCSharp &&
+					 Convert.ToInt32(projectItem.Properties.Item("BuildAction").Value) == 1)
+				{
+					FileCodeModel2 model = (FileCodeModel2)projectItem.FileCodeModel;
+
+					foreach (CodeNamespace namespaceElement in model.CodeElements.OfType<CodeNamespace>())
+					{
+						foreach (CodeClass2 classElement in namespaceElement.Members.OfType<CodeClass2>())
+						{
+							CodeAttribute2 entityAttribute = classElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Entity"));
+
+							if (entityAttribute != null)
+							{
+								if (classElement.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+								{
+									var resourceClass = new ResourceClass((CodeElement2) classElement, GetEntityClass(entityAttribute.Value));
+									return resourceClass;
+								}
+							}
+						}
+						foreach (CodeEnum enumElement in namespaceElement.Members.OfType<CodeEnum>())
+						{
+							CodeAttribute2 entityAttribute = enumElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Entity"));
+
+							if (entityAttribute != null)
+							{
+								if (enumElement.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+								{
+									var resourceClass = new ResourceClass((CodeElement2) enumElement, GetEntityClass(entityAttribute.Value));
+									return resourceClass;
+								}
+							}
+						}
+					}
+				}
+			}
+
+			return null;
+		}
+        #endregion
+
+        #region GetEntityClass
+        public EntityClass GetEntityClass(string name)
+		{
+			ThreadHelper.ThrowIfNotOnUIThread();
+			var mDte = (DTE2)Package.GetGlobalService(typeof(SDTE));
+
+			foreach (Project project in mDte.Solution.Projects)
+			{
+				foreach (ProjectItem projectItem in project.ProjectItems)
+				{
+					if (projectItem.Kind == Constants.vsProjectItemKindPhysicalFolder ||
+						projectItem.Kind == Constants.vsProjectItemKindVirtualFolder)
+					{
+						var entityClass = GetEntityClass(projectItem, name);
+
+						if (entityClass != null)
+							return entityClass;
+					}
+					else if (projectItem.Kind == Constants.vsProjectItemKindPhysicalFile &&
+						 projectItem.FileCodeModel != null &&
+						 projectItem.FileCodeModel.Language == CodeModelLanguageConstants.vsCMLanguageCSharp &&
+						 Convert.ToInt32(projectItem.Properties.Item("BuildAction").Value) == 1)
+					{
+						FileCodeModel2 model = (FileCodeModel2)projectItem.FileCodeModel;
+
+						foreach (CodeNamespace namespaceElement in model.CodeElements.OfType<CodeNamespace>())
+						{
+							foreach (CodeClass2 classElement in namespaceElement.Members.OfType<CodeClass2>())
+							{
+								CodeAttribute2 entityAttribute = classElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Table"));
+
+								if (entityAttribute != null)
+								{
+									if (classElement.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+									{
+										var entityClass = new EntityClass((CodeElement2)classElement);
+										return entityClass;
+									}
+
+								}
+							}
+							foreach (CodeEnum enumElement in namespaceElement.Members.OfType<CodeEnum>())
+							{
+								CodeAttribute2 entityAttribute = enumElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Table"));
+
+								if (entityAttribute != null)
+								{
+									if (enumElement.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+									{
+										var entityClass = new EntityClass((CodeElement2)enumElement);
+										return entityClass;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+			return null;
+		}
+
+		internal EntityClass GetEntityClass(ProjectItem parent, string name)
+		{
+			ThreadHelper.ThrowIfNotOnUIThread();
+
+			foreach (ProjectItem projectItem in parent.ProjectItems)
+			{
+				if (projectItem.Kind == Constants.vsProjectItemKindPhysicalFolder ||
+					projectItem.Kind == Constants.vsProjectItemKindVirtualFolder)
+				{
+					var entityClass = GetEntityClass(projectItem, name);
+
+					if (entityClass != null)
+						return entityClass;
+				}
+				else if (projectItem.Kind == Constants.vsProjectItemKindPhysicalFile &&
+					 projectItem.FileCodeModel != null &&
+					 projectItem.FileCodeModel.Language == CodeModelLanguageConstants.vsCMLanguageCSharp &&
+					 Convert.ToInt32(projectItem.Properties.Item("BuildAction").Value) == 1)
+				{
+					FileCodeModel2 model = (FileCodeModel2)projectItem.FileCodeModel;
+
+					foreach (CodeNamespace namespaceElement in model.CodeElements.OfType<CodeNamespace>())
+					{
+						foreach (CodeClass2 classElement in namespaceElement.Members.OfType<CodeClass2>())
+						{
+							CodeAttribute2 entityAttribute = classElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Entity"));
+
+							if (entityAttribute != null)
+							{
+								if (classElement.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+								{
+									var entityClass = new EntityClass((CodeElement2)classElement);
+									return entityClass;
+								}
+							}
+						}
+
+						foreach (CodeEnum enumElement in namespaceElement.Members.OfType<CodeEnum>())
+						{
+							CodeAttribute2 entityAttribute = enumElement.Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Entity"));
+
+							if (entityAttribute != null)
+							{
+								if (enumElement.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+								{
+									var entityClass = new EntityClass((CodeElement2)enumElement);
+									return entityClass;
+								}
+							}
+						}
+					}
+				}
+			}
+
+			return null;
+		}
 		#endregion
 	}
 }

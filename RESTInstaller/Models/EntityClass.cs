@@ -17,6 +17,7 @@ namespace RESTInstaller.Models
         {
             get
             {
+                ThreadHelper.ThrowIfNotOnUIThread();
                 if (Entity.Kind == vsCMElement.vsCMElementClass)
                 {
                     CodeAttribute2 tableAttribute = ((CodeClass2)Entity).Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Table"));
@@ -39,11 +40,11 @@ namespace RESTInstaller.Models
                 }
                 else if (Entity.Kind == vsCMElement.vsCMElementEnum)
                 {
-                    CodeAttribute2 enumAttribute = ((CodeClass2)Entity).Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("PgEnum"));
+                    CodeAttribute2 tableAttribute = ((CodeEnum)Entity).Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Table"));
 
-                    if (enumAttribute != null)
+                    if (tableAttribute != null)
                     {
-                        return enumAttribute.Children.OfType<CodeAttributeArgument>().FirstOrDefault(a => a.Name.Equals("Schema"))?.Value.Trim(new char[] { '"' });
+                        return tableAttribute.Children.OfType<CodeAttributeArgument>().FirstOrDefault(a => a.Name.Equals("Schema"))?.Value.Trim(new char[] { '"' });
                     }
                     else
                         return string.Empty;
@@ -57,6 +58,7 @@ namespace RESTInstaller.Models
         {
             get
             {
+                ThreadHelper.ThrowIfNotOnUIThread();
                 if (Entity.Kind == vsCMElement.vsCMElementClass)
                 {
                     CodeAttribute2 tableAttribute = ((CodeClass2)Entity).Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Table"));
@@ -79,11 +81,11 @@ namespace RESTInstaller.Models
                 }
                 else if (Entity.Kind == vsCMElement.vsCMElementEnum)
                 {
-                    CodeAttribute2 enumAttribute = ((CodeClass2)Entity).Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("PgEnum"));
+                    CodeAttribute2 tableAttribute = ((CodeEnum)Entity).Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Table"));
 
-                    if (enumAttribute != null)
+                    if (tableAttribute != null)
                     {
-                        return enumAttribute.Children.OfType<CodeAttributeArgument>().FirstOrDefault(a => a.Name.Equals(""))?.Value.Trim(new char[] { '"' });
+                        return tableAttribute.Children.OfType<CodeAttributeArgument>().FirstOrDefault(a => a.Name.Equals(""))?.Value.Trim(new char[] { '"' });
                     }
                     else
                         return string.Empty;
@@ -97,6 +99,7 @@ namespace RESTInstaller.Models
         {
             get
             {
+                ThreadHelper.ThrowIfNotOnUIThread();
                 if (Entity.Kind == vsCMElement.vsCMElementClass)
                 {
                     CodeAttribute2 tableAttribute = ((CodeClass2)Entity).Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Table"));
@@ -129,11 +132,11 @@ namespace RESTInstaller.Models
                 }
                 else if (Entity.Kind == vsCMElement.vsCMElementEnum)
                 {
-                    CodeAttribute2 enumAttribute = ((CodeClass2)Entity).Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("PgEnum"));
+                    CodeAttribute2 tableAttribute = ((CodeEnum)Entity).Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Table"));
 
-                    if (enumAttribute != null)
+                    if (tableAttribute != null)
                     {
-                        var dbType = enumAttribute.Children.OfType<CodeAttributeArgument>().FirstOrDefault(a => a.Name.Equals("DBType"))?.Value.Trim(new char[] { '"' });
+                        var dbType = tableAttribute.Children.OfType<CodeAttributeArgument>().FirstOrDefault(a => a.Name.Equals("DBType"))?.Value.Trim(new char[] { '"' });
 
                         if (dbType != null)
                             return (DBServerType)Enum.Parse(typeof(DBServerType), dbType);
@@ -152,6 +155,7 @@ namespace RESTInstaller.Models
         {
             get
             {
+                ThreadHelper.ThrowIfNotOnUIThread();
                 if (Entity.Kind == vsCMElement.vsCMElementClass)
                 {
                     CodeAttribute2 tableAttribute = ((CodeClass2)Entity).Attributes.OfType<CodeAttribute2>().FirstOrDefault(a => a.Name.Equals("Table"));

@@ -8,6 +8,8 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using RESTInstaller.Models;
+using Npgsql.Internal;
+using System.Text;
 
 namespace RESTInstaller.Services
 {
@@ -15,6 +17,7 @@ namespace RESTInstaller.Services
 	{
 		public static List<EntityModel> GenerateEntityClassList(List<EntityModel> UndefinedClassList, string baseFolder, string connectionString)
 		{
+			ThreadHelper.ThrowIfNotOnUIThread();
 			DTE2 mDte = Package.GetGlobalService(typeof(SDTE)) as DTE2;
 			var codeService = ServiceFactory.GetService<ICodeService>();
 
@@ -94,48 +97,117 @@ namespace RESTInstaller.Services
 			return resultList;
 		}
 
-		public static DBColumn[] GenerateEnumColumns(string schema, string tableName, string connectionString)
+		public static List<EnumValue> GenerateEnumColumns(DBServerType serverType, string schema, string tablename, string connectionString, List<DBColumn> columns)
+        {
+			ThreadHelper.ThrowIfNotOnUIThread();
+			if (serverType == DBServerType.MYSQL)
+				return GenerateMySqlEnumColumns(schema, tablename, connectionString, columns);
+			else if (serverType == DBServerType.POSTGRESQL)
+				return GeneratePostgresqlEnumColumns(schema, tablename, connectionString, columns);
+			else if (serverType == DBServerType.SQLSERVER)
+				return GenerateSqlServerEnumColumns(schema, tablename, connectionString, columns);
+
+			return null;
+		}
+
+		public static List<EnumValue> GenerateMySqlEnumColumns(string schema, string tableName, string connectionString, List<DBColumn> columns)
+        {
+			List<EnumValue> enumColumns = new List<EnumValue>();
+			return enumColumns;
+		}
+
+		public static List<EnumValue> GeneratePostgresqlEnumColumns(string schema, string tableName, string connectionString, List<DBColumn> columns)
 		{
-			var columns = new List<DBColumn>();
+			List<EnumValue> enumColumns = new List<EnumValue>();
+			return enumColumns;
+		}
+
+		public static List<EnumValue> GenerateSqlServerEnumColumns(string schema, string tableName, string connectionString, List<DBColumn> columns)
+		{
+			List<EnumValue> enumColumns = new List<EnumValue>();
 			var codeService = ServiceFactory.GetService<ICodeService>();
 
-			string query = @"
-select e.enumlabel as enum_value
-from pg_type t 
-   join pg_enum e on t.oid = e.enumtypid  
-   join pg_catalog.pg_namespace n ON n.oid = t.typnamespace
-where t.typname = @dataType
-  and n.nspname = @schema";
-
-			using (var connection = new NpgsqlConnection(connectionString))
+			using (var connection = new SqlConnection(connectionString))
 			{
 				connection.Open();
-				using (var command = new NpgsqlCommand(query, connection))
-				{
-					command.Parameters.AddWithValue("@dataType", tableName);
-					command.Parameters.AddWithValue("@schema", schema);
 
+				var query = new StringBuilder();
+				query.Append("SELECT ");
+
+				bool isFirst = true;
+				foreach ( var column in columns )
+                {
+					if (isFirst)
+						isFirst = false;
+					else
+						query.Append(",");
+
+					query.Append($"[{column.ColumnName}]");
+                }
+
+				query.Append($" FROM [{schema}].[{tableName}]");
+			
+
+				using (var command = new SqlCommand(query.ToString(), connection))
+				{
 					using (var reader = command.ExecuteReader())
 					{
 						while (reader.Read())
 						{
-							var element = reader.GetString(0);
-							var elementName = codeService.NormalizeClassName(element);
+							if ( columns[0].ModelDataType.Equals("byte", StringComparison.OrdinalIgnoreCase) )
+                            {
+								var theValue = reader.GetByte(0);
+								var name = codeService.NormalizeClassName(reader.GetString(1));
 
-							var column = new DBColumn()
-							{
-								ColumnName = elementName,
-								EntityName = element
-							};
+								EnumValue val = new EnumValue()
+								{
+									Value = (long)theValue,
+									Name = name
+								};
+								enumColumns.Add(val);
+							}
+							else if (columns[0].ModelDataType.Equals("short", StringComparison.OrdinalIgnoreCase))
+                            {
+								var theValue = reader.GetInt16(0);
+								var name = codeService.NormalizeClassName(reader.GetString(1));
 
-							columns.Add(column);
+								EnumValue val = new EnumValue()
+								{
+									Value = (long)theValue,
+									Name = name
+								};
+								enumColumns.Add(val);
+							}
+							else if (columns[0].ModelDataType.Equals("int", StringComparison.OrdinalIgnoreCase))
+                            {
+								var theValue = reader.GetInt32(0);
+								var name = codeService.NormalizeClassName(reader.GetString(1));
+
+								EnumValue val = new EnumValue()
+								{
+									Value = (long)theValue,
+									Name = name
+								};
+								enumColumns.Add(val);
+							}
+							else if (columns[0].ModelDataType.Equals("long", StringComparison.OrdinalIgnoreCase))
+                            {
+								var theValue = reader.GetInt64(0);
+								var name = codeService.NormalizeClassName(reader.GetString(1));
+
+								EnumValue val = new EnumValue()
+								{
+									Value = (long)theValue,
+									Name = name
+								};
+								enumColumns.Add(val);
+							}
 						}
-
 					}
 				}
 			}
 
-			return columns.ToArray();
+			return enumColumns;
 		}
 
 		public static DBColumn[] GenerateColumns(string schema, string tableName, DBServerType serverType, string connectionString)
@@ -1262,7 +1334,8 @@ select c.name as column_name,
 		#region Postgrsql Helper Functions
 		public static ElementType GetElementType(DTE2 dte2, string schema, string tableName, string connectionString)
 		{
-			var codeService = (ICodeService)ServiceFactory.GetService<ICodeService>();
+			ThreadHelper.ThrowIfNotOnUIThread();
+			var codeService = ServiceFactory.GetService<ICodeService>();
 			var entityClass = codeService.GetEntityClassBySchema(schema, tableName);
 
 			if (entityClass != null)

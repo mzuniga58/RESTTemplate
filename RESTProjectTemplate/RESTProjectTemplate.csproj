@@ -57,6 +57,7 @@
   <ItemGroup>
     <None Include="AssemblyInfo.cs" />
     <None Include="Configuration\HalConfiguration.cs" />
+    <None Include="Project.csproj" />
     <None Include="Services\HealthResponseWriter.cs" />
     <None Include="Services\HeaderVersionReader.cs" />
     <None Include="Properties\launchSettings.json" />

@@ -623,6 +623,32 @@ select c.name as column_name,
 									DatabaseColumns.Add(dbColumn);
 								}
 							}
+
+							if (DatabaseColumns.Count == 2)
+							{
+								if ( DatabaseColumns[0].IsPrimaryKey == true )
+                                {
+									if ( DatabaseColumns[1].ModelDataType.Equals("string"))
+                                    {
+										Checkbox_RenderAsEnum.IsEnabled = true;
+									}
+									else
+                                    {
+										Checkbox_RenderAsEnum.IsEnabled = false;
+										Checkbox_RenderAsEnum.IsChecked = false;
+									}
+								}
+								else
+                                {
+									Checkbox_RenderAsEnum.IsEnabled = false;
+									Checkbox_RenderAsEnum.IsChecked = false;
+								}
+							}
+							else
+							{
+								Checkbox_RenderAsEnum.IsEnabled = false;
+								Checkbox_RenderAsEnum.IsChecked = false;
+							}
 						}
 					}
 				}
@@ -653,15 +679,12 @@ select c.name as column_name,
 
 			Save();
 
-			var server = (DBServer)Combobox_Server.SelectedItem;
-			DatabaseTable = (DBTable)Listbox_Tables.SelectedItem;
+			if (Checkbox_RenderAsEnum.IsEnabled && (Checkbox_RenderAsEnum.IsChecked ?? false))
+				EType = ElementType.Enum;
+			else
+				EType = ElementType.Table;
 
-			if (server.DBType == DBServerType.POSTGRESQL)
-			{
-				UndefinedEntityModels = DBHelper.GenerateEntityClassList(UndefinedEntityModels,
-																		 EntityModelsFolder.Folder,
-																		 ConnectionString);
-			}
+			DatabaseTable = (DBTable)Listbox_Tables.SelectedItem;
 
 			DialogResult = true;
 			Close();

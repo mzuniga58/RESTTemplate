@@ -25,8 +25,6 @@ namespace RESTInstaller.Wizards
 
         public void ProjectItemFinishedGenerating(ProjectItem projectItem)
         {
-            var codeService = ServiceFactory.GetService<ICodeService>();
-            codeService.AddResource(projectItem);
         }
 
         public void RunFinished()
@@ -108,12 +106,7 @@ namespace RESTInstaller.Wizards
                                                   true,
                                                   out bool fpCanceled);
 
-                        if (form.GenerateAsEnum)
-                            model = standardEmitter.EmitResourceEnum(codeService,
-                                                                     replacementsDictionary["$safeitemname$"],
-                                                                     entityModel);
-                        else
-                            model = standardEmitter.EmitResourceModel(replacementsDictionary["$safeitemname$"],
+                        model = standardEmitter.EmitResourceModel(replacementsDictionary["$safeitemname$"],
                                                                       entityModel,
                                                                       useRql,
                                                                       replacementsDictionary);

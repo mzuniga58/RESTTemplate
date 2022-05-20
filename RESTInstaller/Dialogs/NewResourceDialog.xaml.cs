@@ -16,7 +16,6 @@ namespace RESTInstaller.Dialogs
 		#region Variables
 		public EntityClass EntityModel { get; set; }
 		public IServiceProvider ServiceProvider { get; set; }
-		public bool GenerateAsEnum { get; set; }
 		#endregion
 
 		public NewResourceDialog()
@@ -26,9 +25,11 @@ namespace RESTInstaller.Dialogs
 
 		private void OnLoad(object sender, RoutedEventArgs e)
 		{
+			ThreadHelper.ThrowIfNotOnUIThread();
 			var codeService = ServiceFactory.GetService<ICodeService>();
+			var entityClassList = codeService.GetEntityClassList();
 
-			if (codeService.EntityClassList.Count == 0)
+			if (entityClassList.Count == 0)
 			{
 				VsShellUtilities.ShowMessageBox(ServiceProvider,
 												"No entity models were found in the project. Please create a corresponding entity model before attempting to create the resource model.",
@@ -41,8 +42,14 @@ namespace RESTInstaller.Dialogs
 				Close();
 			}
 
-			foreach (var entityClass in codeService.EntityClassList)
-				Combobox_EntityClasses.Items.Add(entityClass);
+			foreach (var entityClass in entityClassList)
+			{
+				if (entityClass.ElementType == ElementType.Table ||
+					entityClass.ElementType == ElementType.Composite)
+				{
+					Combobox_EntityClasses.Items.Add(entityClass);
+				}
+			}
 
 			Combobox_EntityClasses.SelectedIndex = 0;
 
@@ -65,7 +72,6 @@ namespace RESTInstaller.Dialogs
 			}
 
 			EntityModel = (EntityClass)Combobox_EntityClasses.SelectedItem;
-			GenerateAsEnum = Checkbox_RenderAsEnum.IsChecked.HasValue && Checkbox_RenderAsEnum.IsChecked.Value;
 
 			DialogResult = true;
 			Close();

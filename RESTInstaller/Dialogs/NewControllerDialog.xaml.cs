@@ -36,8 +36,9 @@ namespace RESTInstaller.Dialogs
 		private void OnLoad(object sender, RoutedEventArgs e)
 		{
 			var codeService = ServiceFactory.GetService<ICodeService>();
+			var resourceClassList = codeService.GetResourceClassList();
 
-			if (codeService.ResourceClassList.Count == 0)
+			if (resourceClassList.Count == 0)
 			{
 				VsShellUtilities.ShowMessageBox(ServiceProvider,
 												"No resource models were found in the project. Please create a corresponding resource model before attempting to create the controller.",
@@ -50,7 +51,7 @@ namespace RESTInstaller.Dialogs
 				Close();
 			}
 
-			foreach (var resourceClass in codeService.ResourceClassList)
+			foreach (var resourceClass in resourceClassList)
 				Combobox_ResourceClasses.Items.Add(resourceClass);
 
 			Combobox_ResourceClasses.SelectedIndex = 0;

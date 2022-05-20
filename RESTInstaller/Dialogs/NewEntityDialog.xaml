@@ -29,6 +29,8 @@
         <Label Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogLabelStyleKey}}" x:Name="Label_Authentication_Content" Content="xxx" HorizontalAlignment="Left" Margin="210,70,0,0" VerticalAlignment="Top" Width="203"/>
         <Label Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogLabelStyleKey}}" x:Name="Label_UserName" Content="User Name:" HorizontalAlignment="Left" Margin="110,90,0,0" VerticalAlignment="Top"/>
         <Label Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogLabelStyleKey}}" x:Name="Label_UserName_Content" Content="xxx" HorizontalAlignment="Left" Margin="210,90,0,0" VerticalAlignment="Top" Width="203"/>
+        <CheckBox Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogCheckBoxStyleKey}}"
+				  x:Name="Checkbox_RenderAsEnum"  Content="Render as Enum" HorizontalAlignment="Left" Margin="434,128,0,0" VerticalAlignment="Top"/>
 
         <Button Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogButtonStyleKey}}" x:Name="Button_AddNewServer" Content="Add New Server" HorizontalAlignment="Left" Margin="168,125,0,0" VerticalAlignment="Top" Width="111" Click="AddNewServer_Click"/>
         <Button Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogButtonStyleKey}}" x:Name="Button_RemoveServer" Content="Remove Server" HorizontalAlignment="Left" Margin="305,125,0,0" VerticalAlignment="Top" Width="108" Click="RemoveServer_Click"/>

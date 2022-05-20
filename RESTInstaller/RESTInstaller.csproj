@@ -91,6 +91,7 @@
     <Compile Include="Models\ConfigurationSpec.cs" />
     <Compile Include="Models\EntityDBMap.cs" />
     <Compile Include="Models\EntityDBMapping.cs" />
+    <Compile Include="Models\EnumValue.cs" />
     <Compile Include="Models\RESTPreferences.cs" />
     <Compile Include="Models\DBAuthentication.cs" />
     <Compile Include="Models\DBColumn.cs" />

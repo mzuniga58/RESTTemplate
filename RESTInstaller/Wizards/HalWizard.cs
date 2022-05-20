@@ -26,8 +26,6 @@ namespace RESTInstaller.Wizards
 
         public void ProjectItemFinishedGenerating(ProjectItem projectItem)
         {
-            var codeService = ServiceFactory.GetService<ICodeService>();
-            codeService.AddEntity(projectItem);
         }
 
         public void RunFinished()

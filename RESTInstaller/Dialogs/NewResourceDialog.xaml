@@ -6,7 +6,7 @@
              ShowInTaskbar="False"
              WindowStartupLocation="CenterOwner"
              SizeToContent="WidthAndHeight" Loaded="OnLoad"
-             WindowStyle="ToolWindow" Title="REST Service (.NET Core)" >
+             WindowStyle="ToolWindow" Title="REST Service (.NET Core)" Height="165" >
     <ui:DialogWindow.Resources>
         <Style TargetType="{x:Type Grid}">
             <Setter Property="Background" Value="{DynamicResource {x:Static vsui:VsBrushes.ToolboxBackgroundKey}}" />
@@ -22,12 +22,10 @@
     </ui:DialogWindow.Resources>
     <Grid x:Name="MainGrid" Width="356" Height="182">
         <Label Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogLabelStyleKey}}" x:Name="Label_Title" Content="Resource Model Generator" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" FontSize="20" />
-        <Button Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogButtonStyleKey}}" x:Name="Button_OK" Content="OK" HorizontalAlignment="Left" Margin="171,138,0,0" VerticalAlignment="Top" Width="65" Click="OK_Click"/>
-        <Button Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogButtonStyleKey}}" x:Name="Button_Cancel" Content="Cancel" HorizontalAlignment="Left" Margin="254,138,0,0" VerticalAlignment="Top" Width="65" IsCancel="true" Click="Cancel_Click"/>
+        <Button Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogButtonStyleKey}}" x:Name="Button_OK" Content="OK" HorizontalAlignment="Left" Margin="171,105,0,0" VerticalAlignment="Top" Width="65" Click="OK_Click"/>
+        <Button Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogButtonStyleKey}}" x:Name="Button_Cancel" Content="Cancel" HorizontalAlignment="Left" Margin="254,105,0,0" VerticalAlignment="Top" Width="65" IsCancel="true" Click="Cancel_Click"/>
         <Label Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogLabelStyleKey}}" x:Name="Label_EntityCombo" Content="Entity Model" HorizontalAlignment="Left" Margin="10,61,0,0" VerticalAlignment="Top"/>
         <ComboBox x:Name="Combobox_EntityClasses" Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogComboBoxStyleKey}}" HorizontalAlignment="Left" Margin="101,63,0,0" VerticalAlignment="Top" Width="230"/>
-        <CheckBox Style="{DynamicResource {x:Static vsui:VsResourceKeys.ThemedDialogCheckBoxStyleKey}}"
-				  x:Name="Checkbox_RenderAsEnum"  Content="Render as Enum" HorizontalAlignment="Left" Margin="101,100,0,0" VerticalAlignment="Top"/>
 
     </Grid>
 </ui:DialogWindow>
