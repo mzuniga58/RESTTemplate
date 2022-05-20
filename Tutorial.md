@@ -105,7 +105,11 @@ With your Bookstore service open in Visual Studio, expand the Models folder. Und
 >On the resulting dialog, on the left-hand side, navigate to Visual C# / ASP .NET Core / Web / REST Services.
 >There you should see a number of items, all with the blue and white MZ logo. REST Entity Model should be one of those options. Click on that.
 
-Alright, now you should have a dialog asking for the name of your new class. A good standard is to name models in singular form, so call your class **Category**. Normally, we prepend a prefix to entity models. I use the letter E. The E stands for "entity". So, normally we would call this the **ECategory** class. An alternative is **Entity_Category**, or **EntityCategory**. It doesn't really matter, we just need a name to differentiate it from the resource model class that we will be making later. However, in this case, we will be creating an enum, and there is no reason to create a resource model (it would simply be exactly the same as the entity model, just with a different class name). So, in this case, I will forego the "E" prefix, and just call it **Category.cs**. (P.S., if you forgot to add the trailing .cs, don't worry, Visual Studio will add it for you.)
+Alright, now you should have a dialog asking for the name of your new class. 
+
+![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/ChooseName.png "Entity Model Generator")
+
+A good standard is to name models in singular form, so call your class **Category**. Normally, we prepend a prefix to entity models. I use the letter E. The E stands for "entity". So, normally we would call this the **ECategory** class. An alternative is **Entity_Category**, or **EntityCategory**. It doesn't really matter, we just need a name to differentiate it from the resource model class that we will be making later. However, in this case, we will be creating an enum, and there is no reason to create a resource model (it would simply be exactly the same as the entity model, just with a different class name). So, in this case, I will forego the "E" prefix, and just call it **Category.cs**. (P.S., if you forgot to add the trailing .cs, don't worry, Visual Studio will add it for you.)
 
 Now you will be presented with the Entity Model Generator dialog.
 
