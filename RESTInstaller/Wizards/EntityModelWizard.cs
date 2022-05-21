@@ -104,7 +104,13 @@ namespace RESTInstaller.Wizards
                         //	Replace the default connection string in the appSettings.Local.json, so that the 
                         //	user doesn't have to do it. Note: this function only replaces the connection string
                         //	if the appSettings.Local.json contains the original placeholder connection string.
-                        codeService.ConnectionString = $"{form.ConnectionString}Application Name={mDte.Solution.FullName}";
+
+                        foreach ( Project project in mDte.Solution)
+                        {
+                            var projectName = project.Name;
+                            codeService.ConnectionString = $"{form.ConnectionString}Application Name={projectName}".Replace("\\","\\\\");
+                        }
+
 
                         //	We will need these when we replace placeholders in the class
                         var className = replacementsDictionary["$safeitemname$"];

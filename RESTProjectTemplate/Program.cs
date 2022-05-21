@@ -8,6 +8,7 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Reflection;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using $safeprojectname$.Orchestration;
 using $safeprojectname$.Repositories;
 using $safeprojectname$.Services;$if$ ($userql$ == True)
