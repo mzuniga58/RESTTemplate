@@ -677,6 +677,10 @@ namespace Bookstore.Controllers
 
 			_logger.LogInformation("{s1} {s2}", Request.Method, Request.Path);
 
+			var errors = new ModelStateDictionary();
+			if (!node.ValidateMembers<Book>(errors))
+				return BadRequest(errors);
+
 			var resourceCollection = await _orchestrator.GetResourceCollectionAsync<Book>(node);
 			return Ok(resourceCollection);
 		}
@@ -684,23 +688,27 @@ namespace Bookstore.Controllers
 		///	<summary>
 		///	Returns a Book
 		///	</summary>
-		///	<param name="BookId" example="123">The BookId of the Book.</param>
+		///	<param name="bookId" example="123">The BookId of the Book.</param>
 		///	<response code="400">The RQL query was malformed.</response>
 		///	<response code="401">The user is not authorized to acquire this resource.</response>
 		///	<response code="403">The user is not allowed to acquire this resource.</response>
 		///	<response code="404">The requested resource was not found.</response>
 		[HttpGet]
-		[Route("books/{bookid}")]
+		[Route("books/{bookId}")]
 		[AllowAnonymous]
 		[SupportRQL]
 		[SwaggerResponse((int)HttpStatusCode.OK, Type = typeof(Book))]
 		[Produces("application/hal+json", "application/hal.v1+json", MediaTypeNames.Application.Json, "application/vnd.v1+json")]
-		public async Task<IActionResult> GetBookAsync(int BookId)
+		public async Task<IActionResult> GetBookAsync(int bookId)
 		{
-			var node = RqlNode.Parse($"BookId={BookId}")
+			var node = RqlNode.Parse($"BookId={bookId}")
 							  .Merge(RqlNode.Parse(Request.QueryString.Value));
 
 			_logger.LogInformation("{s1} {s2}", Request.Method, Request.Path);
+			var errors = new ModelStateDictionary();
+			if (!node.ValidateMembers<Book>(errors))
+				return BadRequest(errors);
+
 			var resource = await _orchestrator.GetSingleResourceAsync<Book>(node);
 
 			if (resource is null)
@@ -761,49 +769,56 @@ namespace Bookstore.Controllers
 
 			ModelStateDictionary errors = new();
 
-			if (await resource.CanUpdateAsync(_orchestrator, node, errors))
+			if (node.ValidateMembers<Book>(errors))
 			{
+				if (await resource.CanUpdateAsync(_orchestrator, node, errors))
+				{
 				await _orchestrator.UpdateResourceAsync<Book>(resource, node);
 				return NoContent();
+				}
 			}
-			else
-				return BadRequest(errors);
+
+			return BadRequest(errors);
 		}
 
 		///	<summary>
 		///	Delete a Book
 		///	</summary>
-		///	<param name="BookId" example="123">The BookId of the Book.</param>
+		///	<param name="bookId" example="123">The BookId of the Book.</param>
 		///	<remarks>Deletes a Book in the datastore.</remarks>
 		///	<response code="204">The Book was successfully deleted.</response>
 		///	<response code="400">The request failed one or more validations.</response>
 		///	<response code="401">The user is not authorized to acquire this resource.</response>
 		///	<response code="403">The user is not allowed to acquire this resource.</response>
+		///	<response code="405">The resource could not be deleted.</response>
 		[HttpDelete]
-		[Route("books/{bookid}")]
+		[Route("books/{bookId}")]
 		[AllowAnonymous]
 		[SwaggerResponse((int)HttpStatusCode.NoContent)]
 		[Produces("application/hal+json", "application/hal.v1+json", MediaTypeNames.Application.Json, "application/vnd.v1+json")]
 		[Consumes("application/hal+json", "application/hal.v1+json", MediaTypeNames.Application.Json, "application/vnd.v1+json")]
-		public async Task<IActionResult> DeleteBookAsync(int BookId)
+		public async Task<IActionResult> DeleteBookAsync(int bookId)
 		{
-			var node = RqlNode.Parse($"&BookId={BookId}");
+			var node = RqlNode.Parse($"&BookId={bookId}");
 
 			_logger.LogInformation("{s1} {s2}", Request.Method, Request.Path);
 
+			var errors = new ModelStateDictionary();
 
-			ModelStateDictionary errors = new();
+			if (!node.ValidateMembers<Book>(errors))
+				return BadRequest(errors);
 
 			if (await Book.CanDeleteAsync(_orchestrator, node, errors))
 			{
 				await _orchestrator.DeleteResourceAsync<Book>(node);
 				return NoContent();
 			}
-			else
-				return BadRequest(errors);
+
+			return StatusCode((int)HttpStatusCode.MethodNotAllowed, errors);
 		}
 	}
 }
+
 ```
 
 Compile and run your new service.
@@ -885,5 +900,47 @@ We can also do some other things. Suppose we want the list of books that were pu
 publishDate\<1/1/1960
 ```
 
-Now, the returned value shows only those books that were published before 1960.
+Now, the returned value shows only those books that were published before 1960. How does this happen, you ask? Well, let's take a closer look. Here is the endpoint for getting a collection of books.
 
+```
+		///	<summary>
+		///	Returns a collection of Books
+		///	</summary>
+		///	<response code="200">A collection of Books</response>
+		///	<response code="400">The RQL query was malformed.</response>
+		///	<response code="401">The user is not authorized to acquire this resource.</response>
+		///	<response code="403">The user is not allowed to acquire this resource.</response>
+		[HttpGet]
+		[Route("books")]
+		[AllowAnonymous]
+		[SupportRQL]
+		[SwaggerResponse((int)HttpStatusCode.OK, Type = typeof(PagedSet<Book>))]
+		[Produces("application/hal+json", "application/hal.v1+json", MediaTypeNames.Application.Json, "application/vnd.v1+json")]
+		public async Task<IActionResult> GetBooksAsync()
+		{
+			var node = RqlNode.Parse(Request.QueryString.Value);
+
+			_logger.LogInformation("{s1} {s2}", Request.Method, Request.Path);
+
+			var errors = new ModelStateDictionary();
+			if (!node.ValidateMembers<Book>(errors))
+				return BadRequest(errors);
+
+			var resourceCollection = await _orchestrator.GetResourceCollectionAsync<Book>(node);
+			return Ok(resourceCollection);
+		}
+```
+
+When we make our call, swagger composes the Url like so:
+
+```
+https://localhost:19704/books?publishDate%3C1%2F1%2F1960
+```
+
+Let's url decode that link to see it better
+
+```
+https://localhost:19704/books?publishDate<1/1/1960
+```
+
+So, that is the Url we get in our request. First, we compile the query into an **RqlNode** object. The RQL is in the Url that the user sent. It's everything after the questoin mark.
