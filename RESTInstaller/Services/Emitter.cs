@@ -1576,7 +1576,7 @@ namespace RESTInstaller.Services
 				else if (serverType == DBServerType.SQLSERVER)
 					exampleValue = DBHelper.GetSqlServerExampleValue(entityColumn);
 
-				results.AppendLine($"\t\t///\t<param name=\"{entityColumn.EntityName}\" example=\"{exampleValue}\">The {entityColumn.EntityName} of the {resourceClassName}.</param>");
+				results.AppendLine($"\t\t///\t<param name=\"{entityColumn.EntityName.CammelCase()}\" example=\"{exampleValue}\">The {entityColumn.EntityName} of the {resourceClassName}.</param>");
 			}
 		}
 

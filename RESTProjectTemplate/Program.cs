@@ -56,7 +56,16 @@ builder.Services.AddControllers(config =>
     config.Filters.Add(new HalFilter());
 $endif$$if$ ($userql$ == True )
     config.Filters.Add(new RqlFilter());
-$endif$}).AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase); 
+$endif$});
+    
+// Set the JSON serializer options
+builder.Services.Configure<JsonOptions>(options =>
+{
+    options.JsonSerializerOptions.PropertyNameCaseInsensitive = false;
+    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    options.JsonSerializerOptions.WriteIndented = true;
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 
 $if$ ($useauth$ == True)
 builder.Services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
