@@ -1144,9 +1144,6 @@ namespace RESTInstaller.Services
 			var nn = new NameNormalizer(resourceClass.ClassName);
 			var pkcolumns = resourceClass.Entity.Columns.Where(c => c.IsPrimaryKey);
 
-			//BuildControllerInterface(resourceClass.ClassName, resourceClass.Namespace);
-			//BuildControllerOrchestration(resourceClass, resourceClass.Namespace);
-
 			// --------------------------------------------------------------------------------
 			//	Class
 			// --------------------------------------------------------------------------------
@@ -1306,7 +1303,7 @@ namespace RESTInstaller.Services
 						else
 							results.Append("&");
 
-						results.Append($"{column.ColumnName}={{{column.ColumnName}}}");
+						results.Append($"{column.ColumnName}={{{column.ColumnName.CammelCase()}}}");
 					}
                 }
 
@@ -1528,7 +1525,7 @@ namespace RESTInstaller.Services
 						else
 							results.Append("&");
 
-						results.Append($"{column.ColumnName}={{{column.ColumnName}}}");
+						results.Append($"{column.ColumnName}={{{column.ColumnName.CammelCase()}}}");
 					}
 				}
 
@@ -1597,13 +1594,10 @@ namespace RESTInstaller.Services
 
 				string dataType = entityColumn.ModelDataType;
 
-				results.Append($"{dataType} {entityColumn.EntityName}");
+				results.Append($"{dataType} {entityColumn.EntityName.CammelCase()}");
 			}
 
-			if (string.Equals(action, "patch", StringComparison.OrdinalIgnoreCase))
-				results.AppendLine(", [FromBody] IEnumerable<PatchCommand> commands)");
-			else
-				results.AppendLine(")");
+			results.AppendLine(")");
 		}
 
 		private static void EmitRoute(StringBuilder results, string routeName, IEnumerable<DBColumn> pkcolumns)
@@ -1612,7 +1606,7 @@ namespace RESTInstaller.Services
 
 			foreach (var entityColumn in pkcolumns)
 			{
-				results.Append($"/{{{entityColumn.EntityName.ToLower()}}}");
+				results.Append($"/{{{entityColumn.EntityName.CammelCase()}}}");
 			}
 
 			results.AppendLine("\")]");

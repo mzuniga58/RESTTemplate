@@ -49,5 +49,10 @@ namespace RESTInstaller.Extensions
 
             return result.ToString();
         }
+
+        public static string CammelCase(this string input)
+        {
+            return $"{input.Substring(0,1).ToLower()}{input.Substring(1)}";
+        }
     }
 }
