@@ -882,6 +882,8 @@ limit(5,5)
 We can also do some other things. Suppose we want the list of books that were published prior to 1960. To do that, enter the following RQL statement:
 
 ```
+publishDate\<1/1/1960
+```
 
-
+Now, the returned value shows only those books that were published before 1960.
 
