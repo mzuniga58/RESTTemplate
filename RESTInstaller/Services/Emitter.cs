@@ -1234,11 +1234,9 @@ namespace RESTInstaller.Services
 
 			if (useRql)
 			{
-				results.AppendLine("\t\t\tModelStateDictionary errors = new ModelStateDictionary();");
-				results.AppendLine("\t\t\tif (!node.ValidateMembers<Book>(_serviceProvider, _mapper, errors))");
-				results.AppendLine("\t\t\t{");
+				results.AppendLine("\t\t\tvar errors = new ModelStateDictionary();");
+				results.AppendLine("\t\t\tif (!node.ValidateMembers<Book>(errors))");
 				results.AppendLine("\t\t\t\treturn BadRequest(errors);");
-				results.AppendLine("\t\t\t}");
 				results.AppendLine();
 				results.AppendLine($"\t\t\tvar resourceCollection = await _orchestrator.GetResourceCollectionAsync<{resourceClass.ClassName}>(node);");
 			}
@@ -1321,11 +1319,9 @@ namespace RESTInstaller.Services
 
 				if (useRql)
 				{
-					results.AppendLine("\t\t\tModelStateDictionary errors = new ModelStateDictionary();");
-					results.AppendLine("\t\t\tif (!node.ValidateMembers<Book>(_serviceProvider, _mapper, errors))");
-					results.AppendLine("\t\t\t{");
+					results.AppendLine("\t\t\tvar errors = new ModelStateDictionary();");
+					results.AppendLine("\t\t\tif (!node.ValidateMembers<Book>(errors))");
 					results.AppendLine("\t\t\t\treturn BadRequest(errors);");
-					results.AppendLine("\t\t\t}");
 					results.AppendLine();
 					results.AppendLine($"\t\t\tvar resource = await _orchestrator.GetSingleResourceAsync<{resourceClass.ClassName}>(node);");
 				}
@@ -1470,26 +1466,34 @@ namespace RESTInstaller.Services
 			results.AppendLine();
 			results.AppendLine("\t\t\tModelStateDictionary errors = new();");
 			results.AppendLine();
-			results.AppendLine("\t\t\tif (await resource.CanUpdateAsync(_orchestrator, node, errors))");
-			results.AppendLine("\t\t\t{");
 
 			if (useRql)
 			{
-				results.AppendLine("\t\t\tModelStateDictionary errors = new ModelStateDictionary();");
-				results.AppendLine("\t\t\tif (!node.ValidateMembers<Book>(_serviceProvider, _mapper, errors))");
+				results.AppendLine("\t\t\tif (node.ValidateMembers<Book>(errors))");
 				results.AppendLine("\t\t\t{");
-				results.AppendLine("\t\t\t\treturn BadRequest(errors);");
-				results.AppendLine("\t\t\t}");
-				results.AppendLine();
+				results.AppendLine("\t\t\t\tif (await resource.CanUpdateAsync(_orchestrator, node, errors))");
+				results.AppendLine("\t\t\t\t{");
 				results.AppendLine($"\t\t\t\tawait _orchestrator.UpdateResourceAsync<{resourceClass.ClassName}>(resource, node);");
+				results.AppendLine($"\t\t\t\treturn NoContent();");
+				results.AppendLine("\t\t\t\t}");
+				results.AppendLine("\t\t\t}");
 			}
 			else
-				results.AppendLine($"\t\t\t\t//\tTo Do: create an orchestration function to update the resource.");
+            {
+				results.AppendLine("\t\t\tvar errors = new ModelStateDictionary();");
+				results.AppendLine("\t\t\tif (node.ValidateMembers<Book>(errors))");
+				results.AppendLine("\t\t\t{");
+				results.AppendLine("\t\t\t\tif (await resource.CanUpdateAsync(_orchestrator, node, errors))");
+				results.AppendLine("\t\t\t\t{");
+				results.AppendLine($"\t\t\t\t\t//\tTo Do: create an orchestration function to update the resource.");
+				results.AppendLine($"\t\t\t\t\treturn NoContent();");
+				results.AppendLine("\t\t\t\t}");
+				results.AppendLine("\t\t\t}");
+			}
 
-			results.AppendLine($"\t\t\t\treturn NoContent();");
-			results.AppendLine("\t\t\t}");
-			results.AppendLine("\t\t\telse");
-			results.AppendLine("\t\t\t\treturn BadRequest(errors);");
+
+			results.AppendLine();
+			results.AppendLine("\t\t\treturn BadRequest(errors);");
 
 			results.AppendLine("\t\t}");
 			results.AppendLine();
@@ -1512,6 +1516,7 @@ namespace RESTInstaller.Services
 					results.AppendLine($"\t\t///\t<response code=\"401\">The user is not authorized to acquire this resource.</response>");
 					results.AppendLine($"\t\t///\t<response code=\"403\">The user is not allowed to acquire this resource.</response>");
 				}
+				results.AppendLine($"\t\t///\t<response code=\"405\">The resource could not be deleted.</response>");
 				results.AppendLine("\t\t[HttpDelete]");
 				EmitRoute(results, nn.PluralCamelCase, pkcolumns);
 
@@ -1553,29 +1558,32 @@ namespace RESTInstaller.Services
 				results.AppendLine();
 				results.AppendLine("\t\t\t_logger.LogInformation(\"{s1} {s2}\", Request.Method, Request.Path);");
 				results.AppendLine();
+				results.AppendLine("\t\t\tvar errors = new ModelStateDictionary();");
 				results.AppendLine();
-				results.AppendLine("\t\t\tModelStateDictionary errors = new();");
-				results.AppendLine();
-				results.AppendLine($"\t\t\tif (await {resourceClass.ClassName}.CanDeleteAsync(_orchestrator, node, errors))");
-				results.AppendLine("\t\t\t{");
 
-				if (useRql)
-				{
-					results.AppendLine("\t\t\tModelStateDictionary errors = new ModelStateDictionary();");
-					results.AppendLine("\t\t\tif (!node.ValidateMembers<Book>(_serviceProvider, _mapper, errors))");
-					results.AppendLine("\t\t\t{");
+				if ( useRql)
+                {
+					results.AppendLine("\t\t\tif (!node.ValidateMembers<Book>(errors))");
 					results.AppendLine("\t\t\t\treturn BadRequest(errors);");
+					results.AppendLine();
+					results.AppendLine($"\t\t\tif (await {resourceClass.ClassName}.CanDeleteAsync(_orchestrator, node, errors))");
+					results.AppendLine("\t\t\t{");
+					results.AppendLine($"\t\t\t\tawait _orchestrator.DeleteResourceAsync<{resourceClass.ClassName}>(node);");
+					results.AppendLine($"\t\t\t\treturn NoContent();");
 					results.AppendLine("\t\t\t}");
 					results.AppendLine();
-					results.AppendLine($"\t\t\t\tawait _orchestrator.DeleteResourceAsync<{resourceClass.ClassName}>(node);");
+					results.AppendLine("\t\t\treturn StatusCode((int)HttpStatusCode.MethodNotAllowed, errors);");
 				}
 				else
+                {
+					results.AppendLine($"\t\t\tif (await {resourceClass.ClassName}.CanDeleteAsync(_orchestrator, node, errors))");
+					results.AppendLine("\t\t\t{");
 					results.AppendLine($"\t\t\t\t//\tTo Do: construct an orchestration function to delete the resource.");
-
-				results.AppendLine($"\t\t\t\treturn NoContent();");
-				results.AppendLine("\t\t\t}");
-				results.AppendLine("\t\t\telse");
-				results.AppendLine("\t\t\t\treturn StatusCode((int)HttpStatusCode.MethodNotAllowed, errors);");
+					results.AppendLine($"\t\t\t\treturn NoContent();");
+					results.AppendLine("\t\t\t}");
+					results.AppendLine();
+					results.AppendLine("\t\t\treturn StatusCode((int)HttpStatusCode.MethodNotAllowed, errors);");
+				}
 
 				results.AppendLine("\t\t}");
 				results.AppendLine("\t}");

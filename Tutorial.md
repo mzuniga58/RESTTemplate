@@ -37,6 +37,43 @@ Now, press Ok to generate your REST Service. Once it is generated, you can compi
 
 It doesn't look like much yet, as we nave not yet defined any resources or endpoints. Nevertheless, you can see the information about yourself and the project in the top-left corner under the title, and users can click on your name to send you email, or click on the website link to visit your website. You can also see the authorize button. Clicking on this button will require you to enter an access token that you get from the identity provider to authorize the user to hit the various endpoints that require it. At this time, of course, we don't have any endpoints that reqire it, so you can igore that button for the time being.
 
+There are some settings you will want to set at this point. In the **program.cs** file, on line 115, you will see this code:
+
+```
+        Description = "<description here>",
+```
+
+You should replace the "<description here>" with a detailed description of your service. The description can include HTML code and inline styles, so you can make it look very professional. A good description will make your service easier to use for your customers.
+
+Also, you will notices several appSettings.json files, one for each environment your service will run in. The default implementation includes settings files for four environments:
+
+- **Development** - despite the name, this is the local environment, the one running on your computer.
+- **Dev** - a specialized development environment
+- **QA** - the QA environment
+- **Staging** - a Staging environment
+- **Production** - the Production environment
+
+If you setup doesn't include one of these environments, you can simply delete the appSettings files that don't apply, or you could add others that do apply but aren't included in the default implementation. One of the most important settings is the ConnectionStrings setting found in all the environment specific settings files.
+
+```
+  "ConnectionStrings": {
+    //	To do: Replace the following with the database connection string suited to your
+    //		   Database server in your QA environment.
+    "DefaultConnection": "Server=localdb;Database=master;Trusted_Connection=True;"
+  },
+```
+
+You need to change the DefaultConnection string to the connection string appropriate to that environment. Right below that is the service settings:
+
+```
+  "ServiceSettings": {
+    "BatchLimit": 100,
+    "Timeout": "00:00:05"
+  }
+```
+
+Collections are returned wrapped in a **PagedSet<>** class. That **PagedSet** limits the number of records that can be returned in a single call. By default, that limit is set to the "BatchLimit" of 100 records. You can change this value to whatever you feel is appropriate to your environment. And lastly, the "Timeout" value, encoded as a TimeSpan, informs the service how long it will wait for a request to be fulfilled. If a request takes longer than this time limit, the request is canceled, and a timeout error is returned. The default is 5 seconds, but you can change that to whatever you feel is appropriate.
+
 Before we expand our service, let's take a minute to go over some of the features. This REST service is created with a layered architecture. The three main layers are the Presentation Layer (also called the Resource Layer), the Orchestration Layer and the Repository Layer.
 
 ## Presentation Layer ##
@@ -773,6 +810,78 @@ Compile and run your new service.
 
 ![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/Website1.png "Create Controller")
 
+Let's take a look at what our service can do. You can see we now have five new endpoints. There are two GET endpoints, one for retrieving a single book and one for retrieving a collection of books. The collection endpoints looks like this:
+
+```
+/books
+```
+
+That endpoint is deciptively simple. Just execute it from swagger, and you will get all the books in the collection. The result is wrapped inside of a **PagedSet<>** class. What that means is, the set is paged, and it has a limit on how many resources it will deliver in a single call. The limit is configurable. It's set as the batch limit in appSettings.json for each environment.
+
+Let's look at the annotations for that endpoint:
+
+```
+		[HttpGet]
+		[Route("books")]
+		[AllowAnonymous]
+		[SupportRQL]
+		[SwaggerResponse((int)HttpStatusCode.OK, Type = typeof(PagedSet<Book>))]
+		[Produces("application/hal+json", "application/hal.v1+json", MediaTypeNames.Application.Json, "application/vnd.v1+json")]
+```
+
+The endpoint responds to the GET Verb and is located at /books. It has the AllowAnonymous attribute, so anyone can call this endpoint. It supports RQL and returns a PagedSet<Books> response. It can take application/hal+json, application/hal.v1+json, application/json or application/vnd.v1+json in the accept header. If the user specifies either of the 'hal' media types, the response will include HAL syntax. 
+
+>Note: If you try it out right now, you won't see any HAL syntax. This is because we haven't configured the HAL responses yet. Once they are configured, you'll be able to see the HAL responses.
+
+Let's go ahead and try it out. Just click on the Blue GET button to expand it, and the click on the "Try it out" button to enable the endpoint in swagger. Press the blue Execute button to call the endpoint.
+
+Here is the response:
+
+```
+{
+  "count": 20,
+  "start": 1,
+  "pageSize": 20,
+  "_embedded": {
+    "items": [
+      {
+        "bookId": 1,
+        "title": "The Wrath of Isis",
+        "publishDate": "2019-01-15T18:00:00-06:00",
+        "categoryId": "HistoricalFiction",
+        "synopsis": "A mysterious device from the future sends Alister and Allison back to the past, where they appear before the ancient Roman Emperor Constantine. Mistaking the young couple as the Goddess Isis and the God Osiris and fearing their wrath, Constantine abandons his plans to promote Christianity as the official state religion of Rome. Upon returning to the present, the intrepid time travelers discover that they have inadvertently altered history. Desperate to reintroduce Christianity to the world, Alister uses the power of the mysterious device to propel himself to religious stardom. But in this new reality, his sister Amanda, gifted haruspex and a devout follower of the Goddess Isis, views the reinstatement of Christianity as nothing less than the end of her world. Amanda uses the device in an attempt to thwart Alister’s goals. Will the faith of the Goddess prevail, allowing Amanda to save her world? A thought-provoking alternate history science fiction adventure from Michael Zuniga."
+      },
+      {
+        "bookId": 2,
+        "title": "The Last Wish (The Witcher, 1)",
+        "publishDate": "1993-12-02T18:00:00-06:00",
+        "categoryId": "Fantasy",
+        "synopsis": "Geralt of Rivia is a witcher. A cunning sorcerer. A merciless assassin.\r\nAnd a cold-blooded killer. \r\nHis sole purpose: to destroy the monsters that plague the world. But not everything monstrous-looking is evil, and not everything fair is good...and in every fairy tale there is a grain of truth."
+      }
+    ]
+  }
+}
+```
+
+The actual response is bigger, and includes all the books in the table. We're only showing the first two here to conserve space. You will notice the "Count" field. The Count field tells you how many total resources are in the result set. If there were 10,000 books in our database, this number would be 10000. The next number tells you where in the set the first record resides. In this case, the start value is 1, so the first value in the collection is the first book in the entire set. The next value, pageSize, tells you how many books are included in this page. 
+
+As it happens, there are only 20 books in our example database, and since 20 is less than the maximum batch size of 100, you get the entire set.
+
+But we can alter that by using some RQL. Let's try it again, only this time, in the RQL parameter, enter:
+
+```
+limit(1,5)
+```
+
+The limit clause of RQL has the syntax Limit(<start>,<pagesize>). This statement informs the service that you only want to return 5 books, starting with the first book. Run that, and you will see that the pagesize is now 5, and only the first 5 books were returned. To see the next 5 books, enter
+
+```
+limit(5,5)
+```
+
+We can also do some other things. Suppose we want the list of books that were published prior to 1960. To do that, enter the following RQL statement:
+
+```
 
 
 

@@ -76,8 +76,8 @@ namespace $safeprojectname$.Orchestration
                 throw new RqlFormatException("Invalid RQL Clause MEAN: MEAN can only apply to a collection.");
             }
 
-            var entityAttribute = (Entity?)typeof(T).GetCustomAttributes(true).FirstOrDefault(a => a.GetType() == typeof(Entity));
-
+            var entityAttribute = (EntityAttribute?)typeof(T).GetCustomAttributes(true).FirstOrDefault(a => a.GetType() == typeof(EntityAttribute));
+    
             if (entityAttribute is not null)
             {
                 var entityType = entityAttribute.EntityType;
@@ -102,7 +102,7 @@ namespace $safeprojectname$.Orchestration
         public async Task<PagedSet<T>> GetResourceCollectionAsync<T>(RqlNode node) where T : class
         {
             _logger.LogTrace("Orchestrator: GetResourceCollectionAsync");
-            var entityAttribute = (Entity?)typeof(T).GetCustomAttributes(true).FirstOrDefault(a => a.GetType() == typeof(Entity));
+            var entityAttribute = (EntityAttribute?)typeof(T).GetCustomAttributes(true).FirstOrDefault(a => a.GetType() == typeof(EntityAttribute));
 
             if (entityAttribute is not null)
             {
@@ -145,7 +145,7 @@ namespace $safeprojectname$.Orchestration
         /// <returns>The newly created resource</returns>
         public async Task<T> AddResourceAsync<T>(T resource) where T : class
         {
-            var entityAttribute = (Entity?)typeof(T).GetCustomAttributes(true).FirstOrDefault(a => a.GetType() == typeof(Entity));
+            var entityAttribute = (EntityAttribute?)typeof(T).GetCustomAttributes(true).FirstOrDefault(a => a.GetType() == typeof(EntityAttribute));
 
             if (entityAttribute is null)
                 throw new Exception($"{typeof(T).Name} is not a resource model");
@@ -166,7 +166,7 @@ namespace $safeprojectname$.Orchestration
         /// <param name="node">The <see cref="RqlNode"/> that restricts the update.</param>
         public async Task UpdateResourceAsync<T>(T resource, RqlNode node) where T : class
         {
-            var entityAttribute = (Entity?)typeof(T).GetCustomAttributes(true).FirstOrDefault(a => a.GetType() == typeof(Entity));
+            var entityAttribute = (EntityAttribute?)typeof(T).GetCustomAttributes(true).FirstOrDefault(a => a.GetType() == typeof(EntityAttribute));
 
             if (entityAttribute is null)
                 throw new Exception($"{typeof(T).Name} is not a resource model");
@@ -186,7 +186,7 @@ namespace $safeprojectname$.Orchestration
         /// <param name="node">The <see cref="RqlNode"/> that filters the query.</param>
         public async Task DeleteResourceAsync<T>(RqlNode node) where T : class
         {
-            var entityAttribute = (Entity?)typeof(T).GetCustomAttributes(true).FirstOrDefault(a => a.GetType() == typeof(Entity));
+            var entityAttribute = (EntityAttribute?)typeof(T).GetCustomAttributes(true).FirstOrDefault(a => a.GetType() == typeof(EntityAttribute));
 
             if (entityAttribute is null)
                 throw new Exception($"{typeof(T).Name} is not a resource model");

@@ -14,10 +14,10 @@
 
 	<ItemGroup>
 		<PackageReference Include="AutoMapper" Version="11.0.1" />
-		<PackageReference Include="Tense" Version="0.0.3-alpha" />
-		$if$ ($userql$ == True)<PackageReference Include="Tense.Rql" Version="0.0.3-alpha" />
+		<PackageReference Include="Tense" Version="0.0.4-alpha" />
+		$if$ ($userql$ == True)<PackageReference Include="Tense.Rql" Version="0.0.5-alpha" />
 		$endif$$if$ ($usehal$ == True)<PackageReference Include="Tense.Hal" Version="0.0.6-alpha" />
-		$endif$$if$ ($userqldatabase$ == SQLServer)<PackageReference Include="Tense.Rql.SqlServer" Version="0.0.4-alpha" />
+		$endif$$if$ ($userqldatabase$ == SQLServer)<PackageReference Include="Tense.Rql.SqlServer" Version="0.0.5-alpha" />
 		$endif$$if$ ($databasetechnology$ == Postgresql)
 		<PackageReference Include="Npgsql" Version="6.0.1" />
 		$endif$$if$ ($databasetechnology$ == MySQL)
