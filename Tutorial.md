@@ -953,7 +953,7 @@ Status=Active
 
 That is a perfectly valid RQL statement. The problem is, there is no such member as "Status" in our **Book** model, making that RQL Statement invalid for our purposes. So, to take care of that, we first create an empty **ModelStateDictionary**. The **ModelStateDictionary** will hold the collection of errors we discover during any validation. If there are any errors, we simply return *BadRequest* with the collection of errors we found and return that to the user.
 
-To see if all the members included in our **RqlNode** pertain to our model, we simply call the **ValidateMember<T>** function on the node. This function inspects all the PROPERTY nodes in the **RqlNode** and verifies that they are valid members of the <T> (in this case, <Book>) type. The function will return *true* if all the members it contains are valid members of the type; otherwise, it will return *false*. If it does return *false*, we simply return *BadRequest* with those errors.
+To see if all the members included in our **RqlNode** pertain to our model, we simply call the **ValidateMember<T>** function on the node. This function inspects all the PROPERTY nodes in the **RqlNode** and verifies that they are valid members of the \<T\> (in this case, \<**Book**\>) type. The function will return *true* if all the members it contains are valid members of the type; otherwise, it will return *false*. If it does return *false*, we simply return *BadRequest* with those errors.
 
 If the **RqlNode** is valid, then we call the orchestrator to do our work for us. WE call the generice **GetResourceCollectionAsync** function, passing the <Book> type, and passing the compiled **RqlNode**. That function returns our desired collection, which we simply pass back to the user with the OK (200) HTTP status code.
 
@@ -1003,4 +1003,5 @@ Now, let's pull back the covers and see how the orchestration layer handles this
             }
 
             return new PagedSet<T>();
-        }```
+        }
+```
