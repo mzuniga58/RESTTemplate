@@ -171,9 +171,9 @@ using Tense;
 
 namespace Bookstore.Models.EntityModels
 {
-	///	<summary>
+	///	&lt;summary&gt;
 	///	Enumerates a list of Categories
-	///	</summary>
+	///	&lt;/summary&gt;
 	[Table("Categories", Schema = "dbo", DBType = "SQLSERVER")]
 	public enum Category : int
 	{
