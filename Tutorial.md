@@ -39,9 +39,9 @@ Now, press Ok to generate your REST Service. Once it is generated, you can compi
 It doesn't look like much yet, as we nave not yet defined any resources or endpoints. Nevertheless, you can see the information about yourself and the project in the top-left corner under the title, and users can click on your name to send you email, or click on the website link to visit your website. You can also see the authorize button. Clicking on this button will require you to enter an access token that you get from the identity provider to authorize the user to hit the various endpoints that require it. At this time, of course, we don't have any endpoints that reqire it, so you can igore that button for the time being.
 
 There are some settings you will want to set at this point. In the <b>program.cs</b> file, on line 115, you will see this code:
-```
-        Description = "&lt;description here&gt;",
-```
+
+Description = "&lt;description here&gt;",
+
 You should replace the "&lt;description here&gt;" with a detailed description of your service. The description can include HTML code and inline styles, so you can make it look very professional. A good description will make your service easier to use for your customers.
 
 Also, you will notices several appSettings.json files, one for each environment your service will run in. The default implementation includes settings files for four environments:
