@@ -944,3 +944,63 @@ https://localhost:19704/books?publishDate<1/1/1960
 ```
 
 So, that is the Url we get in our request. First, we compile the query into an **RqlNode** object. The RQL is in the Url that the user sent. It's everything after the questoin mark.
+
+Now that we have an **RqlNode** representation of the RQL Statement, we want to validate it against our model. The **RqlNode**.Parse function produces an **RqlNode** that is model agnostic. For example, we could write this RQL Statement:
+
+```
+Status=Active
+```
+
+That is a perfectly valid RQL statement. The problem is, there is no such member as "Status" in our **Book** model, making that RQL Statement invalid for our purposes. So, to take care of that, we first create an empty **ModelStateDictionary**. The **ModelStateDictionary** will hold the collection of errors we discover during any validation. If there are any errors, we simply return *BadRequest* with the collection of errors we found and return that to the user.
+
+To see if all the members included in our **RqlNode** pertain to our model, we simply call the **ValidateMember<T>** function on the node. This function inspects all the PROPERTY nodes in the **RqlNode** and verifies that they are valid members of the <T> (in this case, <Book>) type. The function will return *true* if all the members it contains are valid members of the type; otherwise, it will return *false*. If it does return *false*, we simply return *BadRequest* with those errors.
+
+If the **RqlNode** is valid, then we call the orchestrator to do our work for us. WE call the generice **GetResourceCollectionAsync** function, passing the <Book> type, and passing the compiled **RqlNode**. That function returns our desired collection, which we simply pass back to the user with the OK (200) HTTP status code.
+
+Now, let's pull back the covers and see how the orchestration layer handles this request.
+
+```
+        /// <summary>
+        /// Retrieves a collection of resources from the datastore according to the <see cref="RqlNode"/> filter
+        /// </summary>
+        /// <typeparam name="T">The type of resources to retrieve</typeparam>
+        /// <param name="node">The <see cref="RqlNode"/> that filters the query.</param>
+        /// <returns>A collection of resources of type T</returns>
+        public async Task<PagedSet<T>> GetResourceCollectionAsync<T>(RqlNode node) where T : class
+        {
+            _logger.LogTrace("Orchestrator: GetResourceCollectionAsync");
+            var entityAttribute = (EntityAttribute?)typeof(T).GetCustomAttributes(true).FirstOrDefault(a => a.GetType() == typeof(EntityAttribute));
+
+            if (entityAttribute is not null)
+            {
+                var entityType = entityAttribute.EntityType;
+                var translatedNode = _translator.TranslateQueryR2E<T>(node);
+                var collection = await _repository.GetEntityCollectionAsync(entityType, translatedNode);
+
+                if (collection != null)
+                {
+                    var countProperty = collection.GetType().GetRuntimeField("Count");
+                    var startProperty = collection.GetType().GetRuntimeField("Start");
+                    var pageSizeProperty = collection.GetType().GetRuntimeField("PageSize");
+                    var itemsProperty = collection.GetType().GetRuntimeField("Items");
+
+                    if (countProperty is not null &&
+                         startProperty is not null &&
+                         pageSizeProperty is not null &&
+                         itemsProperty is not null)
+                    {
+                        var rset = new PagedSet<T>()
+                        {
+                            Count = Convert.ToInt32(countProperty.GetValue(collection) ?? 0),
+                            Start = Convert.ToInt32(startProperty.GetValue(collection) ?? 0),
+                            PageSize = Convert.ToInt32(pageSizeProperty.GetValue(collection) ?? 0),
+                            Items = (T[])_mapper.Map(itemsProperty.GetValue(collection), entityType.MakeArrayType(), typeof(T).MakeArrayType())
+                        };
+
+                        return rset;
+                    }
+                }
+            }
+
+            return new PagedSet<T>();
+        }```
