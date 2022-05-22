@@ -71,12 +71,11 @@ Collections are returned wrapped in a <b>PagedSet<></b> class. That <b>PagedSet<
 <details>
 <summary>Instructions for setting the <b>batchLimit</b> and <b>Timeout</b> values</summary>
 <p>These are also found in the appSettings&lt;environment&gt;.json file for each environment.</p>
-<pre>
-  "ServiceSettings": {
+<pre><code>  "ServiceSettings": {
     "BatchLimit": 100,
     "Timeout": "00:00:05"
   }
-</pre>
+<</code>/pre>
 </details>
 Before we expand our service, let's take a minute to go over some of the features. This REST service is created with a layered architecture. The three main layers are the Presentation Layer (also called the Resource Layer), the Orchestration Layer and the Repository Layer.
 
