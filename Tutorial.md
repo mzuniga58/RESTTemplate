@@ -38,12 +38,10 @@ Now, press Ok to generate your REST Service. Once it is generated, you can compi
 It doesn't look like much yet, as we nave not yet defined any resources or endpoints. Nevertheless, you can see the information about yourself and the project in the top-left corner under the title, and users can click on your name to send you email, or click on the website link to visit your website. You can also see the authorize button. Clicking on this button will require you to enter an access token that you get from the identity provider to authorize the user to hit the various endpoints that require it. At this time, of course, we don't have any endpoints that reqire it, so you can igore that button for the time being.
 
 There are some settings you will want to set at this point. In the **program.cs** file, on line 115, you will see this code:
-
 ```
         Description = "<description here>",
 ```
-
-You should replace the "<description here>" with a detailed description of your service. The description can include HTML code and inline styles, so you can make it look very professional. A good description will make your service easier to use for your customers.
+You should replace the "\<description here\>" with a detailed description of your service. The description can include HTML code and inline styles, so you can make it look very professional. A good description will make your service easier to use for your customers.
 
 Also, you will notices several appSettings.json files, one for each environment your service will run in. The default implementation includes settings files for four environments:
 
@@ -54,7 +52,6 @@ Also, you will notices several appSettings.json files, one for each environment 
 - **Production** - the Production environment
 
 If you setup doesn't include one of these environments, you can simply delete the appSettings files that don't apply, or you could add others that do apply but aren't included in the default implementation. One of the most important settings is the ConnectionStrings setting found in all the environment specific settings files.
-
 ```
   "ConnectionStrings": {
     //	To do: Replace the following with the database connection string suited to your
@@ -62,16 +59,13 @@ If you setup doesn't include one of these environments, you can simply delete th
     "DefaultConnection": "Server=localdb;Database=master;Trusted_Connection=True;"
   },
 ```
-
 You need to change the DefaultConnection string to the connection string appropriate to that environment. Right below that is the service settings:
-
 ```
   "ServiceSettings": {
     "BatchLimit": 100,
     "Timeout": "00:00:05"
   }
 ```
-
 Collections are returned wrapped in a **PagedSet<>** class. That **PagedSet** limits the number of records that can be returned in a single call. By default, that limit is set to the "BatchLimit" of 100 records. You can change this value to whatever you feel is appropriate to your environment. And lastly, the "Timeout" value, encoded as a TimeSpan, informs the service how long it will wait for a request to be fulfilled. If a request takes longer than this time limit, the request is canceled, and a timeout error is returned. The default is 5 seconds, but you can change that to whatever you feel is appropriate.
 
 Before we expand our service, let's take a minute to go over some of the features. This REST service is created with a layered architecture. The three main layers are the Presentation Layer (also called the Resource Layer), the Orchestration Layer and the Repository Layer.
@@ -93,18 +87,14 @@ The orchestration layer resides in the Orchestration folder. There are two files
 These generic functions are sufficient for simple resources. However, for more complex resources (such as those that contain embedded child resources), you will need to create your own functions. To do so, simply include that function in the **IOrchestrator** interface and implement it in the **Orchestrator** object. In your new function, you can often combine (or "orchestrate") the generic functions to accomplish your task. I'll be giving an example of that later in this tutorial.
 
 One other thing about the orchestration layer is its use of RQL. The **RqlNode** is a compiled version of an RQL Statement. The RQL Statement can be provided by the user in the query portion of the Url (basically, everything after the ?), or it can be hardcoded in the presentation layer by the programmer. Here are two examples:
-
 ```
 var node = RqlNode.Parse(Request.QueryString.Value);
 var node = RqlNode.Parse($"Author={authorId});
 ```
-
 The first example compiles the query string of the requested Url into an **RqlNode** object. The second takes the RQL Statement "Author=nnn", and compiles it into an **RqlNode** object. The **RqlNode** object contains a structured representation of the statement, or a statement of NOOP if there is no statement. RqlNode.Parse("") will return an **RqlNode** of NOOP, for example. RQL statments can be simple, like the one shown above, or they can become quite complex. 
-
 ```
 (in(AuthorId,{auth1},{auth2},{auth3})&category=Scifi)|(like(AuthorName,T*)&category=Fantasy)&select(bookTitle,pubishDate,AuthorName)&limit(1,20)
 ```
-
 This RQL statement will return the collection of books who where written by either *auth1*, *auth2* or *auth3* (these are Author Ids) and whose category is Scifi, OR any Fantasy book written by an auther whose name beings with 'T' (i.e., Thomson, Tiller, Tanner, etc.). It limits the results to include only the book title, the publish date of the book and the authorname, and it gives you only the first 20 results.
 
 For more information on RQL syntax, look here: enter link here
@@ -165,7 +155,6 @@ When you select that table, the "Render as Enum" checkbox becomes enabled. If yo
 We know we want Category to be an enum, so select that table, check the "Render as Enum" checkbox and hit OK.
 
 The generator will now generate an enum entity model for you. The resulting code should look like this:
-
 ```
 using System;
 using System.Collections.Generic;
@@ -231,7 +220,6 @@ namespace Bookstore.Models.EntityModels
 	}
 }
 ```
-
 You notice that the generator has added some annotations to further describe the table. The **Table** attribute tells us that this model is for the Categories table under the dbo schema on a SQL Server. That's the only annotation you will get for an enum table. Notice it is also using the **Tense** namespace. **Tense** is a nuget package that contains the definition for the Table attribute, and the Member attribute we will use later. That nuget package was already included for you when you first created the RESET Service project.
 
 Okay, so now we have the **Category** enumerator defined. We needed to do that one first, because it will be used in our next set of classes. So, let's create something a bit more interesting. Let's create an entity/resource model pair for some data we do wish to manipulate. Let's create an **EBook** entity model based off the **Books** database table.
@@ -239,7 +227,6 @@ Okay, so now we have the **Category** enumerator defined. We needed to do that o
 Once again, right-click on the **EntityModels** folder, select Add REST Entity Model, enter **EBook** as the name of the class. Then, in the Entity Model Generator dialog (this time, your SQL Server you used last time is already pre-populated and selected), choose the **Bookstore** database and select the **Books** table. We don't want an enum this time, so we want to leave the "Render as Enum" checkbox blank. In this case, you couldn't select it if you tried, because the **Books** table doesn't have the structure suitable for an enum. That "Render as Enum" check box will be unchecked, and it will be disabled.
 
 Hit OK to render the new class. It should look like this:
-
 ```
 using System;
 using System.Collections.Generic;
@@ -285,7 +272,6 @@ namespace Bookstore.Models.EntityModels
 	}
 }
 ```
-
 As you can see, it is a one-to-one mapping to the database table with annotactions. We have the **Table** annotation as we did with the **Category** enum. We also have **Member** annotations on each member, telling us if the member represents a primary key, or a foreign key. It also tells us if the member can be null, what Database Data type it is, and so forth.
 
 ### Adding a Resource Model ###
@@ -296,7 +282,6 @@ Having an entity model is all well and fine, but users don't see entity models. 
 This time, a list of entity models appears. Notice that the **Category** class is conspicously absent from the list. There is never a good reason to create a reosurce model from an enum. They'd just be the same structure with a different class name. Select the entity model you wish to make a Resource model for. That's pretty easy at this point, since we only have one entity model defined. Select **EBook**, and press OK.
 
 Your code should look like this:
-
 ```
 using System;
 using Tense;
@@ -415,23 +400,18 @@ namespace Bookstore.Models.ResourceModels
 	}
 }
 ```
-
 Notice that the new resource model looks pretty much like we'd expect, it has members for each column in the database. However, it has a member called CategoryId, and that member matches the CategoryId in the entity model. However, instead of an int, the CategoryId in our resource model is defined as a Category enum. And that's pretty much what we want, except for one little thing. 
 
 Inside our database model books are grouped by category, but in the real world, the world our customers live in, they prefer to think of this grouping as genres. So, to make our customers happy, let's change the name of this member from CategoryId to Genre.
 
 Change the line of code from
-
 ```
 		public Category CategoryId { get; set; }
 ```
-
 to
-
 ```
 		public Category Genre { get; set; }
 ```
-
 There, now we are using our Category enum to represent the genre for the book. It's worth noting that this is not an uncommon exercise. Don't take the REST Wizard's word for what any resource model column should be named. Don't take the word of the database either. Make the names meaningful to your customer. Little things like this often make the difference between good software and great software.
 
 Also notice that at the bottom we have three pre-defined methods for validating a book model.
@@ -447,11 +427,9 @@ In the **CanUpdateAsync** function, we have a reference to the **IOrchestrator**
 In RQL, the **RqlNode** is going to contain the information needed to create the WHERE clause in the SQL Statement that will eventually be generated. In other words, the **RqlNode** tells us which book, or books, are to be updated. The first question we have in our update validation is, does this **RqlNode** actually specify any books to be updated?
 
 To answer this question, we make this call
-
 ```
-			var existingValues = await orchestrator.GetResourceCollectionAsync<Books>(node);
+var existingValues = await orchestrator.GetResourceCollectionAsync<Books>(node);
 ```
-
 This call tells the orchestrator to get the collection of books that matches the **RqlNode** specification. If no books are returned, then there are no books that match the specification, and therefore, there is nothing to update. IF the **Count** property is zero, then there are no books to update, and we record that as an error. It is a BadRequest, because the user has asked us to update books that don't exist.
 
 In RQL, an update does not have to be limited to one single resource. The update can update many resources at once. But when you update many resources, you don't want them all to be the same, you typically just want one or two columns to be the same. Now, the book design we have doesn't really lend itself to mass updates, but there are database schemas that do. We can however, for the sake of understanding the concept, conjure up a scenario where we would want to do multiple updates, albiet, not a very realistic one for books.
@@ -459,54 +437,44 @@ In RQL, an update does not have to be limited to one single resource. The update
 In the **Books** table, the synopsis can be null. So, given our list of books, we might want to update all books with a null synopsis, whose publish date was before 1950, and make the synopsis say "classic literature". Not very realistic, I know. Not all books written prior to 1950 are classics. In fact, most of them are not. But we're only doing this for illustration purposes, so, as they say in the literary world, enhance you willing suspension of disbelief, and just go with it.
 
 To do this, we would first have to generate an RQL statement to select such books:
-
 ```
 PublishDate<01/01/1950&Synopsis=null
 ```
-
 This RQL statement will select all the books whose publish date was before January 1, 1950 (PublishDate<01/01/1950), and (&) whose Synopsis is null (Synopsis=null). In the incoming model, we would have set the Synopsis value to "classic literature". 
 
 But what about the title? We only care to update the synopsis, so the title in our model is likely to be null. But whatever value it is, we don't want to set the title of every book published before 1950 with a null synopsis to that value. We want to leave the title value alone. Likewise, we don't want to change the publish date or the category either. To accomplish our task, we add a select statement to the RQL.
-
 ```
 PublishDate<01/01/1950&Synopsis=null&select(Synopsis)
 ```
-
 The select statement, in the case of an update, tells us we only want to update the values included in the select statement (in this case, we only update the synopsis column). All the other columns are to be left unchanged.
 
 In the end, this is the SQL statement that will be generated from this RQL statement:
-
 ```
 UPDATE [dbo].[Books]
    SET Synopsis = @P0
  WHERE PublishDate<@P1
    AND Synopsis IS NULL
 ```
-
 Where the @P0 and @P1 represent SQL parameters, where the value of @P0 is 'classic literature' and the value of @P1 is '01/01/1950T00:00:00.000-0500'.
 
 What this means for our validation routine is we don't want to inspect the values of columns that are not going to be included in the update statement. We don't care, for example, what the value of Title is in our incoming model, because in this case, the Title value will never be used and won't have any effect on the operation.
 
 So, the next thing we do in our validation code is to extract the select clause from the RQL statement. 
-
 ```
-			var selectNode = node.ExtractSelectClause();
+var selectNode = node.ExtractSelectClause();
 ```
-
 There may not be a select clause in the statement, so the returned select clause may be null.
 
 Now, it time to check if the Title value is valid.
-
 ```
-			if (selectNode is null || (selectNode is not null && selectNode.SelectContains(nameof(Title))))
-			{
-				if (string.IsNullOrWhiteSpace(Title))
-					errors.AddModelError(nameof(Title), "Title cannot be blank or null.");
-				if (Title is not null && Title.Length > 50)
-					errors.AddModelError(nameof(Title), "Title cannot exceed 50 characters.");
-			}
+if (selectNode is null || (selectNode is not null && selectNode.SelectContains(nameof(Title))))
+{
+	if (string.IsNullOrWhiteSpace(Title))
+		errors.AddModelError(nameof(Title), "Title cannot be blank or null.");
+	if (Title is not null && Title.Length > 50)
+		errors.AddModelError(nameof(Title), "Title cannot exceed 50 characters.");
+}
 ```
-
 If the select statement is null then all columns in the table will be updated, and so we do have to check the validity of the Title member. If the select clause is not null, then we only have to check the validity of the Title member if the Title member is included in the select clause.
 
 Finally, if we do have to check the validity of the Title, we do so in the enclosed code. We verify that the Title is not null or composed entirely of whitespace. A book must have a title. Blank titles are not allowed. Finally, we only have room for 50 characters in the title column, so the title the user gives us must be 50 characters or less.
@@ -529,7 +497,6 @@ Right-click on the Mapping folder. When you do, you will see an entry called Add
 ![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateMapping.png "Create Mapping")
 
 The resulting code should look like this:
-
 ```
 using System;
 using System.Linq;
@@ -574,7 +541,6 @@ namespace Bookstore.Mapping
 	}
 }
 ```
-
 This is a standard Automapper mapping. The CreateMap<source,destination> function translates the source type to the destination type. The first translations translates a **Book** resource model to an **EBook** entity Model. The second translations does the opposite, translating an **EBook** entity model to a **Book** resource model. Notice that the **CategoryId** is mapped to the **Genre** column in both transformations.
 
 Now that we have our models, and our translations, we can finally create some endpoints.
@@ -587,18 +553,16 @@ Right-click on the **Controllers** folder, and select "Add REST Controller...". 
 ![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateController.png "Create Controller")
 
 The top dropdown box contains the list of resource models. Select **Book**. The second dropdown lists the set of OAuth policies that you have defined for your service. These policies are defined in the appSettings.json file.
-
 ```
-  "OAuth2": {
-    "Policies": [
-      {
-        "Policy": "policy",
-        "Scopes": [ "scope" ]
-      }
-    ]
-  }
+"OAuth2": {
+	"Policies": [
+		{
+		"Policy": "policy",
+		"Scopes": [ "scope" ]
+		}
+	]
+}
 ```
-
 The "Policy" entry defines the name of the policy. It is these names you see in the dropdown. The "Scopes" entry defines the list of scopes that this policy supports. Given an access token (which you obtain from your identity provider) that contains at least one of these scopes, then this policy will allow you to access the function. If your access token does not contain any of these scopes, you will not be allowed to access the function, and the service will return **Unauthorized**.
 
 When this wizard creates the controller, all of the endpoints will be protected with the policy you choose. Or, you can choose the default value of **anonymous**. The **anonymous** policy allows anyone to hit your endpoint. 
@@ -608,7 +572,6 @@ Not all endpoints in a controller must have the same policy. You can pick and ch
 For now, let's just leave the policy at **anonymous**, letting anyone use our service.
 
 Press OK to generate the controller. The resulting code should look like this...
-
 ```
 using System;
 using System.Collections.Generic;
@@ -820,21 +783,17 @@ namespace Bookstore.Controllers
 }
 
 ```
-
 Compile and run your new service.
 
 ![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/Website1.png "Create Controller")
 
 Let's take a look at what our service can do. You can see we now have five new endpoints. There are two GET endpoints, one for retrieving a single book and one for retrieving a collection of books. The collection endpoints looks like this:
-
 ```
 /books
 ```
-
 That endpoint is deciptively simple. Just execute it from swagger, and you will get all the books in the collection. The result is wrapped inside of a **PagedSet<>** class. What that means is, the set is paged, and it has a limit on how many resources it will deliver in a single call. The limit is configurable. It's set as the batch limit in appSettings.json for each environment.
 
 Let's look at the annotations for that endpoint:
-
 ```
 		[HttpGet]
 		[Route("books")]
@@ -843,15 +802,13 @@ Let's look at the annotations for that endpoint:
 		[SwaggerResponse((int)HttpStatusCode.OK, Type = typeof(PagedSet<Book>))]
 		[Produces("application/hal+json", "application/hal.v1+json", MediaTypeNames.Application.Json, "application/vnd.v1+json")]
 ```
+The endpoint responds to the GET Verb and is located at /books. It has the *AllowAnonymous* attribute, so anyone can call this endpoint. It supports RQL and returns a **PagedSet\<Books\>** response. It can take *application/hal+json*, *application/hal.v1+json*, *application/json* or *application/vnd.v1+json* in the accept header. If the user specifies either of the 'hal' media types, the response will include HAL syntax. 
 
-The endpoint responds to the GET Verb and is located at /books. It has the AllowAnonymous attribute, so anyone can call this endpoint. It supports RQL and returns a PagedSet<Books> response. It can take application/hal+json, application/hal.v1+json, application/json or application/vnd.v1+json in the accept header. If the user specifies either of the 'hal' media types, the response will include HAL syntax. 
-
->Note: If you try it out right now, you won't see any HAL syntax. This is because we haven't configured the HAL responses yet. Once they are configured, you'll be able to see the HAL responses.
+>Note: If you try it out right now, you won't see any HAL syntax, or only very limited HAL in collection responses. This is because we haven't configured the HAL responses yet. Once they are configured, you'll be able to see the HAL responses.
 
 Let's go ahead and try it out. Just click on the Blue GET button to expand it, and the click on the "Try it out" button to enable the endpoint in swagger. Press the blue Execute button to call the endpoint.
 
 Here is the response:
-
 ```
 {
   "count": 20,
@@ -894,7 +851,6 @@ We can also do some other things. Suppose we want the list of books that were pu
 publishDate\<1/1/1960
 ```
 Now, the returned value shows only those books that were published before 1960. How does this happen, you ask? Well, let's take a closer look. Here is the endpoint for getting a collection of books.
-
 ```
 		///	<summary>
 		///	Returns a collection of Books
@@ -944,7 +900,6 @@ To see if all the members included in our **RqlNode** pertain to our model, we s
 If the **RqlNode** is valid, then we call the orchestrator to do our work for us. We call the generic **GetResourceCollectionAsync** function, passing the <Book> type, and passing the compiled **RqlNode**. That function returns our desired collection, which we simply pass back to the user with the OK (200) HTTP status code.
 
 Now, let's pull back the covers and see how the orchestration layer handles this request.
-
 ```
         /// <summary>
         /// Retrieves a collection of resources from the datastore according to the <see cref="RqlNode"/> filter
@@ -991,3 +946,9 @@ Now, let's pull back the covers and see how the orchestration layer handles this
             return new PagedSet<T>();
         }
 ```
+Most orchestrator functions follow one simple pattern:
+- Translate the Resource model request into an equilavent Entity model request
+- Pass the entity model request to the repository layer
+- Obtain the Entity model results from the repository layer
+- Translate the entity model result into Resource model results
+- Return the Resource model results.
