@@ -167,7 +167,7 @@ The generator will now generate an enum entity model for you.
 
 <details>
 <summary>The generated Category enum</Summary>
-<div style="background-color:#cccccc">
+<div style="background-color: rgb(50, 50, 50);">
 using System;<br>
 using System.Collections.Generic;<br>
 using Tense;<br>
