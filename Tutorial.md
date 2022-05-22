@@ -307,125 +307,125 @@ Having an entity model is all well and fine, but users don't see entity models. 
 This time, a list of entity models appears. Notice that the <b>Category</b> class is conspicously absent from the list. There is never a good reason to create a reosurce model from an enum. They'd just be the same structure with a different class name. Select the entity model you wish to make a Resource model for. That's pretty easy at this point, since we only have one entity model defined. Select <b>EBook</b>, and press OK.
 
 <details>
-<summary>The generated EBook class</Summary>
-<pre>
-using System;
-using Tense;
-using Tense.Rql;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Bookstore.Orchestration;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using Bookstore.Models.EntityModels;
-
-namespace Bookstore.Models.ResourceModels
-{
-	///	<summary>
-	///	Book
-	///	</summary>
-	[Entity(typeof(EBook))]
-	public class Book
-	{
-		///	<summary>
-		///	BookId
-		///	</summary>
-		public int BookId { get; set; }
-
-		///	<summary>
-		///	Title
-		///	</summary>
-		public string Title { get; set; } = string.Empty;
-
-		///	<summary>
-		///	PublishDate
-		///	</summary>
-		public DateTimeOffset PublishDate { get; set; } = DateTimeOffset.UtcNow.ToLocalTime();
-
-		///	<summary>
-		///	CategoryId
-		///	</summary>
-		public Category CategoryId { get; set; }
-
-		///	<summary>
-		///	Synopsis
-		///	</summary>
-		public string? Synopsis { get; set; }
-
-		///	<summary>
-		///	Checks the resource to see if it is in a valid state to update.
-		///	</summary>
-		///	<param name="orchestrator">The <see cref="IOrchestrator"/> used to orchestrate operations.</param>
-		///	<param name="node">The <see cref="RqlNode"/> that restricts the update.</param>
-		///	<param name="errors">The <see cref="ModelStateDictionary"/> that will contain errors from failed validations.</param>
-		///	<returns><see langword="true"/> if the resource can be updated; <see langword="false"/> otherwise</returns>
-		public async Task<bool> CanUpdateAsync(IOrchestrator orchestrator, RqlNode node, ModelStateDictionary errors)
-		{
-			errors.Clear();
-
-			var existingValues = await orchestrator.GetResourceCollectionAsync<Book>(node);
-
-			if (existingValues.Count == 0)
-			{
-				errors.AddModelError("Search", "No matching Book was found.");
-			}
-
-			var selectNode = node.ExtractSelectClause();
-			if (selectNode is null || (selectNode is not null && selectNode.SelectContains(nameof(Title))))
-			{
-				if (string.IsNullOrWhiteSpace(Title))
-					errors.AddModelError(nameof(Title), "Title cannot be blank or null.");
-				if (Title is not null && Title.Length > 50)
-					errors.AddModelError(nameof(Title), "Title cannot exceed 50 characters.");
-			}
-			if (selectNode is null || (selectNode is not null && selectNode.SelectContains(nameof(Synopsis))))
-			{
-			}
-			return errors.IsValid;
-		}
-
-		///	<summary>
-		///	Checks the resource to see if it is in a valid state to add.
-		///	</summary>
-		/// <param name="orchestrator">The <see cref="IOrchestrator"/> used to orchestrate operations.</param>
-		/// <param name="errors">The <see cref="ModelStateDictionary"/> that will contain errors from failed validations.</param>
-		/// <returns><see langword="true"/> if the resource can be updated; <see langword="false"/> otherwise</returns>
-		public async Task<bool> CanAddAsync(IOrchestrator orchestrator, ModelStateDictionary errors)
-		{
-			errors.Clear();
-
-			if (string.IsNullOrWhiteSpace(Title))
-				errors.AddModelError(nameof(Title), "Title cannot be blank or null.");
-			if (Title is not null && Title.Length > 50)
-				errors.AddModelError(nameof(Title), "Title cannot exceed 50 characters.");
-
-			await Task.CompletedTask;
-
-			return errors.IsValid;
-		}
-
-		///	<summary>
-		///	Checks the resource to see if it is in a valid state to delete.
-		///	</summary>
-		///	<param name="orchestrator">The <see cref="IOrchestrator"/> used to orchestrate operations.</param>
-		///	<param name="node">The <see cref="RqlNode"/> that restricts the update.</param>
-		///	<param name="errors">The <see cref="ModelStateDictionary"/> that will contain errors from failed validations.</param>
-		///	<returns><see langword="true"/> if the resource can be updated; <see langword="false"/> otherwise</returns>
-		public static async Task<bool> CanDeleteAsync(IOrchestrator orchestrator, RqlNode node, ModelStateDictionary errors)
-		{
-			errors.Clear();
-
-			var existingValues = await orchestrator.GetResourceCollectionAsync<Book>(node);
-
-			if (existingValues.Count == 0)
-			{
-				errors.AddModelError("Search", "No matching Book was found.");
-			}
-
-			return errors.IsValid;
-		}
-	}
+<summary>The generated Resource model</Summary>
+<div style="background-color:#eeeeee;">
+using System;<br>
+using Tense;<br>
+using Tense.Rql;<br>
+using Microsoft.AspNetCore.Mvc.ModelBinding;<br>
+using Bookstore.Orchestration;<br>
+using System.Collections.Generic;<br>
+using System.ComponentModel.DataAnnotations;<br>
+using Bookstore.Models.EntityModels;<br>
+<br>
+namespace Bookstore.Models.ResourceModels<br>
+{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;Book<br>
+&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;/summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[Entity(typeof(EBook))]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;public class Book<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;BookId<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;/summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public int BookId { get; set; }<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;Title<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;/summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public string Title { get; set; } = string.Empty;<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;PublishDate<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;/summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public DateTimeOffset PublishDate { get; set; } = DateTimeOffset.UtcNow.ToLocalTime();<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;CategoryId<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;/summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public Category CategoryId { get; set; }<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;Synopsis<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;/summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public string? Synopsis { get; set; }<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;Checks the resource to see if it is in a valid state to update.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;/summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;param name="orchestrator"&gt;The &lt;see cref="IOrchestrator"/&gt; used to orchestrate operations.&lt;/param&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;param name="node"&gt;The &lt;see cref="RqlNode"/&gt; that restricts the update.&lt;/param&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;param name="errors"&gt;The &lt;see cref="ModelStateDictionary"/&gt; that will contain errors from failed validations.&lt;/param&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;returns&gt;&lt;see langword="true"/&gt; if the resource can be updated; &lt;see langword="false"/&gt; otherwise&lt;/returns&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public async Task&lt;bool&gt; CanUpdateAsync(IOrchestrator orchestrator, RqlNode node, ModelStateDictionary errors)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;errors.Clear();<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var existingValues = await orchestrator.GetResourceCollectionAsync&lt;Book&gt;(node);<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (existingValues.Count == 0)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;errors.AddModelError("Search", "No matching Book was found.");<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var selectNode = node.ExtractSelectClause();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (selectNode is null || (selectNode is not null && selectNode.SelectContains(nameof(Title))))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (string.IsNullOrWhiteSpace(Title))
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;errors.AddModelError(nameof(Title), "Title cannot be blank or null.");<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (Title is not null && Title.Length > 50)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;errors.AddModelError(nameof(Title), "Title cannot exceed 50 characters.");<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (selectNode is null || (selectNode is not null && selectNode.SelectContains(nameof(Synopsis))))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return errors.IsValid;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;Checks the resource to see if it is in a valid state to add.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;/summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;param name="orchestrator"&gt;The &lt;see cref="IOrchestrator"/&gt; used to orchestrate operations.&lt;/param&gt;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;param name="errors"&gt;The &lt;see cref="ModelStateDictionary"/&gt; that will contain errors from failed validations.&lt;/param&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;returns&gt;&lt;see langword="true"/&gt; if the resource can be updated; &lt;see langword="false"/&gt; otherwise&lt;/returns&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public async Task&lt;bool&gt; CanAddAsync(IOrchestrator orchestrator, ModelStateDictionary errors)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;errors.Clear();<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (string.IsNullOrWhiteSpace(Title))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;errors.AddModelError(nameof(Title), "Title cannot be blank or null.");<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (Title is not null && Title.Length > 50)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;errors.AddModelError(nameof(Title), "Title cannot exceed 50 characters.");<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;await Task.CompletedTask;<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return errors.IsValid;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;Checks the resource to see if it is in a valid state to delete.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;/summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;param name="orchestrator"&gt;The &lt;see cref="IOrchestrator"/&gt; used to orchestrate operations.&lt;/param&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;param name="node"&gt;The &lt;see cref="RqlNode"/&gt; that restricts the update.&lt;/param&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;param name="errors"&gt;The &lt;see cref="ModelStateDictionary"/&gt; that will contain errors from failed validations.&lt;/param&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;returns&gt;&lt;see langword="true"/&gt; if the resource can be updated; &lt;see langword="false"/&gt; otherwise&lt;/returns&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public static async Task&lt;bool&gt; CanDeleteAsync(IOrchestrator orchestrator, RqlNode node, ModelStateDictionary errors)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;errors.Clear();<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var existingValues = await orchestrator.GetResourceCollectionAsync&lt;Book&gt;(node);<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (existingValues.Count == 0)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;errors.AddModelError("Search", "No matching Book was found.");<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return errors.IsValid;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
 }
-</pre>
+</div>
 </details>
 
 Notice that the new resource model looks pretty much like we'd expect, it has members for each column in the database. However, it has a member called CategoryId, and that member matches the CategoryId in the entity model. However, instead of an int, the CategoryId in our resource model is defined as a Category enum. And that's pretty much what we want, except for one little thing. 
