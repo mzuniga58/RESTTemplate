@@ -966,13 +966,13 @@ Genre='ScienceFiction'
 ```
 But placing that into the WHERE clause of a SQL Statement and trying to run it against our **Books** table would result in a SQL error, because the **Books** table has no column called *Genre*. Instead we need to translate that RQL statement into:
 ```
-CategoryId-19
+CategoryId=10
 ```
 This is the statement the SQL server instance can understand and act upon. To do this, we use the _translator to do that translation.
 ```
 var translatedNode = _translator.TranslateQueryR2E<T>(node);
 ```
-The *translatedNode* is now an equivalent node to the original, but using Entity model members instead of Resource model members. Now that we have our translated node, we can call the repository layer to get our result.
+The **TranslateQueryR2E** function translates the node from the Resource model representation into the Entity model (R2E) representation. The *translatedNode* is now an equivalent node to the original, but using Entity model members instead of Resource model members. Now that we have our translated node, we can call the repository layer to get our result.
 ```
 var collection = await _repository.GetEntityCollectionAsync(entityType, translatedNode);
 ```
@@ -983,3 +983,168 @@ Items = (T[])_mapper.Map(itemsProperty.GetValue(collection), entityType.MakeArra
 This is Automapper, and it uses the **BookProfile** class that we created to do that translation. Now we have our ResourceModel PagedSet, all we need to do is to return it.
 
 Finally, let's pull back the covers once more to see how the repository does it's work.
+```
+        /// <summary>
+        /// Returns a collection of entities of type entityType
+        /// </summary>
+        /// <param name="entityType">The type of entities to retrieve.</param>
+        /// <param name="node">The <see cref="RqlNode"/> that contains the filters for the query.</param>
+        /// <returns>The collection of resources matching the query filters.</returns>
+        public async Task<object> GetEntityCollectionAsync(Type entityType, RqlNode node)
+        {
+            using var ctc = new CancellationTokenSource();
+
+            var task = Task.Run(async () =>
+            {
+				... inline task code goes here ...
+            });
+
+            if (await Task.WhenAny(task, Task.Delay(_timeout)).ConfigureAwait(false) != task)
+            {
+                ctc.Cancel();
+                throw new InvalidOperationException("Task exceeded time limit.");
+            }
+
+            var collection = task.Result;
+
+            if (collection is null)
+                throw new Exception("Internal server error");
+
+            return collection;
+        }
+```
+This one is a bit more complex. One design criterion of our REST Service is that we don't allow infinately running processes. We have a strict time limit. If a query runs past that time limit, it is canceld and a timeout error is returned. 
+
+To accomplish this goal, we first create a cancellation token. We then create an inline background task (a task that runs on its own thread) and pass that cancellation token to it. At the bottom of this function, we await the task, waiting either for task completion or time out, whichever comes first. If the timeout happens first, we cancel the running thread and throw an exception. If the task completes before the timeout, then great, we just return the results.
+
+Let's take a look at that inline task code:
+```
+	_logger.LogTrace("[REPOSITORY] GetResourceCollectionAsync");
+
+	//  Construct a paged set
+	var rxgeneric = typeof(PagedSet<>);
+	var rx = rxgeneric.MakeGenericType(entityType);
+	var results = Activator.CreateInstance(rx);
+
+	if (results is null)
+		throw new Exception("Internal Server Error");
+
+	var countProperty = results.GetType().GetRuntimeField("Count");
+	var itemsProperty = results.GetType().GetRuntimeField("Items");
+	var startProperty = results.GetType().GetRuntimeField("Start");
+	var pageSizeProperty = results.GetType().GetRuntimeField("PageSize");
+
+	if (countProperty is null || itemsProperty is null || startProperty is null || pageSizeProperty is null)
+		throw new Exception("Intenal Server Error");
+
+	//  First, get the total number of recorreds in the set
+	var sqlStatement = _sqlGenerator.GenerateCollectionCountStatement(entityType, node, out List<SqlParameter> countParameters);
+
+	_logger.BeginScope(sqlStatement.ToString());
+
+	using var connection = new SqlConnection(_connectionString);
+	connection.Open();
+	int totalRecords = 0;
+
+	using (var countcommand = new SqlCommand(sqlStatement, connection))
+	{
+		foreach (var parameter in countParameters)
+		{
+			countcommand.Parameters.Add(parameter);
+		}
+
+		using var reader = await countcommand.ExecuteReaderAsync(ctc.Token).ConfigureAwait(false);
+
+		if (await reader.ReadAsync(ctc.Token).ConfigureAwait(false))
+		{
+			totalRecords = reader.GetInt32(0);
+			countProperty.SetValue(results, totalRecords);
+		}
+	}
+
+	_logger.LogTrace("[REPOSITORY] GetResourceCollectionAsync : total records in the set = {totalRecordsInSet}", totalRecords);
+
+	sqlStatement = _sqlGenerator.GenerateResourceCollectionStatement(entityType, node, out List<SqlParameter> queryParameters);
+	_logger.BeginScope(sqlStatement.ToString());
+
+	using (var command = new SqlCommand(sqlStatement, connection))
+	{
+		foreach (var parameter in queryParameters)
+		{
+			command.Parameters.Add(parameter);
+		}
+
+		using var reader = await command.ExecuteReaderAsync(ctc.Token).ConfigureAwait(false);
+
+		var rlgeneric = typeof(List<>);
+		var rl = rlgeneric.MakeGenericType(entityType);
+		var collection = Activator.CreateInstance(rl);
+
+		if (collection is null)
+			throw new Exception("Internal server error");
+
+		var addMethod = collection.GetType().GetMethod("Add");
+		var toArrayMethod = collection.GetType().GetMethod("ToArray");
+
+		if (addMethod is null || toArrayMethod is null)
+			throw new Exception("Internal server error");
+
+		while (await reader.ReadAsync(ctc.Token).ConfigureAwait(false))
+		{
+			var obj = await reader.GetObjectAsync(entityType, node, ctc.Token).ConfigureAwait(false);
+
+			if (obj is not null)
+			{
+				var entity = Convert.ChangeType(obj, entityType);
+				addMethod.Invoke(collection, new object[] { entity });
+			}
+		}
+
+		var itemArray = toArrayMethod.Invoke(collection, null);
+
+		if (itemArray is null)
+			throw new Exception("Internal Server Error");
+
+		var itemLengthProperty = itemArray.GetType().GetProperty("Length");
+
+		if (itemLengthProperty is null)
+			throw new Exception("Internal Server Error");
+
+		itemsProperty.SetValue(results, itemArray);
+
+		RqlNode? limitClause = node.ExtractLimitClause();
+
+		if (limitClause == null)
+		{
+			startProperty.SetValue(results, 1);
+			pageSizeProperty.SetValue(results, itemLengthProperty.GetValue(itemArray));
+		}
+		else
+		{
+			if (limitClause.Count > 0)
+				startProperty.SetValue(results, limitClause.NonNullValue<int>(0));
+			else
+				startProperty.SetValue(results, 1);
+
+			if (limitClause.Count > 1)
+				pageSizeProperty.SetValue(results, limitClause.NonNullValue<int>(1));
+			else
+				pageSizeProperty.SetValue(results, _batchLimit);
+		}
+	}
+
+	return results;
+```				
+That looks pretty daunting! Let's break it down, step by step. In this function we want to return a **PagedSet** of the type of our Entity model. So the first thing we have to do is to create an empty **PagedSet\<EntityModel\>**. The problem here is we don't have a type T argument. Instead, we have the type **entityType**. While C# does allow you to create a generic class of type T, i.e., *var x = new PagedSet\<T\>()*, it does not allow you to create a generic type from just a **Type** value (i.e., *var x = new PagedSet\<entityType\>()* will give us a compile error, because entityType is not a type argument). So, we need to do some reflection magic to create our set.
+```
+	//  Construct a paged set
+	var rxgeneric = typeof(PagedSet<>);
+	var rx = rxgeneric.MakeGenericType(entityType);
+	var results = Activator.CreateInstance(rx);
+
+	if (results is null)
+		throw new Exception("Internal Server Error");
+```
+Our results variable now contains a **PagedSet\<E\>** where E is the entity model type. Next, we have to access the various members of that object. But since we don't have a type argument, we can't do it the simple way. In ohter words, if I want to set the Count value of that object, I can't simply do results.Count = 0. 
+
+
