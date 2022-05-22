@@ -63,6 +63,7 @@ If your setup doesn't include one of these environments, you can simply delete t
 </details>
 Collections are returned wrapped in a <b>PagedSet<></b> class. That <b>PagedSet</b> limits the number of records that can be returned in a single call. By default, that limit is set to the <b>BatchLimit</b> of 100 records. You can change this value to whatever you feel is appropriate to your environment. And lastly, the <b>Timeout</b> value, encoded as a <i>TimeSpan</i>, informs the service how long it will wait for a request to be fulfilled. If a request takes longer than this time limit, the request is canceled, and a timeout error is returned. The default is 5 seconds, but you can change that to whatever you feel is appropriate.
 <br>
+<br>
 <details>
 <summary>Instructions for setting the <b>batchLimit</b> and <b>Timeout</b> values</summary>
 <p>These are also found in the appSettings&lt;environment&gt;.json file for each environment.</p>
