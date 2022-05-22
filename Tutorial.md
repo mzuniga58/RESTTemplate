@@ -79,37 +79,37 @@ Collections are returned wrapped in a <b>PagedSet<></b> class. That <b>PagedSet<
 </details>
 Before we expand our service, let's take a minute to go over some of the features. This REST service is created with a layered architecture. The three main layers are the Presentation Layer (also called the Resource Layer), the Orchestration Layer and the Repository Layer.
 
-## Presentation Layer ##
+<h2>Presentation Layer</h2>
 At this point, the presentation layer doesn't exist, aside from the swagger. Soon we will be adding some controllers, and it is the collection of controllers and the endpoints that they define, along with the HAL configurations, that constitute the presentation layer. This is the layer that your users see and interact with. This is the layer they use to obtain and manage the resources the service controls, hence, that is why it is also sometimes called the resource layer. Later in this tutorial, we will show how to create a controller and how to populate the HAL configurations.
 
-## Orchestration Layer ##
+<h2>Orchestration Layer</h2>
 When the user calls an endpoint in your presentation layer, under the covers, the presentation layer calls the orchestration layer to accomplish the actual work. If the user asks for a parcitular resource, i.e., /books/1234, the preentation layer calls the orchestration layer to get the book whose Id is 1234. Likewise, if the user calls books/name/The%20Wrath%20of%20Isis, the user is calling the service to obtain the book called "The Wrath of Isis" (a wonderfully written book, by the way). The orchestration layer will return the desired result, and in turn, the presentation layer will pass back the result to the caller.
 
-The orchestration layer resides in the Orchestration folder. There are two files there, **IOrchestrator** and **Orchestrator** (which supports the **IOrchestrator** interface). The **IOrchestrator** defines, and the **Orchestrator** implements a set of generic CRUD (Create, Read, Update, Delete) functions, that have been pre-defined for you. These generic operations are:
+The orchestration layer resides in the Orchestration folder. There are two files there, <b>IOrchestrator</b> and <b>Orchestrator</b>. The <b>IOrchestrator</b> defines, and the <b>Orchestrator</b> implements a set of generic CRUD (Create, Read, Update, Delete) functions that have been pre-defined for you. These generic operations are:
 
-- **GetSingleResourceAsync** - retrieves a single resource of type T, using an RQL Statement to futher refine the resource.
-- **GetResourceCollectionAsync** - retrieves a collection of resources of type T, wrapped inside a **PagedSet**, using an RQL Statement to filter and refine the set.
-- **AddResourceAsync** - adds a resource of type T to the datastore
-- **UpdateResourceAsync** - updates a resource of type T in the datastore, using an RQL Statment to further refine the update
-- **DeleteResourceAsync** - deletea a resource or set of resources of type T from the datastore, using an RQL Statement to define which resources are to be deleted.
+- <b>GetSingleResourceAsync</b> - retrieves a single resource of type T, using an RQL Statement to futher refine the resource.
+- <b>GetResourceCollectionAsync</b> - retrieves a collection of resources of type T, wrapped inside a <b>PagedSet</b>, using an RQL Statement to filter and refine the set.
+- <b>AddResourceAsync</b> - adds a resource of type T to the datastore
+- <b>UpdateResourceAsync</b> - updates a resource of type T in the datastore, using an RQL Statment to further refine the update
+- <b>DeleteResourceAsync</b> - deletea a resource or set of resources of type T from the datastore, using an RQL Statement to define which resources are to be deleted.
 
-These generic functions are sufficient for simple resources. However, for more complex resources (such as those that contain embedded child resources), you will need to create your own functions. To do so, simply include that function in the **IOrchestrator** interface and implement it in the **Orchestrator** object. In your new function, you can often combine (or "orchestrate") the generic functions to accomplish your task. I'll be giving an example of that later in this tutorial.
+These generic functions are sufficient for simple resources. However, for more complex resources (such as those that contai<b>RqlNode</b>n embedded child resources), you will need to create your own functions. To do so, simply include that function in the <b>IOrchestrator</b> interface and implement it in the <b>Orchestrator</b> object. In your new function, you can often combine (or "orchestrate") the generic functions to accomplish your task. I'll be giving an example of that later in this tutorial.
 
-One other thing about the orchestration layer is its use of RQL. The **RqlNode** is a compiled version of an RQL Statement. The RQL Statement can be provided by the user in the query portion of the Url (basically, everything after the ?), or it can be hardcoded in the presentation layer by the programmer. Here are two examples:
-```
+One other thing about the orchestration layer is its use of RQL. The <b>RqlNode</b> is a compiled version of an RQL Statement. The RQL Statement can be provided by the user in the query portion of the Url (basically, everything after the ?), or it can be hardcoded in the presentation layer by the programmer. Here are two examples:
+
 var node = RqlNode.Parse(Request.QueryString.Value);
 var node = RqlNode.Parse($"Author={authorId});
-```
-The first example compiles the query string of the requested Url into an **RqlNode** object. The second takes the RQL Statement "Author=nnn", and compiles it into an **RqlNode** object. The **RqlNode** object contains a structured representation of the statement, or a statement of NOOP if there is no statement. RqlNode.Parse("") will return an **RqlNode** of NOOP, for example. RQL statments can be simple, like the one shown above, or they can become quite complex. 
-```
+
+The first example compiles the query string of the requested Url into an <b>RqlNode</b> object. The second takes the RQL Statement "Author=nnn", and compiles it into an <b>RqlNode</b> object. The <b>RqlNode</b> object contains a structured representation of the statement, or a statement of NOOP if there is no statement. RqlNode.Parse("") will return an <b>RqlNode</b> of NOOP, for example. RQL statments can be simple, like the one shown above, or they can become quite complex. 
+
 (in(AuthorId,{auth1},{auth2},{auth3})&category=Scifi)|(like(AuthorName,T*)&category=Fantasy)&select(bookTitle,pubishDate,AuthorName)&limit(1,20)
-```
+
 This RQL statement will return the collection of books who where written by either *auth1*, *auth2* or *auth3* (these are Author Ids) and whose category is Scifi, OR any Fantasy book written by an auther whose name beings with 'T' (i.e., Thomson, Tiller, Tanner, etc.). It limits the results to include only the book title, the publish date of the book and the authorname, and it gives you only the first 20 results.
 
 For more information on RQL syntax, look here: enter link here
 
-## Repsoitory Layer ##
-Under the covers, to do its work, the orchestration layer calls the repository layer to obtain and manipulate data in the underlying datastore. The repositoy layer resides under the repositories folder in the **IRepository** and **Repository** files. Likw the orchestraton layer, the repository layer comes with pre-configured generic CRUD functions. One thing to notice between the repository layer and the orchestration layer is that the orchestration layer accepts *Resource models*, while the repository layer accepts *Entity models*. When you think about it it makes sense. The orchestration layer is responsible for "orchestrating" bits and pieces of data (that come in the form of entity models) into a cohesive response in the form of a resource model. 
+<h2>Repsoitory Layer</h2>
+Under the covers, to do its work, the orchestration layer calls the repository layer to obtain and manipulate data in the underlying datastore. The repositoy layer resides under the repositories folder in the <b>IRepository</b> and <b>Repository</b> files. Likw the orchestraton layer, the repository layer comes with pre-configured generic CRUD functions. One thing to notice between the repository layer and the orchestration layer is that the orchestration layer accepts <i>Resource Models</i>, while the repository layer accepts <i>Entity Models</i>. When you think about it it makes sense. The orchestration layer is responsible for "orchestrating" bits and pieces of data (that come in the form of entity models) into a cohesive response in the form of a resource model. 
 
 The entity models are essentially a one-to-one mapping between the model and the underlying datasource. They also include information about the data (which members are primary key, which are foreign keys, whether the member is nullable, etc.).
 
@@ -117,19 +117,19 @@ Consequently, because we have resource models and entity mModels, we need a way 
 
 It is worth noting that a repository layer need not referene a database. Sometimes, a repository layer will be used to interact with a foreign service, or even interact with a file system or any other type of device. At present, the REST Service Wizard only provides support for database oriented repositories, but that doesn't mean you can't include other types of repositories in your service. Neither does it mean that the repository is limited to just the pre-configured generic functions. The author can add new functions to the repository as needed to support custom requirements. 
 
-## Extending our Service ##
+<h2>Extending our Service</h2>
 Before we begin to extend our service, we will need a database to hold all of our book and authors information. Since, at this time, we only support SQL Server, we have a database definition, located at [Bookstore.sql](https://github.com/mzuniga58/RESTTemplate/blob/main/Scripts/Bookstore.sql). 
 
 Open Microsoft SQL Server Management Studio and create a database called Bookstore. Then, open the above file in Microsoft SQL Server Management Studio while connected to that database, and run it. It will create the Bookstore database we will be using in this tutorial.
 
-### Adding Entity Models ###
+<h3>Adding Entity Models</h3>
 Okay, now that we have some data, we're going to want to add our first endpoints to our service to manipulate that data. Before we can create that endpoint, we need to do a few things. First, we need to create an entity model of the data we want to manipulate. The first bit of data we want to define is the categories table. The categories table is the list of categories that a book can belong to, such as Science Fiction or Romance. 
 
 Typically, we create entity model/resource model pairs. These pairs will allow us to write the functions to manipulate the data, i.e., add new items, delete or update existing items, etc. But our categories table is a bit different. It doesn't change. Categories, commonly called Literary genres, are formed by shared literary conventions. Although they do change over time, as new genres emerge and others fade, the change is usually measured in decades, and sometimes centuries.
 
-We could create an entity model/resource model pair for our categories, but it doens't really make that muuch sense. In the C# world, the categories are better represented by an **enum**. Fortunately, the REST Service makes that easy.
+We could create an entity model/resource model pair for our categories, but it doens't really make that muuch sense. In the C# world, the categories are better represented by an <b>enum</b>. Fortunately, the REST Service makes that easy.
 
-With your Bookstore service open in Visual Studio, expand the Models folder. Under the Models folder you will see two child folders, **EntityModels** and **ResourceModels**. We want to create an entity model for the Categories table, but we want to create it as an enum, not a class model. To do that, right-click on the **EntityModels** folder. When you do, a pop-up menu will appear. On that menu, click on Add REST Entity Model... It should be 3rd on the menu, with the Blue and White MZ logo next to it.
+With your Bookstore service open in Visual Studio, expand the Models folder. Under the Models folder you will see two child folders, <b>EntityModels</b> and <b>ResourceModels</b>. We want to create an entity model for the Categories table, but we want to create it as an enum, not a class model. To do that, right-click on the <b>EntityModels</b> folder. When you do, a pop-up menu will appear. On that menu, click on Add REST Entity Model... It should be 3rd on the menu, with the Blue and White MZ logo next to it.
 
 >What are you talking about? I don't see any menu item called "Add REST Entity Model..." with a blue and white MZ logo?
 >
@@ -142,18 +142,24 @@ With your Bookstore service open in Visual Studio, expand the Models folder. Und
 >There you should see a number of items, all with the blue and white MZ logo. REST Entity Model should be one of those options. Click on that.
 
 Alright, now you should have a dialog asking for the name of your new class. 
+<br><br>
+<img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/ChooseName.png"
+     alt="Entity Model Generator"
+     style="float: left; margin-right: 10px;" />
 
-![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/ChooseName.png "Entity Model Generator")
-
-A good standard is to name models in singular form, so call your class **Category**. Normally, we prepend a prefix to entity models. I use the letter E. The E stands for "entity". So, normally we would call this the **ECategory** class. An alternative is **Entity_Category**, or **EntityCategory**. It doesn't really matter, we just need a name to differentiate it from the resource model class that we will be making later. However, in this case, we will be creating an enum, and there is no reason to create a resource model (it would simply be exactly the same as the entity model, just with a different class name). So, in this case, I will forego the "E" prefix, and just call it **Category.cs**. (P.S., if you forgot to add the trailing .cs, don't worry, Visual Studio will add it for you.)
+A good standard is to name models in singular form, so call your class <b>Category</b>. Normally, we prepend a prefix to entity models. I use the letter E. The E stands for "entity". So, normally we would call this the <b>ECategory</b> class. An alternative is <b>Entity_Category</b>, or <b>EntityCategory</b>. It doesn't really matter, we just need a name to differentiate it from the resource model class that we will be making later. However, in this case, we will be creating an enum, and there is no reason to create a resource model (it would simply be exactly the same as the entity model, just with a different class name). So, in this case, I will forego the "E" prefix, and just call it <b>Category.cs</b>. (P.S., if you forgot to add the trailing .cs, don't worry, Visual Studio will add it for you.)
 
 Now you will be presented with the Entity Model Generator dialog.
-
-![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateEntityModel.png "Entity Model Generator")
+<br><br>
+<img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateEntityModel.png"
+     alt="Entity Model Generator"
+     style="float: left; margin-right: 10px;" />
 
 The first time you try to create an entity model, the wizard doesn't know anything about your databases, so the top part of the dialog is empty. Click on the Add New Server button.
-
-![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/AddNewServer.png "Add New Server")
+<br><br>
+<img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/AddNewServer.png"
+     alt="Add New Server"
+     style="float: left; margin-right: 10px;" />
 
 Select the database technology you want to connect to. Remember, we created our database in SQL Server, so choose SQL Server here. Then type in the name of your server, and select either Windows Authority or SQL Server Authority, whichever is appropriate to your installation. If you select SQL Server Authority, you will also need to enter your username and password. Once you have it all complete, click on the "check" button to ensure the wizard can talk to your database. Once you have established a connection, hit OK.
 
@@ -289,17 +295,20 @@ namespace Bookstore.Models.EntityModels<br>
 }
 </div>
 </details>
-As you can see, it is a one-to-one mapping to the database table with annotactions. We have the **Table** annotation as we did with the **Category** enum. We also have **Member** annotations on each member, telling us if the member represents a primary key, or a foreign key. It also tells us if the member can be null, what Database Data type it is, and so forth.
+As you can see, it is a one-to-one mapping to the database table with annotactions. We have the <b>Table</b> annotation as we did with the <b>Category</b> enum. We also have <b>Member</b> annotations on each member, telling us if the member represents a primary key, or a foreign key. It also tells us if the member can be null, what database data type it is, and so forth.
 
-### Adding a Resource Model ###
-Having an entity model is all well and fine, but users don't see entity models. They see resource models. So, let's do that again, this time creating a resource model for the Books table. Go back to the models folder, but this time, right-click on the **ResourceModels** folder. Once again, there should be an Add REST Resource Model... menu item. Click on that. A dialog appears where you enter the class name. Enter **Book** this time. **Book** is the resource model, and **EBook* is the entity model. This naming convention makes it easy to find the corresponding entity model or resource model, as the case may be. Press Ok to get the Resource Model Generator.
+<h3>Adding a Resource Model</h3>
+Having an entity model is all well and fine, but users don't see entity models. They see resource models. So, let's do that again, this time creating a resource model for the Books table. Go back to the models folder, but this time, right-click on the <b>ResourceModels</b> folder. Once again, there should be an Add REST Resource Model... menu item. Click on that. A dialog appears where you enter the class name. Enter <b>Book</b> this time. <b>Book</b> is the resource model, and <b>EBook</b> is the entity model. This naming convention makes it easy to find the corresponding entity model or resource model, as the case may be. Press Ok to get the Resource Model Generator.
+<br><br>
+<img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateResourceModel.png"
+     alt="Add New Resource"
+     style="float: left; margin-right: 10px;" />
 
-![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateResourceModel.png "Add New Resource")
+This time, a list of entity models appears. Notice that the <b>Category</b> class is conspicously absent from the list. There is never a good reason to create a reosurce model from an enum. They'd just be the same structure with a different class name. Select the entity model you wish to make a Resource model for. That's pretty easy at this point, since we only have one entity model defined. Select <b>EBook</b>, and press OK.
 
-This time, a list of entity models appears. Notice that the **Category** class is conspicously absent from the list. There is never a good reason to create a reosurce model from an enum. They'd just be the same structure with a different class name. Select the entity model you wish to make a Resource model for. That's pretty easy at this point, since we only have one entity model defined. Select **EBook**, and press OK.
-
-Your code should look like this:
-```
+<details>
+<summary>The generated EBook class</Summary>
+<pre>
 using System;
 using Tense;
 using Tense.Rql;
@@ -416,7 +425,9 @@ namespace Bookstore.Models.ResourceModels
 		}
 	}
 }
-```
+</pre>
+</details>
+
 Notice that the new resource model looks pretty much like we'd expect, it has members for each column in the database. However, it has a member called CategoryId, and that member matches the CategoryId in the entity model. However, instead of an int, the CategoryId in our resource model is defined as a Category enum. And that's pretty much what we want, except for one little thing. 
 
 Inside our database model books are grouped by category, but in the real world, the world our customers live in, they prefer to think of this grouping as genres. So, to make our customers happy, let's change the name of this member from CategoryId to Genre.
@@ -439,15 +450,15 @@ Also notice that at the bottom we have three pre-defined methods for validating 
 
 Let's look at each of these a bit more closely.
 
-In the **CanUpdateAsync** function, we have a reference to the **IOrchestrator** interface, an **RqlNode** and a **ModelStateDictionary** list of errors. We begin by clearing the list of errors. It should be empty anyway, but it's alwasy a good practice to make sure. During the validation process, if we find anything amiss, we will add the error to the list of errors. If, at the end of the validation process, there are any errors present in our list, then the update will be abandoned and the service will return a BadRequest, listing all the errors we found.
+In the **CanUpdateAsync** function, we have a reference to the **IOrchestrator** interface, an <b>RqlNode</b> and a **ModelStateDictionary** list of errors. We begin by clearing the list of errors. It should be empty anyway, but it's alwasy a good practice to make sure. During the validation process, if we find anything amiss, we will add the error to the list of errors. If, at the end of the validation process, there are any errors present in our list, then the update will be abandoned and the service will return a BadRequest, listing all the errors we found.
 
-In RQL, the **RqlNode** is going to contain the information needed to create the WHERE clause in the SQL Statement that will eventually be generated. In other words, the **RqlNode** tells us which book, or books, are to be updated. The first question we have in our update validation is, does this **RqlNode** actually specify any books to be updated?
+In RQL, the <b>RqlNode</b> is going to contain the information needed to create the WHERE clause in the SQL Statement that will eventually be generated. In other words, the <b>RqlNode</b> tells us which book, or books, are to be updated. The first question we have in our update validation is, does this <b>RqlNode</b> actually specify any books to be updated?
 
 To answer this question, we make this call
 ```
 var existingValues = await orchestrator.GetResourceCollectionAsync<Books>(node);
 ```
-This call tells the orchestrator to get the collection of books that matches the **RqlNode** specification. If no books are returned, then there are no books that match the specification, and therefore, there is nothing to update. IF the **Count** property is zero, then there are no books to update, and we record that as an error. It is a BadRequest, because the user has asked us to update books that don't exist.
+This call tells the orchestrator to get the collection of books that matches the <b>RqlNode</b> specification. If no books are returned, then there are no books that match the specification, and therefore, there is nothing to update. IF the **Count** property is zero, then there are no books to update, and we record that as an error. It is a BadRequest, because the user has asked us to update books that don't exist.
 
 In RQL, an update does not have to be limited to one single resource. The update can update many resources at once. But when you update many resources, you don't want them all to be the same, you typically just want one or two columns to be the same. Now, the book design we have doesn't really lend itself to mass updates, but there are database schemas that do. We can however, for the sake of understanding the concept, conjure up a scenario where we would want to do multiple updates, albiet, not a very realistic one for books.
 
@@ -558,7 +569,7 @@ namespace Bookstore.Mapping
 	}
 }
 ```
-This is a standard Automapper mapping. The CreateMap<source,destination> function translates the source type to the destination type. The first translations translates a **Book** resource model to an **EBook** entity Model. The second translations does the opposite, translating an **EBook** entity model to a **Book** resource model. Notice that the **CategoryId** is mapped to the **Genre** column in both transformations.
+This is a standard Automapper mapping. The CreateMap<source,destination> function translates the source type to the destination type. The first translations translates a <b>Book</b> resource model to an <b>EBook</b> entity Model. The second translations does the opposite, translating an <b>EBook</b> entity model to a <b>Book</b> resource model. Notice that the **CategoryId** is mapped to the **Genre** column in both transformations.
 
 Now that we have our models, and our translations, we can finally create some endpoints.
 
@@ -569,7 +580,7 @@ Right-click on the **Controllers** folder, and select "Add REST Controller...". 
 
 ![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateController.png "Create Controller")
 
-The top dropdown box contains the list of resource models. Select **Book**. The second dropdown lists the set of OAuth policies that you have defined for your service. These policies are defined in the appSettings.json file.
+The top dropdown box contains the list of resource models. Select <b>Book</b>. The second dropdown lists the set of OAuth policies that you have defined for your service. These policies are defined in the appSettings.json file.
 ```
 "OAuth2": {
 	"Policies": [
@@ -904,17 +915,17 @@ Let's url decode that link to see it better
 ```
 https://localhost:19704/books?publishDate<1/1/1960
 ```
-So, that is the Url we get in our request. First, we compile the query into an **RqlNode** object. The RQL is in the Url that the user sent. It's everything after the questoin mark.
+So, that is the Url we get in our request. First, we compile the query into an <b>RqlNode</b> object. The RQL is in the Url that the user sent. It's everything after the questoin mark.
 
-Now that we have an **RqlNode** representation of the RQL Statement, we want to validate it against our model. The **RqlNode**.Parse function produces an **RqlNode** that is model agnostic. For example, we could write this RQL Statement:
+Now that we have an <b>RqlNode</b> representation of the RQL Statement, we want to validate it against our model. The <b>RqlNode</b>.Parse function produces an <b>RqlNode</b> that is model agnostic. For example, we could write this RQL Statement:
 ```
 Status=Active
 ```
-That is a perfectly valid RQL statement. The problem is, there is no such member as "Status" in our **Book** model, making that RQL Statement invalid for our purposes. So, to take care of that, we first create an empty **ModelStateDictionary**. The **ModelStateDictionary** will hold the collection of errors we discover during any validation. If there are any errors, we simply return *BadRequest* with the collection of errors we found and return that to the user.
+That is a perfectly valid RQL statement. The problem is, there is no such member as "Status" in our <b>Book</b> model, making that RQL Statement invalid for our purposes. So, to take care of that, we first create an empty **ModelStateDictionary**. The **ModelStateDictionary** will hold the collection of errors we discover during any validation. If there are any errors, we simply return *BadRequest* with the collection of errors we found and return that to the user.
 
-To see if all the members included in our **RqlNode** pertain to our model, we simply call the **ValidateMember<T>** function on the node. This function inspects all the PROPERTY nodes in the **RqlNode** and verifies that they are valid members of the \<T\> (in this case, \<**Book**\>) type. The function will return *true* if all the members it contains are valid members of the type; otherwise, it will return *false*. If it does return *false*, we simply return *BadRequest* with those errors.
+To see if all the members included in our <b>RqlNode</b> pertain to our model, we simply call the **ValidateMember<T>** function on the node. This function inspects all the PROPERTY nodes in the <b>RqlNode</b> and verifies that they are valid members of the \<T\> (in this case, \<<b>Book</b>\>) type. The function will return *true* if all the members it contains are valid members of the type; otherwise, it will return *false*. If it does return *false*, we simply return *BadRequest* with those errors.
 
-If the **RqlNode** is valid, then we call the orchestrator to do our work for us. We call the generic **GetResourceCollectionAsync** function, passing the <Book> type, and passing the compiled **RqlNode**. That function returns our desired collection, which we simply pass back to the user with the OK (200) HTTP status code.
+If the <b>RqlNode</b> is valid, then we call the orchestrator to do our work for us. We call the generic **GetResourceCollectionAsync** function, passing the <Book> type, and passing the compiled <b>RqlNode</b>. That function returns our desired collection, which we simply pass back to the user with the OK (200) HTTP status code.
 
 Now, let's pull back the covers and see how the orchestration layer handles this request.
 ```
@@ -969,9 +980,9 @@ Most orchestrator functions follow one simple pattern:
 - Obtain the Entity model results from the repository layer
 - Translate the entity model result into Resource model results
 - Return the Resource model results.
-This function is no different. Since we are given a Resource model, we first need to discover what Entity model coincides with it. That's easy to do, since all Resource models have the **EntityAttribute** in them, which specifies exactly that information. So, we extrat the **EntityAttribute** from the Resource model and discover the entity type. Now that we have both the entity type and the resource type, we need to translate the **RqlNode** from a Resource model query to an Entity model query.
+This function is no different. Since we are given a Resource model, we first need to discover what Entity model coincides with it. That's easy to do, since all Resource models have the **EntityAttribute** in them, which specifies exactly that information. So, we extrat the **EntityAttribute** from the Resource model and discover the entity type. Now that we have both the entity type and the resource type, we need to translate the <b>RqlNode</b> from a Resource model query to an Entity model query.
 
-Remember that a Resource model may have members that are named differently than their Entity model counterparts. For example, our **Book** model contains the member *Genre*, which is a **Category** enumeration, but our entity model **EBook** contains no such member. Instead, it has a member called **CategoryId** defined as an int. Our mapping model that we generated handles the translation. When it sees the member *Genre* in our Resource model, it translates that to *CategoryId* in the entity model, and transforms the enumeration value to its corresponding int value.
+Remember that a Resource model may have members that are named differently than their Entity model counterparts. For example, our <b>Book</b> model contains the member *Genre*, which is a <b>Category</b> enumeration, but our entity model <b>EBook</b> contains no such member. Instead, it has a member called **CategoryId** defined as an int. Our mapping model that we generated handles the translation. When it sees the member *Genre* in our Resource model, it translates that to *CategoryId* in the entity model, and transforms the enumeration value to its corresponding int value.
 
 If we had this RQL Statement
 ```
