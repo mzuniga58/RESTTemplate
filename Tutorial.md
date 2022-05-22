@@ -171,16 +171,16 @@ using Tense;
 
 namespace Bookstore.Models.EntityModels
 {
-    ///	&lt;summary&gt;
-    ///	Enumerates a list of Categories
-    ///	&lt;/summary&gt;
-    [Table("Categories", Schema = "dbo", DBType = "SQLSERVER")]
-    public enum Category : int
-    {
-		///	<summary>
-		///	ActionAndAdventure
-		///	</summary>
-		ActionAndAdventure = 1,
+&nbsp;&nbsp;&nbsp;&nbsp;///	&lt;summary&gt;
+&nbsp;&nbsp;&nbsp;&nbsp;///	Enumerates a list of Categories
+&nbsp;&nbsp;&nbsp;&nbsp;///	&lt;/summary&gt;
+&nbsp;&nbsp;&nbsp;&nbsp;[Table("Categories", Schema = "dbo", DBType = "SQLSERVER")]
+&nbsp;&nbsp;&nbsp;&nbsp;public enum Category : int
+&nbsp;&nbsp;&nbsp;&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///	&lt;summary&gt;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///	ActionAndAdventure
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///	&lt;/summary&gt;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ActionAndAdventure = 1,
 
 		///	<summary>
 		///	Classics
