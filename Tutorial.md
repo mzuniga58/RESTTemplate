@@ -173,7 +173,7 @@ The generator will now generate an enum entity model for you.
 
 <details>
 <summary>The generated Category enum</Summary>
-<div style="background-color:#eeeeee;">
+<pre><code>
 using System;<br>
 using System.Collections.Generic;<br>
 using Tense;<br>
@@ -237,7 +237,7 @@ namespace Bookstore.Models.EntityModels<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ScienceFiction = 10<br>
 &nbsp;&nbsp;&nbsp;&nbsp;}<br>
 }
-</div>
+</code></pre>
 </details>
 You notice that the generator has added some annotations to further describe the table. The <b>Table</b> attribute tells us that this model is for the Categories table under the dbo schema on a SQL Server. That's the only annotation you will get for an enum table. Notice it is also using the <b>Tense</b> namespace. <b>Tense</b> is a nuget package that contains the definition for the <b>Table</b> attribute, and the <b>Member</b> attribute we will use later. That nuget package was already included for you when you first created the REST Service project.
 
@@ -249,7 +249,7 @@ Hit OK to render the new class.
 
 <details>
 <summary>The generated EBook class</Summary>
-<div style="background-color:#eeeeee;">
+<pre><code>
 using System;<br>
 using System.Collections.Generic;<br>
 using Tense;<br>
@@ -293,7 +293,7 @@ namespace Bookstore.Models.EntityModels<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public string? Synopsis { get; set; }<br>
 &nbsp;&nbsp;&nbsp;&nbsp;}<br>
 }
-</div>
+</code></pre>
 </details>
 As you can see, it is a one-to-one mapping to the database table with annotactions. We have the <b>Table</b> annotation as we did with the <b>Category</b> enum. We also have <b>Member</b> annotations on each member, telling us if the member represents a primary key, or a foreign key. It also tells us if the member can be null, what database data type it is, and so forth.
 
@@ -449,7 +449,7 @@ Also notice that at the bottom we have three pre-defined methods for validating 
 
 Let's look at each of these a bit more closely.
 
-In the **CanUpdateAsync** function, we have a reference to the **IOrchestrator** interface, an <b>RqlNode</b> and a **ModelStateDictionary** list of errors. We begin by clearing the list of errors. It should be empty anyway, but it's alwasy a good practice to make sure. During the validation process, if we find anything amiss, we will add the error to the list of errors. If, at the end of the validation process, there are any errors present in our list, then the update will be abandoned and the service will return a BadRequest, listing all the errors we found.
+In the **CanUpdateAsync** function, we have a reference to the <b>IOrchestrator</b> interface, an <b>RqlNode</b> and a <b>ModelStateDictionary</b> list of errors. We begin by clearing the list of errors. It should be empty anyway, but it's alwasy a good practice to make sure. During the validation process, if we find anything amiss, we will add the error to the list of errors. If, at the end of the validation process, there are any errors present in our list, then the update will be abandoned and the service will return a BadRequest, listing all the errors we found.
 
 In RQL, the <b>RqlNode</b> is going to contain the information needed to create the WHERE clause in the SQL Statement that will eventually be generated. In other words, the <b>RqlNode</b> tells us which book, or books, are to be updated. The first question we have in our update validation is, does this <b>RqlNode</b> actually specify any books to be updated?
 
@@ -523,8 +523,9 @@ Right-click on the Mapping folder. When you do, you will see an entry called Add
 
 ![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateMapping.png "Create Mapping")
 
-The resulting code should look like this:
-```
+<details>
+<summary>The generated Mapping code</Summary>
+<pre><code>
 using System;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
@@ -567,7 +568,8 @@ namespace Bookstore.Mapping
 		}
 	}
 }
-```
+</code></pre>
+</details>
 This is a standard Automapper mapping. The CreateMap<source,destination> function translates the source type to the destination type. The first translations translates a <b>Book</b> resource model to an <b>EBook</b> entity Model. The second translations does the opposite, translating an <b>EBook</b> entity model to a <b>Book</b> resource model. Notice that the **CategoryId** is mapped to the **Genre** column in both transformations.
 
 Now that we have our models, and our translations, we can finally create some endpoints.
@@ -659,7 +661,7 @@ namespace Bookstore.Controllers
 		[Route("books")]
 		[AllowAnonymous]
 		[SupportRQL]
-		[SwaggerResponse((int)HttpStatusCode.OK, Type = typeof(PagedSet<Book>))]
+		[SwaggerResponse((int)HttpStatusCode.OK, Type = typeof(PagedSet&lt;Book&gt;))]
 		[Produces("application/hal+json", "application/hal.v1+json", MediaTypeNames.Application.Json, "application/vnd.v1+json")]
 		public async Task<IActionResult> GetBooksAsync()
 		{
@@ -668,10 +670,10 @@ namespace Bookstore.Controllers
 			_logger.LogInformation("{s1} {s2}", Request.Method, Request.Path);
 
 			var errors = new ModelStateDictionary();
-			if (!node.ValidateMembers<Book>(errors))
+			if (!node.ValidateMembers&lt;Book&gt;(errors))
 				return BadRequest(errors);
 
-			var resourceCollection = await _orchestrator.GetResourceCollectionAsync<Book>(node);
+			var resourceCollection = await _orchestrator.GetResourceCollectionAsync&lt;Book&gt;(node);
 			return Ok(resourceCollection);
 		}
 
@@ -696,10 +698,10 @@ namespace Bookstore.Controllers
 
 			_logger.LogInformation("{s1} {s2}", Request.Method, Request.Path);
 			var errors = new ModelStateDictionary();
-			if (!node.ValidateMembers<Book>(errors))
+			if (!node.ValidateMembers&lt;Book&gt;(errors))
 				return BadRequest(errors);
 
-			var resource = await _orchestrator.GetSingleResourceAsync<Book>(node);
+			var resource = await _orchestrator.GetSingleResourceAsync&lt;Book&gt;(node);
 
 			if (resource is null)
 				return NotFound();
@@ -729,7 +731,7 @@ namespace Bookstore.Controllers
 
 			if (await resource.CanAddAsync(_orchestrator, errors))
 			{
-				resource = await _orchestrator.AddResourceAsync<Book>(resource);
+				resource = await _orchestrator.AddResourceAsync&lt;Book&gt;(resource);
 				return Created($"{Request.Scheme}://{Request.Host}/books/{resource.BookId}", resource);
 			}
 			else
@@ -759,11 +761,11 @@ namespace Bookstore.Controllers
 
 			ModelStateDictionary errors = new();
 
-			if (node.ValidateMembers<Book>(errors))
+			if (node.ValidateMembers&lt;Book&gt;(errors))
 			{
 				if (await resource.CanUpdateAsync(_orchestrator, node, errors))
 				{
-				await _orchestrator.UpdateResourceAsync<Book>(resource, node);
+				await _orchestrator.UpdateResourceAsync&lt;Book&gt;(resource, node);
 				return NoContent();
 				}
 			}
@@ -795,12 +797,12 @@ namespace Bookstore.Controllers
 
 			var errors = new ModelStateDictionary();
 
-			if (!node.ValidateMembers<Book>(errors))
+			if (!node.ValidateMembers&lt;Book&gt;(errors))
 				return BadRequest(errors);
 
 			if (await Book.CanDeleteAsync(_orchestrator, node, errors))
 			{
-				await _orchestrator.DeleteResourceAsync<Book>(node);
+				await _orchestrator.DeleteResourceAsync&lt;Book&gt;(node);
 				return NoContent();
 			}
 
@@ -826,7 +828,7 @@ Let's look at the annotations for that endpoint:
 		[Route("books")]
 		[AllowAnonymous]
 		[SupportRQL]
-		[SwaggerResponse((int)HttpStatusCode.OK, Type = typeof(PagedSet<Book>))]
+		[SwaggerResponse((int)HttpStatusCode.OK, Type = typeof(PagedSet&lt;Book&gt;))]
 		[Produces("application/hal+json", "application/hal.v1+json", MediaTypeNames.Application.Json, "application/vnd.v1+json")]
 ```
 The endpoint responds to the GET Verb and is located at /books. It has the *AllowAnonymous* attribute, so anyone can call this endpoint. It supports RQL and returns a **PagedSet\<Books\>** response. It can take *application/hal+json*, *application/hal.v1+json*, *application/json* or *application/vnd.v1+json* in the accept header. If the user specifies either of the 'hal' media types, the response will include HAL syntax. 
@@ -890,7 +892,7 @@ Now, the returned value shows only those books that were published before 1960. 
 		[Route("books")]
 		[AllowAnonymous]
 		[SupportRQL]
-		[SwaggerResponse((int)HttpStatusCode.OK, Type = typeof(PagedSet<Book>))]
+		[SwaggerResponse((int)HttpStatusCode.OK, Type = typeof(PagedSet&lt;Book&gt;))]
 		[Produces("application/hal+json", "application/hal.v1+json", MediaTypeNames.Application.Json, "application/vnd.v1+json")]
 		public async Task<IActionResult> GetBooksAsync()
 		{
@@ -899,10 +901,10 @@ Now, the returned value shows only those books that were published before 1960. 
 			_logger.LogInformation("{s1} {s2}", Request.Method, Request.Path);
 
 			var errors = new ModelStateDictionary();
-			if (!node.ValidateMembers<Book>(errors))
+			if (!node.ValidateMembers&lt;Book&gt;(errors))
 				return BadRequest(errors);
 
-			var resourceCollection = await _orchestrator.GetResourceCollectionAsync<Book>(node);
+			var resourceCollection = await _orchestrator.GetResourceCollectionAsync&lt;Book&gt;(node);
 			return Ok(resourceCollection);
 		}
 ```
@@ -920,11 +922,11 @@ Now that we have an <b>RqlNode</b> representation of the RQL Statement, we want 
 ```
 Status=Active
 ```
-That is a perfectly valid RQL statement. The problem is, there is no such member as "Status" in our <b>Book</b> model, making that RQL Statement invalid for our purposes. So, to take care of that, we first create an empty **ModelStateDictionary**. The **ModelStateDictionary** will hold the collection of errors we discover during any validation. If there are any errors, we simply return *BadRequest* with the collection of errors we found and return that to the user.
+That is a perfectly valid RQL statement. The problem is, there is no such member as "Status" in our <b>Book</b> model, making that RQL Statement invalid for our purposes. So, to take care of that, we first create an empty <b>ModelStateDictionary</b>. The <b>ModelStateDictionary</b> will hold the collection of errors we discover during any validation. If there are any errors, we simply return *BadRequest* with the collection of errors we found and return that to the user.
 
 To see if all the members included in our <b>RqlNode</b> pertain to our model, we simply call the **ValidateMember<T>** function on the node. This function inspects all the PROPERTY nodes in the <b>RqlNode</b> and verifies that they are valid members of the \<T\> (in this case, \<<b>Book</b>\>) type. The function will return *true* if all the members it contains are valid members of the type; otherwise, it will return *false*. If it does return *false*, we simply return *BadRequest* with those errors.
 
-If the <b>RqlNode</b> is valid, then we call the orchestrator to do our work for us. We call the generic **GetResourceCollectionAsync** function, passing the <Book> type, and passing the compiled <b>RqlNode</b>. That function returns our desired collection, which we simply pass back to the user with the OK (200) HTTP status code.
+If the <b>RqlNode</b> is valid, then we call the orchestrator to do our work for us. We call the generic <b>GetResourceCollectionAsync</b> function, passing the &lt;Book&gt; type, and passing the compiled <b>RqlNode</b>. That function returns our desired collection, which we simply pass back to the user with the OK (200) HTTP status code.
 
 Now, let's pull back the covers and see how the orchestration layer handles this request.
 ```
