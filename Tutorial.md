@@ -1,9 +1,9 @@
-# REST Service Wizard Tutorial #
+<h1>REST Service Wizard Tutorial</h1>
 Eventually, I will place this template on the Microsoft Store, so that it can be downloaded directly in Visual Studio. However, until then, you will need to download this repository and build the project. I suggest you build it in release mode, but either release or debug will work. Once compiled, using the standard windows explorer, navigate to 
 ```
 .\RESTTemplate\RESTInstaller\bin\Release
 ```
-In that folder you will find the file **RESTInstaller.vsix**. Double click on that file to install the Visual Studio extension. Note, you should shut down all instances of Visual Studio before installing.
+In that folder you will find the file <b>RESTInstaller.vsix</b>. Double click on that file to install the Visual Studio extension. Note, you should shut down all instances of Visual Studio before installing.
 
 ## Creating a REST Service ##
 Once installed, open Visual Studio and select **Create a new project** from the initial popup window. When the "Create a new project" dialog appears, select **WebAPI** in the project types dropdown on the top right side of the dialog. When you do, you will see an entry for REST Service (.Net Core) option, with the blue and white MZ logo next to it.
@@ -236,7 +236,8 @@ Okay, so now we have the **Category** enumerator defined. We needed to do that o
 
 Once again, right-click on the **EntityModels** folder, select Add REST Entity Model, enter **EBook** as the name of the class. Then, in the Entity Model Generator dialog (this time, your SQL Server you used last time is already pre-populated and selected), choose the **Bookstore** database and select the **Books** table. We don't want an enum this time, so we want to leave the "Render as Enum" checkbox blank. In this case, you couldn't select it if you tried, because the **Books** table doesn't have the structure suitable for an enum. That "Render as Enum" check box will be unchecked, and it will be disabled.
 
-Hit OK to render the new class. It should look like this:
+Hit OK to render the new class. 
+
 ```
 using System;
 using System.Collections.Generic;
