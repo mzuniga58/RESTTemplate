@@ -74,7 +74,7 @@ Collections are returned wrapped in a <b>PagedSet<></b> class. That <b>PagedSet<
     "BatchLimit": 100,
     "Timeout": "00:00:05"
   }
-<</code></pre>
+</code></pre>
 </details>
 Before we expand our service, let's take a minute to go over some of the features. This REST service is created with a layered architecture. The three main layers are the Presentation Layer (also called the Resource Layer), the Orchestration Layer and the Repository Layer.
 
@@ -449,9 +449,8 @@ In the <b>CanUpdateAsync</b> function, we have a reference to the <b>IOrchestrat
 In RQL, the <b>RqlNode</b> is going to contain the information needed to create the WHERE clause in the SQL Statement that will eventually be generated. In other words, the <b>RqlNode</b> tells us which book, or books, are to be updated. The first question we have in our update validation is, does this <b>RqlNode</b> actually specify any books to be updated?
 
 To answer this question, we make this call
-```
-var existingValues = await orchestrator.GetResourceCollectionAsync<Books>(node);
-```
+<pre><code>var existingValues = await orchestrator.GetResourceCollectionAsync<Books>(node);
+</code></pre>
 This call tells the orchestrator to get the collection of books that matches the <b>RqlNode</b> specification. If no books are returned, then there are no books that match the specification, and therefore, there is nothing to update. IF the <b>Count</b> property is zero, then there are no books to update, and we record that as an error. It is a BadRequest, because the user has asked us to update books that don't exist.
 
 In RQL, an update does not have to be limited to one single resource. The update can update many resources at once. But when you update many resources, you don't want them all to be the same, you typically just want one or two columns to be the same. Now, the book design we have doesn't really lend itself to mass updates, but there are database schemas that do. We can however, for the sake of understanding the concept, conjure up a scenario where we would want to do multiple updates, albiet, not a very realistic one for books.
@@ -459,25 +458,23 @@ In RQL, an update does not have to be limited to one single resource. The update
 In the <b>Books</b> table, the synopsis can be null. So, given our list of books, we might want to update all books with a null synopsis, whose publish date was before 1950, and make the synopsis say "classic literature". Not very realistic, I know. Not all books written prior to 1950 are classics. In fact, most of them are not. But we're only doing this for illustration purposes, so, as they say in the literary world, enhance you willing suspension of disbelief, and just go with it.
 
 To do this, we would first have to generate an RQL statement to select such books:
-```
-PublishDate<01/01/1950&Synopsis=null
-```
+<pre><code>PublishDate&lt;01/01/1950&amp;Synopsis=null
+</code></pre>
 This RQL statement will select all the books whose publish date was before January 1, 1950 (PublishDate<01/01/1950), and (&) whose Synopsis is null (Synopsis=null). In the incoming model, we would have set the Synopsis value to "classic literature". 
 
 But what about the title? We only care to update the synopsis, so the title in our model is likely to be null. But whatever value it is, we don't want to set the title of every book published before 1950 with a null synopsis to that value. We want to leave the title value alone. Likewise, we don't want to change the publish date or the category either. To accomplish our task, we add a select statement to the RQL.
-```
-PublishDate<01/01/1950&Synopsis=null&select(Synopsis)
-```
+<pre><code>
+PublishDate&lt;01/01/1950&amp;Synopsis=null&amp;select(Synopsis)
+</code></pre>
 The select statement, in the case of an update, tells us we only want to update the values included in the select statement (in this case, we only update the synopsis column). All the other columns are to be left unchanged.
 
 In the end, this is the SQL statement that will be generated from this RQL statement:
-```
-UPDATE [dbo].[Books]
+<pre><code>UPDATE [dbo].[Books]
    SET Synopsis = @P0
  WHERE PublishDate<@P1
    AND Synopsis IS NULL
-```
-Where the @P0 and @P1 represent SQL parameters, where the value of @P0 is 'classic literature' and the value of @P1 is '01/01/1950T00:00:00.000-0500'.
+</code></pre>
+Where the @P0 and @P1 represent SQL parameters, where the value of @P0 is 'classic literature' and the value of @P1 is '1950-01-01T00:00:00.000-0500'.
 
 What this means for our validation routine is we don't want to inspect the values of columns that are not going to be included in the update statement. We don't care, for example, what the value of Title is in our incoming model, because in this case, the Title value will never be used and won't have any effect on the operation.
 
