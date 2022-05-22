@@ -44,13 +44,13 @@ Description = "&lt;description here&gt;",
 
 You should replace the "&lt;description here&gt;" with a detailed description of your service. The description can include HTML code and inline styles, so you can make it look very professional. A good description will make your service easier to use for your customers.
 
-Also, you will notices several appSettings.json files, one for each environment your service will run in. The default implementation includes settings files for four environments:
+Also, you will notices several appSettings.json files, one for each environment your service will run in. The default implementation includes settings files for five environments:
 
-- **Development** - despite the name, this is the local environment, the one running on your computer.
-- **Dev** - a specialized development environment
-- **QA** - the QA environment
-- **Staging** - a Staging environment
-- **Production** - the Production environment
+- <b>Development</b> - despite the name, this is the local environment, the one running on your computer.
+- <b>Dev</b> - a specialized development environment
+- <b>QA</b> - the QA environment
+- <b>Staging</b> - a Staging environment
+- <b>Production</b> - the Production environment
 
 If your setup doesn't include one of these environments, you can simply delete the appSettings files that don't apply, or you could add others that do apply but aren't included in the default implementation. One of the most important settings is the ConnectionStrings setting found in all the environment specific settings files.
 <details>
