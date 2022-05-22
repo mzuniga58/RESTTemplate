@@ -40,7 +40,9 @@ It doesn't look like much yet, as we nave not yet defined any resources or endpo
 
 There are some settings you will want to set at this point. In the <b>program.cs</b> file, on line 115, you will see this code:
 
+<pre><code>
 Description = "&lt;description here&gt;",
+</code></pre>
 
 You should replace the "&lt;description here&gt;" with a detailed description of your service. The description can include HTML code and inline styles, so you can make it look very professional. A good description will make your service easier to use for your customers.
 
