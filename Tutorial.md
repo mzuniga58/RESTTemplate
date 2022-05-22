@@ -57,13 +57,12 @@ If your setup doesn't include one of these environments, you can simply delete t
 <details>
 <summary>Instructions for setting the Default Conntection String</summary>
 <p>You need to change the <b>DefaultConnection</b> string in the appSettings&lt;environment&gt;.json file to the connection string appropriate to that environment.<p>
-<pre>
-  "ConnectionStrings": {
+<pre><code>  "ConnectionStrings": {
     //	To do: Replace the following with the database connection string suited to your
     //		   Database server in your QA environment.
     "DefaultConnection": "Server=localdb;Database=master;Trusted_Connection=True;"
   },
-</pre>
+</code></pre>
 </details>
 Collections are returned wrapped in a <b>PagedSet<></b> class. That <b>PagedSet</b> limits the number of records that can be returned in a single call. By default, that limit is set to the <b>BatchLimit</b> of 100 records. You can change this value to whatever you feel is appropriate to your environment. And lastly, the <b>Timeout</b> value, encoded as a <i>TimeSpan</i>, informs the service how long it will wait for a request to be fulfilled. If a request takes longer than this time limit, the request is canceled, and a timeout error is returned. The default is 5 seconds, but you can change that to whatever you feel is appropriate.
 <br>
@@ -75,7 +74,7 @@ Collections are returned wrapped in a <b>PagedSet<></b> class. That <b>PagedSet<
     "BatchLimit": 100,
     "Timeout": "00:00:05"
   }
-<</code>/pre>
+<</code></pre>
 </details>
 Before we expand our service, let's take a minute to go over some of the features. This REST service is created with a layered architecture. The three main layers are the Presentation Layer (also called the Resource Layer), the Orchestration Layer and the Repository Layer.
 
@@ -97,13 +96,13 @@ These generic functions are sufficient for simple resources. However, for more c
 
 One other thing about the orchestration layer is its use of RQL. The <b>RqlNode</b> is a compiled version of an RQL Statement. The RQL Statement can be provided by the user in the query portion of the Url (basically, everything after the ?), or it can be hardcoded in the presentation layer by the programmer. Here are two examples:
 
-var node = RqlNode.Parse(Request.QueryString.Value);
+<pre><code>var node = RqlNode.Parse(Request.QueryString.Value);
 var node = RqlNode.Parse($"Author={authorId});
-
+</code></pre>
 The first example compiles the query string of the requested Url into an <b>RqlNode</b> object. The second takes the RQL Statement "Author=nnn", and compiles it into an <b>RqlNode</b> object. The <b>RqlNode</b> object contains a structured representation of the statement, or a statement of NOOP if there is no statement. RqlNode.Parse("") will return an <b>RqlNode</b> of NOOP, for example. RQL statments can be simple, like the one shown above, or they can become quite complex. 
 
-(in(AuthorId,{auth1},{auth2},{auth3})&category=Scifi)|(like(AuthorName,T*)&category=Fantasy)&select(bookTitle,pubishDate,AuthorName)&limit(1,20)
-
+<pre><code>(in(AuthorId,{auth1},{auth2},{auth3})&category=Scifi)|(like(AuthorName,T*)&category=Fantasy)&select(bookTitle,pubishDate,AuthorName)&limit(1,20)
+</code></pre>
 This RQL statement will return the collection of books who where written by either *auth1*, *auth2* or *auth3* (these are Author Ids) and whose category is Scifi, OR any Fantasy book written by an auther whose name beings with 'T' (i.e., Thomson, Tiller, Tanner, etc.). It limits the results to include only the book title, the publish date of the book and the authorname, and it gives you only the first 20 results.
 
 For more information on RQL syntax, look here: enter link here
@@ -118,7 +117,7 @@ Consequently, because we have resource models and entity mModels, we need a way 
 It is worth noting that a repository layer need not referene a database. Sometimes, a repository layer will be used to interact with a foreign service, or even interact with a file system or any other type of device. At present, the REST Service Wizard only provides support for database oriented repositories, but that doesn't mean you can't include other types of repositories in your service. Neither does it mean that the repository is limited to just the pre-configured generic functions. The author can add new functions to the repository as needed to support custom requirements. 
 
 <h2>Extending our Service</h2>
-Before we begin to extend our service, we will need a database to hold all of our book and authors information. Since, at this time, we only support SQL Server, we have a database definition, located at [Bookstore.sql](https://github.com/mzuniga58/RESTTemplate/blob/main/Scripts/Bookstore.sql). 
+Before we begin to extend our service, we will need a database to hold all of our book and authors information. Since, at this time, we only support SQL Server, we have a database definition, located at <a href="https://github.com/mzuniga58/RESTTemplate/blob/main/Scripts/Bookstore.sql">Boookstore.sql</a>. 
 
 Open Microsoft SQL Server Management Studio and create a database called Bookstore. Then, open the above file in Microsoft SQL Server Management Studio while connected to that database, and run it. It will create the Bookstore database we will be using in this tutorial.
 
@@ -173,8 +172,7 @@ The generator will now generate an enum entity model for you.
 
 <details>
 <summary>The generated Category enum</Summary>
-<pre><code>
-using System;<br>
+<pre><code>using System;<br>
 using System.Collections.Generic;<br>
 using Tense;<br>
 <br>
@@ -249,8 +247,7 @@ Hit OK to render the new class.
 
 <details>
 <summary>The generated EBook class</Summary>
-<pre><code>
-using System;<br>
+<pre><code>using System;<br>
 using System.Collections.Generic;<br>
 using Tense;<br>
 <br>
@@ -308,8 +305,7 @@ This time, a list of entity models appears. Notice that the <b>Category</b> clas
 
 <details>
 <summary>The generated Resource model</Summary>
-<pre><code>
-using Tense;<br>
+<pre><code>using Tense;<br>
 using Tense.Rql;<br>
 using Microsoft.AspNetCore.Mvc.ModelBinding;<br>
 using Bookstore.Orchestration;<br>
@@ -432,13 +428,12 @@ Notice that the new resource model looks pretty much like we'd expect, it has me
 Inside our database model books are grouped by category, but in the real world, the world our customers live in, they prefer to think of this grouping as genres. So, to make our customers happy, let's change the name of this member from CategoryId to Genre.
 
 Change the line of code from
-```
-public Category CategoryId { get; set; }
-```
+
+<pre><code>public Category CategoryId { get; set; }
+</code></pre>
 to
-```
-public Category Genre { get; set; }
-```
+<pre><code>public Category Genre { get; set; }
+</code></pre>
 There, now we are using our Category enum to represent the genre for the book. It's worth noting that this is not an uncommon exercise. Don't take the REST Wizard's word for what any resource model column should be named. Don't take the word of the database either. Make the names meaningful to your customer. Little things like this often make the difference between good software and great software.
 
 Also notice that at the bottom we have three pre-defined methods for validating a book model.
