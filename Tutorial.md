@@ -3,17 +3,16 @@ Eventually, I will place this template on the Microsoft Store, so that it can be
 
 <h2>Creating a REST Service</h2>
 Once installed, open Visual Studio and select <b>Create a new project</b> from the initial popup window. When the <i>Create a new project</i> dialog appears, select <b>WebAPI</b> in the project types dropdown on the top right side of the dialog. When you do, you will see an entry for <b>REST Service (.Net Core)</b> option, with the blue and white MZ logo next to it.
-<br>
+<br><br>
 <img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateAService.png"
      alt="Create a new Project"
      style="float: left; margin-right: 10px;" />
 
-
-![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateAService.png "Create a new project")
-
 Selet that entry and press <b>next</b>. When you do, the standard Visual Studio <i>Create a project</i> dialog appears. We're going to create a bookstore service that will list books and their authors, so in the Project name field, enter <b>Bookstore</b> and press <b>create</b>. When you do, you will see the REST Service Wizard dialog.
-<br>
-![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/RESTServiceWizard.png "REST Service Wizard dialog")
+<br><br>
+<img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/RESTServiceWizard.png"
+     alt="REST Service Wizard dialog"
+     style="float: left; margin-right: 10px;" />
 
 When you first open this dialog, the <i>Your name</i>, <i>Email</i> and <i>Project Url</i> fields will be blank. Once you fill them in, they will be pre-populated the next time you run this wizard. All three fields contain information that will be placed in the Swagger document of your project, so do fill them in with meaningful information. In my case, I have filled them in with my name, my email address, and the Url to my GitHub home page.
 
@@ -26,21 +25,24 @@ Next you can choose the .NET Version you wish to build your service in. At prese
 
 However, at present, I only have support for SQL Server. You have three other options, all of which are checked by default.
 
-- **Use OAuth Authentication** - this choice allows your sevice to be protected by OAuth. You will need an OAuth identity provider to take advantage of this option. In this case, I will leave it checked, but we won't really be using it. Nevertheless, you will see how it could be used. Feel free to use it if you do have access to an identity provider.
-- **Incorporate RQL** - **Resource Query Language (RQL)** is a query language designed for use in URIs with object style data structures. The language provides powerful filtering capabilities to your endpoints.
-- **Incorporate HAL** - **Hypertext Application Language (HAL)** is a simple format that gives a consistent and easy way to hyperlink between resources in your API.
+- <b>Use OAuth Authentication</b> - this choice allows your sevice to be protected by OAuth. You will need an OAuth identity provider to take advantage of this option. In this case, I will leave it checked, but we won't really be using it. Nevertheless, you will see how it could be used. Feel free to use it if you do have access to an identity provider.
+- <b>Incorporate RQL</b> - <b>Resource Query Language (RQL)</b> is a query language designed for use in URIs with object style data structures. The language provides powerful filtering capabilities to your endpoints.
+- <b>Incorporate HAL</b> - <b>Hypertext Application Language (HAL)</b> is a simple format that gives a consistent and easy way to hyperlink between resources in your API.
 
 Now, press Ok to generate your REST Service. Once it is generated, you can compile it and run it.
+<br><br>
+<img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/StarterService.png"
+     alt="Starter Service"
+     style="float: left; margin-right: 10px;" />
 
-![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/StarterService.png "Starter Service")
 
 It doesn't look like much yet, as we nave not yet defined any resources or endpoints. Nevertheless, you can see the information about yourself and the project in the top-left corner under the title, and users can click on your name to send you email, or click on the website link to visit your website. You can also see the authorize button. Clicking on this button will require you to enter an access token that you get from the identity provider to authorize the user to hit the various endpoints that require it. At this time, of course, we don't have any endpoints that reqire it, so you can igore that button for the time being.
 
-There are some settings you will want to set at this point. In the **program.cs** file, on line 115, you will see this code:
+There are some settings you will want to set at this point. In the <b>program.cs</b> file, on line 115, you will see this code:
 ```
-        Description = "<description here>",
+        Description = "&lt;description here&gt;",
 ```
-You should replace the "\<description here\>" with a detailed description of your service. The description can include HTML code and inline styles, so you can make it look very professional. A good description will make your service easier to use for your customers.
+You should replace the "&lt;description here&gt;" with a detailed description of your service. The description can include HTML code and inline styles, so you can make it look very professional. A good description will make your service easier to use for your customers.
 
 Also, you will notices several appSettings.json files, one for each environment your service will run in. The default implementation includes settings files for four environments:
 
