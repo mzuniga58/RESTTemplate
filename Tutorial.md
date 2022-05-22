@@ -164,7 +164,7 @@ The generator will now generate an enum entity model for you.
 
 <details>
 <summary>The generated Category enum</Summary>
-<pre>
+<div>
 using System;<br>
 using System.Collections.Generic;<br>
 using Tense;<br>
@@ -228,7 +228,7 @@ namespace Bookstore.Models.EntityModels<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ScienceFiction = 10<br>
 &nbsp;&nbsp;&nbsp;&nbsp;}<br>
 }
-</pre>
+</div>
 </details>
 You notice that the generator has added some annotations to further describe the table. The **Table** attribute tells us that this model is for the Categories table under the dbo schema on a SQL Server. That's the only annotation you will get for an enum table. Notice it is also using the **Tense** namespace. **Tense** is a nuget package that contains the definition for the Table attribute, and the Member attribute we will use later. That nuget package was already included for you when you first created the RESET Service project.
 
