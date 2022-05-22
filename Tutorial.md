@@ -160,8 +160,11 @@ When you select that table, the "Render as Enum" checkbox becomes enabled. If yo
 
 We know we want Category to be an enum, so select that table, check the "Render as Enum" checkbox and hit OK.
 
-The generator will now generate an enum entity model for you. The resulting code should look like this:
-```
+The generator will now generate an enum entity model for you. 
+
+<details>
+<summary>The generated enum Category</Summary>
+<pre>
 using System;
 using System.Collections.Generic;
 using Tense;
@@ -225,7 +228,8 @@ namespace Bookstore.Models.EntityModels
 		ScienceFiction = 10
 	}
 }
-```
+</pre>
+</details>
 You notice that the generator has added some annotations to further describe the table. The **Table** attribute tells us that this model is for the Categories table under the dbo schema on a SQL Server. That's the only annotation you will get for an enum table. Notice it is also using the **Tense** namespace. **Tense** is a nuget package that contains the definition for the Table attribute, and the Member attribute we will use later. That nuget package was already included for you when you first created the RESET Service project.
 
 Okay, so now we have the **Category** enumerator defined. We needed to do that one first, because it will be used in our next set of classes. So, let's create something a bit more interesting. Let's create an entity/resource model pair for some data we do wish to manipulate. Let's create an **EBook** entity model based off the **Books** database table.
