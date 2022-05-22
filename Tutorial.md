@@ -167,7 +167,7 @@ The generator will now generate an enum entity model for you.
 
 <details>
 <summary>The generated Category enum</Summary>
-<p style="background-color: rgb(50, 50, 50);">
+<div style="background-color:#eeeeee;">
 using System;<br>
 using System.Collections.Generic;<br>
 using Tense;<br>
@@ -231,61 +231,64 @@ namespace Bookstore.Models.EntityModels<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ScienceFiction = 10<br>
 &nbsp;&nbsp;&nbsp;&nbsp;}<br>
 }
-</p>
+</div>
 </details>
-You notice that the generator has added some annotations to further describe the table. The **Table** attribute tells us that this model is for the Categories table under the dbo schema on a SQL Server. That's the only annotation you will get for an enum table. Notice it is also using the **Tense** namespace. **Tense** is a nuget package that contains the definition for the Table attribute, and the Member attribute we will use later. That nuget package was already included for you when you first created the RESET Service project.
+You notice that the generator has added some annotations to further describe the table. The <b>Table</b> attribute tells us that this model is for the Categories table under the dbo schema on a SQL Server. That's the only annotation you will get for an enum table. Notice it is also using the <b>Tense</b> namespace. <b>Tense</b> is a nuget package that contains the definition for the <b>Table</b> attribute, and the <b>Member</b> attribute we will use later. That nuget package was already included for you when you first created the REST Service project.
 
-Okay, so now we have the **Category** enumerator defined. We needed to do that one first, because it will be used in our next set of classes. So, let's create something a bit more interesting. Let's create an entity/resource model pair for some data we do wish to manipulate. Let's create an **EBook** entity model based off the **Books** database table.
+Okay, so now we have the <b>Category</b> enumerator defined. We needed to do that one first, because it will be used in our next set of classes. So, let's create something a bit more interesting. Let's create an entity/resource model pair for some data we do wish to manipulate. Let's create an <b>EBook</b> entity model based off the <b>Books</b> database table.
 
-Once again, right-click on the **EntityModels** folder, select Add REST Entity Model, enter **EBook** as the name of the class. Then, in the Entity Model Generator dialog (this time, your SQL Server you used last time is already pre-populated and selected), choose the **Bookstore** database and select the **Books** table. We don't want an enum this time, so we want to leave the "Render as Enum" checkbox blank. In this case, you couldn't select it if you tried, because the **Books** table doesn't have the structure suitable for an enum. That "Render as Enum" check box will be unchecked, and it will be disabled.
+Once again, right-click on the <b>EntityModels</b> folder, select <i>Add REST Entity Model</i>, enter <b>EBook</b> as the name of the class. Then, in the Entity Model Generator dialog (this time, your SQL Server you used last time is already pre-populated and selected), choose the <b>Bookstore</b> database and select the <b>Books</b> table. We don't want an enum this time, so we want to leave the "Render as Enum" checkbox blank. In this case, you couldn't select it if you tried, because the <b>Books</b> table doesn't have the structure suitable for an enum. That "Render as Enum" check box will be unchecked, and it will be disabled.
 
 Hit OK to render the new class. 
 
-```
-using System;
-using System.Collections.Generic;
-using Tense;
-
-namespace Bookstore.Models.EntityModels
-{
-	///	<summary>
-	///	EBook
-	///	</summary>
-	[Table("Books", Schema = "dbo", DBType = "SQLSERVER")]
-	public class EBook
-	{
-		///	<summary>
-		///	BookId
-		///	</summary>
-		[Member(IsPrimaryKey = true, IsIdentity = true, AutoField = true, IsIndexed = true, IsNullable = false, NativeDataType="int")]
-		public int BookId { get; set; }
-
-		///	<summary>
-		///	Title
-		///	</summary>
-		[Member(IsNullable = false, Length = 50, IsFixed = false, NativeDataType="varchar")]
-		public string Title { get; set; } = string.Empty;
-
-		///	<summary>
-		///	PublishDate
-		///	</summary>
-		[Member(IsNullable = false, NativeDataType="datetime")]
-		public DateTime PublishDate { get; set; } = DateTime.UtcNow;
-
-		///	<summary>
-		///	CategoryId
-		///	</summary>
-		[Member(IsIndexed = true, IsForeignKey = true, ForeignTableName="Categories", IsNullable = false, NativeDataType="int")]
-		public int CategoryId { get; set; }
-
-		///	<summary>
-		///	Synopsis
-		///	</summary>
-		[Member(IsNullable = true, IsFixed = false, NativeDataType="varchar")]
-		public string? Synopsis { get; set; }
-	}
+<details>
+<summary>The generated EBook class</Summary>
+<div style="background-color:#eeeeee;">
+using System;<br>
+using System.Collections.Generic;<br>
+using Tense;<br>
+<br>
+namespace Bookstore.Models.EntityModels<br>
+{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;EBook<br>
+&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;/summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[Table("Books", Schema = "dbo", DBType = "SQLSERVER")]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;public class EBook<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;BookId<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;/summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Member(IsPrimaryKey = true, IsIdentity = true, AutoField = true, IsIndexed = true, IsNullable = false, NativeDataType="int")]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public int BookId { get; set; }<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;Title<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;/summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Member(IsNullable = false, Length = 50, IsFixed = false, NativeDataType="varchar")]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public string Title { get; set; } = string.Empty;<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;PublishDate<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;/summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Member(IsNullable = false, NativeDataType="datetime")]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public DateTime PublishDate { get; set; } = DateTime.UtcNow;<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;CategoryId<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;/summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Member(IsIndexed = true, IsForeignKey = true, ForeignTableName="Categories", IsNullable = false, NativeDataType="int")]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public int CategoryId { get; set; }<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;Synopsis<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;/summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Member(IsNullable = true, IsFixed = false, NativeDataType="varchar")]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public string? Synopsis { get; set; }<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
 }
-```
+</div>
+</details>
 As you can see, it is a one-to-one mapping to the database table with annotactions. We have the **Table** annotation as we did with the **Category** enum. We also have **Member** annotations on each member, telling us if the member represents a primary key, or a foreign key. It also tells us if the member can be null, what Database Data type it is, and so forth.
 
 ### Adding a Resource Model ###
