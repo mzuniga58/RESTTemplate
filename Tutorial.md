@@ -3,14 +3,14 @@ Eventually, I will place this template on the Microsoft Store, so that it can be
 
 <h2>Creating a REST Service</h2>
 Once installed, open Visual Studio and select <b>Create a new project</b> from the initial popup window. When the <i>Create a new project</i> dialog appears, select <b>WebAPI</b> in the project types dropdown on the top right side of the dialog. When you do, you will see an entry for <b>REST Service (.Net Core)</b> option, with the blue and white MZ logo next to it.
-
+<br>
 ![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateAService.png "Create a new project")
 
 Selet that entry and press <b>next</b>. When you do, the standard Visual Studio <i>Create a project</i> dialog appears. We're going to create a bookstore service that will list books and their authors, so in the Project name field, enter <b>Bookstore</b> and press <b>create</b>. When you do, you will see the REST Service Wizard dialog.
-
+<br>
 ![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/RESTServiceWizard.png "REST Service Wizard dialog")
 
-When you first open this dialog, the *Your name*, *Email* and *Project Url* fields will be blank. Once you fill them in, they will be pre-populated the next time you run this wizard. All three fields contain information that will be placed in the Swagger document of your project, so do fill them in with meaningful information. In my case, I have filled them in with my name, my email address, and the Url to my GitHub home page.
+When you first open this dialog, the <i>Your name</i>, <i>Email</i> and <i>Project Url</i> fields will be blank. Once you fill them in, they will be pre-populated the next time you run this wizard. All three fields contain information that will be placed in the Swagger document of your project, so do fill them in with meaningful information. In my case, I have filled them in with my name, my email address, and the Url to my GitHub home page.
 
 Next you can choose the .NET Version you wish to build your service in. At present, the only option is .NET 6.0. In the near future, I will be adding support for .NET 7.0 and as time goes on, support for any newer versions that Microsoft produces. You can also choose the database technology that your service will use. There are four options:
 
