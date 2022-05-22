@@ -1,12 +1,12 @@
 <h1>REST Service Wizard Tutorial</h1>
-Eventually, I will place this template on the Microsoft Store, so that it can be downloaded directly in Visual Studio. However, until then, you will need to download this repository and build the project. I suggest you build it in release mode, but either release or debug will work. Once compiled, using the standard windows explorer, navigate to <i>&period;\RESTTemplate\RESTInstaller\bin\Release</i> In that folder you will find the file <b>RESTInstaller.vsix</b>. Double click on that file to install the Visual Studio extension. Note, you should shut down all instances of Visual Studio before installing.
+Eventually, I will place this template on the Microsoft Store, so that it can be downloaded directly in Visual Studio. However, until then, you will need to download this repository and build the project. I suggest you build it in release mode, but either release or debug will work. Once compiled, using the standard windows explorer, navigate to <i>&period;\RESTTemplate\RESTInstaller\bin\Release</i>. In that folder you will find the file <b>RESTInstaller.vsix</b>. Double click on that file to install the Visual Studio extension. Note, you should shut down all instances of Visual Studio before installing.
 
-## Creating a REST Service ##
-Once installed, open Visual Studio and select **Create a new project** from the initial popup window. When the "Create a new project" dialog appears, select **WebAPI** in the project types dropdown on the top right side of the dialog. When you do, you will see an entry for REST Service (.Net Core) option, with the blue and white MZ logo next to it.
+<h2>Creating a REST Service</h2>
+Once installed, open Visual Studio and select <b>Create a new project</b> from the initial popup window. When the <i>Create a new project</i> dialog appears, select <b>WebAPI</b> in the project types dropdown on the top right side of the dialog. When you do, you will see an entry for <b>REST Service (.Net Core)</b> option, with the blue and white MZ logo next to it.
 
 ![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateAService.png "Create a new project")
 
-Selet that entry and press **next**. When you do, the standard Visual Studio "Create a project" dialog appears. We're going to create a bookstore service that will list books and their authors, so in the Project name field, enter "Bookstore" and press **create**. When you do, you will see the REST Service Wizard dialog.
+Selet that entry and press <b>next</b>. When you do, the standard Visual Studio <i>Create a project</i> dialog appears. We're going to create a bookstore service that will list books and their authors, so in the Project name field, enter <b>Bookstore</b> and press <b>create</b>. When you do, you will see the REST Service Wizard dialog.
 
 ![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/RESTServiceWizard.png "REST Service Wizard dialog")
 
