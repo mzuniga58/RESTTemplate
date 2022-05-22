@@ -1,10 +1,8 @@
 # REST Service Wizard Tutorial #
 Eventually, I will place this template on the Microsoft Store, so that it can be downloaded directly in Visual Studio. However, until then, you will need to download this repository and build the project. I suggest you build it in release mode, but either release or debug will work. Once compiled, using the standard windows explorer, navigate to 
-
 ```
 .\RESTTemplate\RESTInstaller\bin\Release
 ```
-
 In that folder you will find the file **RESTInstaller.vsix**. Double click on that file to install the Visual Studio extension. Note, you should shut down all instances of Visual Studio before installing.
 
 ## Creating a REST Service ##
@@ -51,7 +49,9 @@ Also, you will notices several appSettings.json files, one for each environment 
 - **Staging** - a Staging environment
 - **Production** - the Production environment
 
-If you setup doesn't include one of these environments, you can simply delete the appSettings files that don't apply, or you could add others that do apply but aren't included in the default implementation. One of the most important settings is the ConnectionStrings setting found in all the environment specific settings files.
+If your setup doesn't include one of these environments, you can simply delete the appSettings files that don't apply, or you could add others that do apply but aren't included in the default implementation. One of the most important settings is the ConnectionStrings setting found in all the environment specific settings files.
+<detail>
+<summary>Instructions for setting the Default Conntection String</summary>
 ```
   "ConnectionStrings": {
     //	To do: Replace the following with the database connection string suited to your
@@ -59,6 +59,7 @@ If you setup doesn't include one of these environments, you can simply delete th
     "DefaultConnection": "Server=localdb;Database=master;Trusted_Connection=True;"
   },
 ```
+</detail>
 You need to change the DefaultConnection string to the connection string appropriate to that environment. Right below that is the service settings:
 ```
   "ServiceSettings": {
