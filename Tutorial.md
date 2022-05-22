@@ -433,23 +433,23 @@ Inside our database model books are grouped by category, but in the real world, 
 
 Change the line of code from
 ```
-		public Category CategoryId { get; set; }
+public Category CategoryId { get; set; }
 ```
 to
 ```
-		public Category Genre { get; set; }
+public Category Genre { get; set; }
 ```
 There, now we are using our Category enum to represent the genre for the book. It's worth noting that this is not an uncommon exercise. Don't take the REST Wizard's word for what any resource model column should be named. Don't take the word of the database either. Make the names meaningful to your customer. Little things like this often make the difference between good software and great software.
 
 Also notice that at the bottom we have three pre-defined methods for validating a book model.
 
-- **CanUpdateAsync** - this method will be called just before we attempt to update a book in the datastore.
-- **CanAddAsync** - this method will be called just before we attempt to add a new book to the datastore.
-- **CanDeleteAsync** - this method will be called just before we attempt to delete a book from the datastore.
+- <b>CanUpdateAsync</b> - this method will be called just before we attempt to update a book in the datastore.
+- <b>CanAddAsync</b> - this method will be called just before we attempt to add a new book to the datastore.
+- <b>CanDeleteAsync</b> - this method will be called just before we attempt to delete a book from the datastore.
 
 Let's look at each of these a bit more closely.
 
-In the **CanUpdateAsync** function, we have a reference to the <b>IOrchestrator</b> interface, an <b>RqlNode</b> and a <b>ModelStateDictionary</b> list of errors. We begin by clearing the list of errors. It should be empty anyway, but it's alwasy a good practice to make sure. During the validation process, if we find anything amiss, we will add the error to the list of errors. If, at the end of the validation process, there are any errors present in our list, then the update will be abandoned and the service will return a BadRequest, listing all the errors we found.
+In the <b>CanUpdateAsync</b> function, we have a reference to the <b>IOrchestrator</b> interface, an <b>RqlNode</b> and a <b>ModelStateDictionary</b> list of errors. We begin by clearing the list of errors. It should be empty anyway, but it's alwasy a good practice to make sure. During the validation process, if we find anything amiss, we will add the error to the list of errors. If, at the end of the validation process, there are any errors present in our list, then the update will be abandoned and the service will return a BadRequest, listing all the errors we found.
 
 In RQL, the <b>RqlNode</b> is going to contain the information needed to create the WHERE clause in the SQL Statement that will eventually be generated. In other words, the <b>RqlNode</b> tells us which book, or books, are to be updated. The first question we have in our update validation is, does this <b>RqlNode</b> actually specify any books to be updated?
 
@@ -457,11 +457,11 @@ To answer this question, we make this call
 ```
 var existingValues = await orchestrator.GetResourceCollectionAsync<Books>(node);
 ```
-This call tells the orchestrator to get the collection of books that matches the <b>RqlNode</b> specification. If no books are returned, then there are no books that match the specification, and therefore, there is nothing to update. IF the **Count** property is zero, then there are no books to update, and we record that as an error. It is a BadRequest, because the user has asked us to update books that don't exist.
+This call tells the orchestrator to get the collection of books that matches the <b>RqlNode</b> specification. If no books are returned, then there are no books that match the specification, and therefore, there is nothing to update. IF the <b>Count</b> property is zero, then there are no books to update, and we record that as an error. It is a BadRequest, because the user has asked us to update books that don't exist.
 
 In RQL, an update does not have to be limited to one single resource. The update can update many resources at once. But when you update many resources, you don't want them all to be the same, you typically just want one or two columns to be the same. Now, the book design we have doesn't really lend itself to mass updates, but there are database schemas that do. We can however, for the sake of understanding the concept, conjure up a scenario where we would want to do multiple updates, albiet, not a very realistic one for books.
 
-In the **Books** table, the synopsis can be null. So, given our list of books, we might want to update all books with a null synopsis, whose publish date was before 1950, and make the synopsis say "classic literature". Not very realistic, I know. Not all books written prior to 1950 are classics. In fact, most of them are not. But we're only doing this for illustration purposes, so, as they say in the literary world, enhance you willing suspension of disbelief, and just go with it.
+In the <b>Books</b> table, the synopsis can be null. So, given our list of books, we might want to update all books with a null synopsis, whose publish date was before 1950, and make the synopsis say "classic literature". Not very realistic, I know. Not all books written prior to 1950 are classics. In fact, most of them are not. But we're only doing this for illustration purposes, so, as they say in the literary world, enhance you willing suspension of disbelief, and just go with it.
 
 To do this, we would first have to generate an RQL statement to select such books:
 ```
@@ -508,18 +508,18 @@ Finally, if we do have to check the validity of the Title, we do so in the enclo
 
 The validation routine is not intended to be considered complete. You can, and should, add your own business logic to it. For example, one bit of logic we may wish to add is to ensure that the new Title (it may, or may not have changed) does not conflict with any other books. We could implement a unique constraint on the book title member in our SQL definition, or we could ensure that uniqueness here with code. However you want to do it is up to you. In our design, the size of the synopsis is unlimited (well, limited to the maximum text size that SQL Server supports, which is 8,000 characters.) You might decide to limit it to something smaller, 2,000 characters say. 
 
-Notice that the select clause logic is missing from the **CanAddAsync** function. That is because the add function does not recognize RQL. You can put an RQL statement in there if you wish, but it will be ignored.
+Notice that the select clause logic is missing from the <b>CanAddAsync</b> function. That is because the add function does not recognize RQL. You can put an RQL statement in there if you wish, but it will be ignored.
 
 Likewise, in the delete validation, we do use the RQL statement to generate the WHERE clause, but the select statement is ignored. When deleting, we don't care about individual columns, we're going to delete them anyway. We just want to know which records to delete.
 
 The validation routines aren't limited to just the object being validated. You can also include dependency validations. For example, you may not wish to delete any books if there are existing reviews assigned to them. You may require the user to first delete all reviews associated with a book before you delete the book. Or, in your orchestration, you can delete all reviews assigned to a book before you delete the book itself. It's up to you how you want to design your system.
 
-### Mapping Between Resource and Entity ###
+<h3>Mapping Between Resource and Entity</h3>
 When we eventually get to writing our controller, the user is going to give us a resource model. But, the repository doesn't understand resource models. It understands entity models. It goes without saying then, that we need a method to translate between entity and resource models. We need a Resource &rArr; Entity transformation, and we need an Entity &rArr; Resource translation.
 
 To do this, we use Automapper. Let's create the translation routines for Books.
 
-Right-click on the Mapping folder. When you do, you will see an entry called Add REST Mapping... Choose that entry. You will be given a dialog to enter the new class name. Call it BooksProfile. Next you'll be presented with a dialog that contains a dropdown list of all the resource models. Select **Books** and press OK.
+Right-click on the Mapping folder. When you do, you will see an entry called Add REST Mapping... Choose that entry. You will be given a dialog to enter the new class name. Call it BooksProfile. Next you'll be presented with a dialog that contains a dropdown list of all the resource models. Select <b>Books</b> and press OK.
 
 ![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateMapping.png "Create Mapping")
 
@@ -570,14 +570,14 @@ namespace Bookstore.Mapping
 }
 </code></pre>
 </details>
-This is a standard Automapper mapping. The CreateMap<source,destination> function translates the source type to the destination type. The first translations translates a <b>Book</b> resource model to an <b>EBook</b> entity Model. The second translations does the opposite, translating an <b>EBook</b> entity model to a <b>Book</b> resource model. Notice that the **CategoryId** is mapped to the **Genre** column in both transformations.
+This is a standard Automapper mapping. The CreateMap&lt;source,destination&gt; function translates the source type to the destination type. The first translations translates a <b>Book</b> resource model to an <b>EBook</b> entity Model. The second translations does the opposite, translating an <b>EBook</b> entity model to a <b>Book</b> resource model. Notice that the **CategoryId** is mapped to the **Genre** column in both transformations.
 
 Now that we have our models, and our translations, we can finally create some endpoints.
 
-### Creating a Controller ###
-Endpoints live in controllers, and the standard naming convention for a controller is resourcesController. That is to say, the plural name of the resource followed by "Controller." We have our book models so now we need to create the **BooksController**.
+<h3>Creating a Controller</h3>
+Endpoints live in controllers, and the standard naming convention for a controller is resourcesController. That is to say, the plural name of the resource followed by "Controller." We have our book models so now we need to create the <b>BooksController</b>.
 
-Right-click on the **Controllers** folder, and select "Add REST Controller...". For the class name, enter **BooksController** and press OK. The Controller Generator dialog appears.
+Right-click on the <b>Controllers</b> folder, and select "Add REST Controller...". For the class name, enter <b>BooksController</b> and press OK. The Controller Generator dialog appears.
 
 ![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateController.png "Create Controller")
 
@@ -594,11 +594,11 @@ The top dropdown box contains the list of resource models. Select <b>Book</b>. T
 ```
 The "Policy" entry defines the name of the policy. It is these names you see in the dropdown. The "Scopes" entry defines the list of scopes that this policy supports. Given an access token (which you obtain from your identity provider) that contains at least one of these scopes, then this policy will allow you to access the function. If your access token does not contain any of these scopes, you will not be allowed to access the function, and the service will return **Unauthorized**.
 
-When this wizard creates the controller, all of the endpoints will be protected with the policy you choose. Or, you can choose the default value of **anonymous**. The **anonymous** policy allows anyone to hit your endpoint. 
+When this wizard creates the controller, all of the endpoints will be protected with the policy you choose. Or, you can choose the default value of <b>anonymous</b>. The <b>anonymous</b> policy allows anyone to hit your endpoint. 
 
-Not all endpoints in a controller must have the same policy. You can pick and choose. For example, you might set your GET functions to **anonymous**, allowing anyone to read data from your server, while setting the PUT, POST and DELETE funtions to some other policy you define. That means, anyone can read the data, but they will need a specific access token to manipulate the data.
+Not all endpoints in a controller must have the same policy. You can pick and choose. For example, you might set your GET functions to <b>anonymous</b>, allowing anyone to read data from your server, while setting the PUT, POST and DELETE funtions to some other policy you define. That means, anyone can read the data, but they will need a specific access token to manipulate the data.
 
-For now, let's just leave the policy at **anonymous**, letting anyone use our service.
+For now, let's just leave the policy at <b>anonymous</b>, letting anyone use our service.
 
 Press OK to generate the controller. The resulting code should look like this...
 ```
@@ -871,14 +871,16 @@ But we can alter that by using some RQL. Let's try it again, only this time, in 
 ```
 limit(1,5)
 ```
-The limit clause of RQL has the syntax Limit(<start>,<pagesize>). This statement informs the service that you only want to return 5 books, starting with the first book. Run that, and you will see that the pagesize is now 5, and only the first 5 books were returned. To see the next 5 books, enter
+The limit clause of RQL has the syntax Limit(&lt;start&gt;,&lt;pagesize&gt;). This statement informs the service that you only want to return 5 books, starting with the first book. Run that, and you will see that the pagesize is now 5, and only the first 5 books were returned. To see the next 5 books, enter
 ```
 limit(5,5)
 ```
 We can also do some other things. Suppose we want the list of books that were published prior to 1960. To do that, enter the following RQL statement:
-```
-publishDate\<1/1/1960
-```
+
+<code>
+publishDate&lt;1/1/1960
+</code>
+
 Now, the returned value shows only those books that were published before 1960. How does this happen, you ask? Well, let's take a closer look. Here is the endpoint for getting a collection of books.
 ```
 		///	<summary>
@@ -993,7 +995,7 @@ and we tried to create an SQL Statement from that, it would create
 ```
 Genre='ScienceFiction'
 ```
-But placing that into the WHERE clause of a SQL Statement and trying to run it against our **Books** table would result in a SQL error, because the **Books** table has no column called *Genre*. Instead we need to translate that RQL statement into:
+But placing that into the WHERE clause of a SQL Statement and trying to run it against our <b>Books</b> table would result in a SQL error, because the <b>Books</b> table has no column called *Genre*. Instead we need to translate that RQL statement into:
 ```
 CategoryId=10
 ```
