@@ -50,7 +50,7 @@ Also, you will notices several appSettings.json files, one for each environment 
 - **Production** - the Production environment
 
 If your setup doesn't include one of these environments, you can simply delete the appSettings files that don't apply, or you could add others that do apply but aren't included in the default implementation. One of the most important settings is the ConnectionStrings setting found in all the environment specific settings files.
-<detail>
+<details>
 <summary>Instructions for setting the Default Conntection String</summary>
 ```
   "ConnectionStrings": {
@@ -59,7 +59,7 @@ If your setup doesn't include one of these environments, you can simply delete t
     "DefaultConnection": "Server=localdb;Database=master;Trusted_Connection=True;"
   },
 ```
-</detail>
+</details>
 You need to change the DefaultConnection string to the connection string appropriate to that environment. Right below that is the service settings:
 ```
   "ServiceSettings": {
