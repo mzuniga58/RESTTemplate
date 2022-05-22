@@ -308,8 +308,7 @@ This time, a list of entity models appears. Notice that the <b>Category</b> clas
 
 <details>
 <summary>The generated Resource model</Summary>
-<div style="background-color:#eeeeee;">
-using System;<br>
+<pre><code>
 using Tense;<br>
 using Tense.Rql;<br>
 using Microsoft.AspNetCore.Mvc.ModelBinding;<br>
@@ -425,7 +424,7 @@ namespace Bookstore.Models.ResourceModels<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
 &nbsp;&nbsp;&nbsp;&nbsp;}<br>
 }
-</div>
+</code></pre>
 </details>
 
 Notice that the new resource model looks pretty much like we'd expect, it has members for each column in the database. However, it has a member called CategoryId, and that member matches the CategoryId in the entity model. However, instead of an int, the CategoryId in our resource model is defined as a Category enum. And that's pretty much what we want, except for one little thing. 
