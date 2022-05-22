@@ -52,7 +52,7 @@ Also, you will notices several appSettings.json files, one for each environment 
 If your setup doesn't include one of these environments, you can simply delete the appSettings files that don't apply, or you could add others that do apply but aren't included in the default implementation. One of the most important settings is the ConnectionStrings setting found in all the environment specific settings files.
 <details>
 <summary>Instructions for setting the Default Conntection String</summary>
-<p>You need to change the DefaultConnection string in the appSettings&lt;environment&gt;.json file to the connection string appropriate to that environment.<p>
+<p>You need to change the <b>DefaultConnection</b> string in the appSettings&lt;environment&gt;.json file to the connection string appropriate to that environment.<p>
 <pre>
   "ConnectionStrings": {
     //	To do: Replace the following with the database connection string suited to your
@@ -61,15 +61,17 @@ If your setup doesn't include one of these environments, you can simply delete t
   },
 </pre>
 </details>
-Right below that is the service settings:
-```
+Collections are returned wrapped in a **PagedSet<>** class. That **PagedSet** limits the number of records that can be returned in a single call. By default, that limit is set to the "BatchLimit" of 100 records. You can change this value to whatever you feel is appropriate to your environment. And lastly, the "Timeout" value, encoded as a TimeSpan, informs the service how long it will wait for a request to be fulfilled. If a request takes longer than this time limit, the request is canceled, and a timeout error is returned. The default is 5 seconds, but you can change that to whatever you feel is appropriate.
+<details>
+<summary>Instructions for setting the <b>batchLimit</b> and <b>Timeout</b> values</summary>
+<p>These are also found in the appSettings&lt;environment&gt;.json file for each environment.</p>
+<pre>
   "ServiceSettings": {
     "BatchLimit": 100,
     "Timeout": "00:00:05"
   }
-```
-Collections are returned wrapped in a **PagedSet<>** class. That **PagedSet** limits the number of records that can be returned in a single call. By default, that limit is set to the "BatchLimit" of 100 records. You can change this value to whatever you feel is appropriate to your environment. And lastly, the "Timeout" value, encoded as a TimeSpan, informs the service how long it will wait for a request to be fulfilled. If a request takes longer than this time limit, the request is canceled, and a timeout error is returned. The default is 5 seconds, but you can change that to whatever you feel is appropriate.
-
+</pre>
+</details>
 Before we expand our service, let's take a minute to go over some of the features. This REST service is created with a layered architecture. The three main layers are the Presentation Layer (also called the Resource Layer), the Orchestration Layer and the Repository Layer.
 
 ## Presentation Layer ##
