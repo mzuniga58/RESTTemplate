@@ -947,8 +947,39 @@ Now, let's pull back the covers and see how the orchestration layer handles this
         }
 ```
 Most orchestrator functions follow one simple pattern:
-- Translate the Resource model request into an equilavent Entity model request
+- Translate the Resource model request into an equivalent Entity model request
 - Pass the entity model request to the repository layer
 - Obtain the Entity model results from the repository layer
 - Translate the entity model result into Resource model results
 - Return the Resource model results.
+This function is no different. Since we are given a Resource model, we first need to discover what Entity model coincides with it. That's easy to do, since all Resource models have the **EntityAttribute** in them, which specifies exactly that information. So, we extrat the **EntityAttribute** from the Resource model and discover the entity type. Now that we have both the entity type and the resource type, we need to translate the **RqlNode** from a Resource model query to an Entity model query.
+
+Remember that a Resource model may have members that are named differently than their Entity model counterparts. For example, our **Book** model contains the member *Genre*, which is a **Category** enumeration, but our entity model **EBook** contains no such member. Instead, it has a member called **CategoryId** defined as an int. Our mapping model that we generated handles the translation. When it sees the member *Genre* in our Resource model, it translates that to *CategoryId* in the entity model, and transforms the enumeration value to its corresponding int value.
+
+If we had this RQL Statement
+```
+Genre=ScienceFiction
+```
+and we tried to create an SQL Statement from that, it would create
+```
+Genre='ScienceFiction'
+```
+But placing that into the WHERE clause of a SQL Statement and trying to run it against our **Books** table would result in a SQL error, because the **Books** table has no column called *Genre*. Instead we need to translate that RQL statement into:
+```
+CategoryId-19
+```
+This is the statement the SQL server instance can understand and act upon. To do this, we use the _translator to do that translation.
+```
+var translatedNode = _translator.TranslateQueryR2E<T>(node);
+```
+The *translatedNode* is now an equivalent node to the original, but using Entity model members instead of Resource model members. Now that we have our translated node, we can call the repository layer to get our result.
+```
+var collection = await _repository.GetEntityCollectionAsync(entityType, translatedNode);
+```
+We now have our collection, but it is a collection of Entity models. We want a collection of Resource models. First, we do some checking, making sure values are not null and such (if any of those fail, we simply return an empty set), and then we create a Resource model version of our **PagedSet**. At this point, that **PagedSet** is empty. We then populate the numeric values from the original Entity model set, and finally, we translate the array of Entity models into an array of Resource models.
+```
+Items = (T[])_mapper.Map(itemsProperty.GetValue(collection), entityType.MakeArrayType(), typeof(T).MakeArrayType())
+```
+This is Automapper, and it uses the **BookProfile** class that we created to do that translation. Now we have our ResourceModel PagedSet, all we need to do is to return it.
+
+Finally, let's pull back the covers once more to see how the repository does it's work.
