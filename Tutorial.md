@@ -163,7 +163,7 @@ We know we want Category to be an enum, so select that table, check the "Render 
 The generator will now generate an enum entity model for you. 
 
 <details>
-<summary>The generated enum Category</Summary>
+<summary>The generated Category enum</Summary>
 <pre>
 using System;
 using System.Collections.Generic;
@@ -171,12 +171,12 @@ using Tense;
 
 namespace Bookstore.Models.EntityModels
 {
-	///	&lt;summary&gt;
-	///	Enumerates a list of Categories
-	///	&lt;/summary&gt;
-	[Table("Categories", Schema = "dbo", DBType = "SQLSERVER")]
-	public enum Category : int
-	{
+    ///	&lt;summary&gt;
+    ///	Enumerates a list of Categories
+    ///	&lt;/summary&gt;
+    [Table("Categories", Schema = "dbo", DBType = "SQLSERVER")]
+    public enum Category : int
+    {
 		///	<summary>
 		///	ActionAndAdventure
 		///	</summary>
