@@ -877,29 +877,22 @@ Here is the response:
   }
 }
 ```
-
 The actual response is bigger, and includes all the books in the table. We're only showing the first two here to conserve space. You will notice the "Count" field. The Count field tells you how many total resources are in the result set. If there were 10,000 books in our database, this number would be 10000. The next number tells you where in the set the first record resides. In this case, the start value is 1, so the first value in the collection is the first book in the entire set. The next value, pageSize, tells you how many books are included in this page. 
 
 As it happens, there are only 20 books in our example database, and since 20 is less than the maximum batch size of 100, you get the entire set.
 
 But we can alter that by using some RQL. Let's try it again, only this time, in the RQL parameter, enter:
-
 ```
 limit(1,5)
 ```
-
 The limit clause of RQL has the syntax Limit(<start>,<pagesize>). This statement informs the service that you only want to return 5 books, starting with the first book. Run that, and you will see that the pagesize is now 5, and only the first 5 books were returned. To see the next 5 books, enter
-
 ```
 limit(5,5)
 ```
-
 We can also do some other things. Suppose we want the list of books that were published prior to 1960. To do that, enter the following RQL statement:
-
 ```
 publishDate\<1/1/1960
 ```
-
 Now, the returned value shows only those books that were published before 1960. How does this happen, you ask? Well, let's take a closer look. Here is the endpoint for getting a collection of books.
 
 ```
@@ -930,32 +923,25 @@ Now, the returned value shows only those books that were published before 1960. 
 			return Ok(resourceCollection);
 		}
 ```
-
 When we make our call, swagger composes the Url like so:
-
 ```
 https://localhost:19704/books?publishDate%3C1%2F1%2F1960
 ```
-
 Let's url decode that link to see it better
-
 ```
 https://localhost:19704/books?publishDate<1/1/1960
 ```
-
 So, that is the Url we get in our request. First, we compile the query into an **RqlNode** object. The RQL is in the Url that the user sent. It's everything after the questoin mark.
 
 Now that we have an **RqlNode** representation of the RQL Statement, we want to validate it against our model. The **RqlNode**.Parse function produces an **RqlNode** that is model agnostic. For example, we could write this RQL Statement:
-
 ```
 Status=Active
 ```
-
 That is a perfectly valid RQL statement. The problem is, there is no such member as "Status" in our **Book** model, making that RQL Statement invalid for our purposes. So, to take care of that, we first create an empty **ModelStateDictionary**. The **ModelStateDictionary** will hold the collection of errors we discover during any validation. If there are any errors, we simply return *BadRequest* with the collection of errors we found and return that to the user.
 
 To see if all the members included in our **RqlNode** pertain to our model, we simply call the **ValidateMember<T>** function on the node. This function inspects all the PROPERTY nodes in the **RqlNode** and verifies that they are valid members of the \<T\> (in this case, \<**Book**\>) type. The function will return *true* if all the members it contains are valid members of the type; otherwise, it will return *false*. If it does return *false*, we simply return *BadRequest* with those errors.
 
-If the **RqlNode** is valid, then we call the orchestrator to do our work for us. WE call the generice **GetResourceCollectionAsync** function, passing the <Book> type, and passing the compiled **RqlNode**. That function returns our desired collection, which we simply pass back to the user with the OK (200) HTTP status code.
+If the **RqlNode** is valid, then we call the orchestrator to do our work for us. We call the generic **GetResourceCollectionAsync** function, passing the <Book> type, and passing the compiled **RqlNode**. That function returns our desired collection, which we simply pass back to the user with the OK (200) HTTP status code.
 
 Now, let's pull back the covers and see how the orchestration layer handles this request.
 
