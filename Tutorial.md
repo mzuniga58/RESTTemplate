@@ -479,13 +479,12 @@ Where the @P0 and @P1 represent SQL parameters, where the value of @P0 is 'class
 What this means for our validation routine is we don't want to inspect the values of columns that are not going to be included in the update statement. We don't care, for example, what the value of Title is in our incoming model, because in this case, the Title value will never be used and won't have any effect on the operation.
 
 So, the next thing we do in our validation code is to extract the select clause from the RQL statement. 
-```
-var selectNode = node.ExtractSelectClause();
-```
+<pre><code>var selectNode = node.ExtractSelectClause();
+</code></pre>
 There may not be a select clause in the statement, so the returned select clause may be null.
 
 Now, it time to check if the Title value is valid.
-```
+<pre><code>
 if (selectNode is null || (selectNode is not null && selectNode.SelectContains(nameof(Title))))
 {
 	if (string.IsNullOrWhiteSpace(Title))
@@ -493,7 +492,7 @@ if (selectNode is null || (selectNode is not null && selectNode.SelectContains(n
 	if (Title is not null && Title.Length > 50)
 		errors.AddModelError(nameof(Title), "Title cannot exceed 50 characters.");
 }
-```
+</code></pre>
 If the select statement is null then all columns in the table will be updated, and so we do have to check the validity of the Title member. If the select clause is not null, then we only have to check the validity of the Title member if the Title member is included in the select clause.
 
 Finally, if we do have to check the validity of the Title, we do so in the enclosed code. We verify that the Title is not null or composed entirely of whitespace. A book must have a title. Blank titles are not allowed. Finally, we only have room for 50 characters in the title column, so the title the user gives us must be 50 characters or less.
@@ -512,53 +511,54 @@ When we eventually get to writing our controller, the user is going to give us a
 To do this, we use Automapper. Let's create the translation routines for Books.
 
 Right-click on the Mapping folder. When you do, you will see an entry called Add REST Mapping... Choose that entry. You will be given a dialog to enter the new class name. Call it BooksProfile. Next you'll be presented with a dialog that contains a dropdown list of all the resource models. Select <b>Books</b> and press OK.
-
-![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateMapping.png "Create Mapping")
+<br><br>
+<img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateMapping.png"
+     alt="Create Mapping"
+     style="float: left; margin-right: 10px;" />
 
 <details>
 <summary>The generated Mapping code</Summary>
-<pre><code>
-using System;
-using System.Linq;
-using Microsoft.Extensions.Configuration;
-using System.Collections.Generic;
-using Bookstore.Models.EntityModels;
-using Bookstore.Models.ResourceModels;
-using AutoMapper;
-
-namespace Bookstore.Mapping
-{
-	///	<summary>
-	///	Book Profile for AutoMapper
-	///	</summary>
-	public class BookProfile : Profile
-	{
-		///	<summary>
-		///	Initializes the Book Profile
-		///	</summary>
-		public BookProfile()
-		{
-
-			//	Creates a mapping to transform a Book model instance (the source)
-			//	into a EBook model instance (the destination).
-			CreateMap<Book, EBook>()
-				.ForMember(destination => destination.BookId, opts => opts.MapFrom(source =>source.BookId))
-				.ForMember(destination => destination.Title, opts => opts.MapFrom(source =>source.Title))
-				.ForMember(destination => destination.PublishDate, opts => opts.MapFrom(source =>source.PublishDate.UtcDateTime))
-				.ForMember(destination => destination.CategoryId, opts => opts.MapFrom(source =>(int) source.Genre))
-				.ForMember(destination => destination.Synopsis, opts => opts.MapFrom(source =>source.Synopsis));
-
-			//	Creates a mapping to transform a EBook model instance (the source)
-			//	into a Book model instance (the destination).
-			CreateMap<EBook, Book>()
-				.ForMember(destination => destination.BookId, opts => opts.MapFrom(source => source.BookId))
-				.ForMember(destination => destination.Title, opts => opts.MapFrom(source => source.Title))
-				.ForMember(destination => destination.PublishDate, opts => opts.MapFrom(source => new DateTimeOffset(source.PublishDate).ToLocalTime()))
-				.ForMember(destination => destination.Genre, opts => opts.MapFrom(source => (Category) source.CategoryId))
-				.ForMember(destination => destination.Synopsis, opts => opts.MapFrom(source => source.Synopsis));
-
-		}
-	}
+<pre><code>using System;<br>
+using System.Linq;<br>
+using Microsoft.Extensions.Configuration;<br>
+using System.Collections.Generic;<br>
+using Bookstore.Models.EntityModels;<br>
+using Bookstore.Models.ResourceModels;<br>
+using AutoMapper;<br>
+<br>
+namespace Bookstore.Mapping<br>
+{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;Book Profile for AutoMapper<br>
+&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;/summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;public class BookProfile : Profile<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;the Book Profile<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;/summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public BookProfile()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Creates a mapping to transform a Book model instance (the source)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;into a EBook model instance (the destination).<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CreateMap<Book, EBook>()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.ForMember(destination =&gt; destination.BookId, opts =&gt; opts.MapFrom(source =&gt; source.BookId))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.ForMember(destination =&gt; destination.Title, opts =&gt; opts.MapFrom(source =&gt; source.Title))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.ForMember(destination =&gt; destination.PublishDate, opts =&gt; opts.MapFrom(source =&gt; source.PublishDate.UtcDateTime))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.ForMember(destination =&gt; destination.CategoryId, opts =&gt; opts.MapFrom(source =&gt;(int) source.Genre))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.ForMember(destination =&gt; destination.Synopsis, opts =&gt; opts.MapFrom(source =&gt; source.Synopsis));<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Creates a mapping to transform a EBook model instance (the source)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;into a Book model instance (the destination).<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CreateMap<EBook, Book>()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.ForMember(destination =&gt; destination.BookId, opts =&gt; opts.MapFrom(source =&gt; source.BookId))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.ForMember(destination =&gt; destination.Title, opts =&gt; opts.MapFrom(source =&gt; source.Title))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.ForMember(destination =&gt; destination.PublishDate, opts =&gt; opts.MapFrom(source =&gt; new DateTimeOffset(source.PublishDate).ToLocalTime()))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.ForMember(destination =&gt; destination.Genre, opts =&gt; opts.MapFrom(source =&gt; (Category) source.CategoryId))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.ForMember(destination =&gt; destination.Synopsis, opts =&gt; opts.MapFrom(source =&gt; source.Synopsis));<br>
+<br>
+		}<br>
+	}<br>
 }
 </code></pre>
 </details>
