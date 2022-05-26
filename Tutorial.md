@@ -809,4 +809,58 @@ Note: If you try it out right now, you won't see any HAL syntax, or only very li
   "synopsis": "A mysterious device from the future sends Alister and Allison back to the past, where they appear before the ancient Roman Emperor Constantine. Mistaking the young couple as the Goddess Isis and the God Osiris and fearing their wrath, Constantine abandons his plans to promote Christianity as the official state religion of Rome. Upon returning to the present, the intrepid time travelers discover that they have inadvertently altered history. Desperate to reintroduce Christianity to the world, Alister uses the power of the mysterious device to propel himself to religious stardom. But in this new reality, his sister Amanda, gifted haruspex and a devout follower of the Goddess Isis, views the reinstatement of Christianity as nothing less than the end of her world. Amanda uses the device in an attempt to thwart Alister’s goals. Will the faith of the Goddess prevail, allowing Amanda to save her world? A thought-provoking alternate history science fiction adventure from Michael Zuniga."
 }</code></pre>
 <p>This, by the way, is a wonderful book, without a doubt destined to go down in history as one of the greatest American Literary classics. You should do yourself a favor and buy 20 copies, give them to your friends. You can purchase the <a href="https://www.amazon.com/Wrath-Isis-Chronicles-Temporal-Lens/dp/B09H8Z65P3/ref=sr_1_1?crid=1BJIVJHK6JRP9&keywords=wrath+of+isis+hardcover&qid=1653601816&s=books&sprefix=wrath+of+isis+hard+cover%2Cstripbooks%2C97&sr=1-1">Hard Cover copy here</a> or the <a href="https://www.amazon.com/gp/product/1792984006/ref=dbs_a_def_rwt_bibl_vppi_i1">Paperback edition here</a>. Truely one of the greatest books ever written (I should know, I wrote it).</p>
-<p>Okay, enough shamelss self-promotion. Aside from the obvious - that it really does look like a great book - you also may notice that there is no HAL information in the result set.</p>
+<p>Okay, enough shamelss self-promotion. Aside from the obvious - that it really does look like a great book - you also may notice that there is no HAL information in the result set. In order to correct that, we need to configure HAL for this controller. To do that, right-click on the <b>Configuration</b> folder and select Add Hal Configuration. Call it BooksConfiguration when the name dialog appears, and press OK.</p>
+<p><img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/AddConfiguration.png"
+     alt="Add Configuration"
+     style="float: left; margin-right: 10px;" /></p>
+<p>When the HAL Configuration Generator dialog appears, select Book for the resource and select BooksController for the controller. Press OK.</p>
+<p>Now, re-compile, and go and select that Wonderful Book, The Wrath of Isis, BookId 1 once again. This time, you can see the Hal information.</p>
+<p>It isn't much yet, because it's still a relativly simple endpoint. Let's complicate it a bit. Books have reviews. Let's add them to our service.<p>
+<ul>
+<li><b>EBookReview</b> - add an entitiy model, call it EBookReview. Model it from the <b>Reviews</b> database table.</li>
+<li><b>BookReview</b> - add a resource model, call it BookReview. Model it from the <b>EBookReview</b> entity Model.</li>
+<li><b>BookReviewProfile</b> - create a mapping between the <b>BookReview</b> and <b>EBookReview</b> models. Call it <b>BookReviewProfile</b></li>
+<li><b>BookReviewsConroller</b> - create a controller for the Book Reviews.</li>
+<li><b>BookReviewsConfiguration</b> - add the HAL Configuration for the BookReviews.</li>
+</ul>
+<p>Now we have endpoints that allow us to get and manipulate book reviews. One very nice feature would be an endpoint that allows us to retrive all the book reviews for a particular book. The endpoint would look like this:</p>
+<pre><code>/books/{bookid}/reviews
+</code></pre>
+<p>WIth RQL, that becomes very simple. The endpoint should reside in the BooksController. The code to get all reviews already exists in the BookReviewsController. However, becuase that same endpoint supports RQL, we already have the code that return all the reviews for a particular book. Run the /bookReviews endpoint from swagger. You notice that it returns all the reviews for all the books. You also notice that one of the members of a book review is BookId. So, we an use this RQL statement to limit the returned reviews to the reviews for a single book...</p>
+<pre><code>/bookReviews?BookId=1
+</code></pre>
+<p>That call returns all the reviews for just The Wrath of Isis. By the way, on the topic of Book Reviews, if by chance you do buy The Wrath of Isis, don't forget to go back to Amazon and write a short review. It's doesn't have to be long. You could just write "Great book. Highly recommended." or even "What trash!! Don't waste your time or money on this piece of garbage." Honestly, as an Author, I'd rather get a review like that last one than getting no review at all. You see, the more reviews, the higher the book gets in Amazon searches, and the more people will see it. So, even a horribly bad review is good for a book, provided there are counterbalancing good reviews to go with it. So, anytime you buy a book, any book, leave a review.</p>
+<p>Okay, so now all we need to do is to copy that code into a new endpoint in the Books controller.</p>
+<pre><code>&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;summary&gt;
+&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;Returns a collection of BookReviews
+&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;/summary&gt;
+&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;response code="200"&gt;A collection of BookReviews&gt;/response&gt;
+&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;response code="400"&gt;The RQL query was malformed.&gt;/response&gt;
+&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;response code="401"&gt;The user is not authorized to acquire this resource.&gt;/response&gt;
+&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;response code="403"&gt;The user is not allowed to acquire this resource.&gt;/response&gt;
+&nbsp;&nbsp;&nbsp;&nbsp;[HttpGet]
+&nbsp;&nbsp;&nbsp;&nbsp;[Route("books/{bookid}/reviews")]
+&nbsp;&nbsp;&nbsp;&nbsp;[AllowAnonymous]
+&nbsp;&nbsp;&nbsp;&nbsp;[SupportRQL]
+&nbsp;&nbsp;&nbsp;&nbsp;[SwaggerResponse((int)HttpStatusCode.OK, Type = typeof(PagedSet<BookReview>))]
+&nbsp;&nbsp;&nbsp;&nbsp;[Produces("application/hal+json", "application/hal.v1+json", MediaTypeNames.Application.Json, "application/vnd.v1+json")]
+&nbsp;&nbsp;&nbsp;&nbsp;public async Task&lt;IActionResult&gt; GetBookReviewsAsync(int bookid)
+&nbsp;&nbsp;&nbsp;&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var node = RqlNode.Parse($"BookId={bookid}")
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.Merge(RqlNode.Parse(Request.QueryString.Value));
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_logger.LogInformation("{s1} {s2}", Request.Method, Request.Path);
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var errors = new ModelStateDictionary();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!node.ValidateMembers<Book>(errors))
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return BadRequest(errors);
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var resourceCollection = await _orchestrator.GetResourceCollectionAsync<BookReview>(node);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return Ok(resourceCollection);
+&nbsp;&nbsp;&nbsp;&nbsp;}</code></pre>
+<p>All we did here is copied the first endpoint from the BookReviewsController into the BooksController. We changed the route from <i>bookReviews</i> to <i>books/{bookid}/reviews</i>.  Then, we changed the construction of the RQL node. In this case, we want only the reviews that partain to a particular book (bookid). We've already seen that the RQL statement that accomplishes this is BookId={bookid}. So, all we need to do is to hardcode that RQL statement in our code. That's what this line does.</p>
+<pre><code>var node = RqlNode.Parse($"BookId={bookid}")
+</code></pre>
+<p>Now the next line is optional. Do you want to give your called the ability to further refine the reviews? Perhaps the caller only wants the reviews for this book that have been written this year. Or maybe they only want to see the 5 star reviews, or maybe just the 1 star reviews. They can write an RQL statment to do that, if you allow them to. To allow it, we leave the [SupportRQL] annotation on the endpoint, and we take what the user gives us (<b>Request.QueryString.Value</b>), compile that into an <b>RqlNode</b>, and merge that node into the node we've already created. The combined node will be the node we use to obtain our list. It limits the list to only the reviews for this book (that's the part we hardcoded) and whatever other filters the user added, if any. The rest of the code remains the same.</p>
+<p>One last thing. Because we changed our controller, the HAL configuration is no longer up to date. You can either manually fix it, or just delete the HAL Configuration for the BooksController and then regenerate it. I'm lazy, so I choose the former.</p>
+<p>Okay, let's try it out. Compile and run that endpoint. If you selected 1 for the bookid, you'll find that the Wrath of Isis has only one review. Also, if you run the /books/{bookid} endpoint once again, you'll see more HAL links. In particular, you'll see a currie for the /books/{bookid}/reviews link.</p>
