@@ -764,30 +764,30 @@ Note: If you try it out right now, you won't see any HAL syntax, or only very li
 </code></pre>
 <p>Now, the returned value shows only those books that were published before 1960. How does this happen, you ask? Well, let's take a closer look. Here is the endpoint for getting a collection of books.</p>
 <pre></code>
-&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;summary&gt;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;Returns a collection of Books<br>
-&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;/summary&gt;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;response code="200"&gt;A collection of Books&lt;/response&gt;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;response code="400"&gt;The RQL query was malformed.&lt;/response&gt;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;response code="401"&gt;The user is not authorized to acquire this resource.&lt;/response&gt;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;response code="403"&gt;The user is not allowed to acquire this resource.&lt;/response&gt;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;[HttpGet]<br>
-&nbsp;&nbsp;&nbsp;&nbsp;[Route("books")]<br>
-&nbsp;&nbsp;&nbsp;&nbsp;[SupportRQL]<br>
-&nbsp;&nbsp;&nbsp;&nbsp;[SwaggerResponse((int)HttpStatusCode.OK, Type = typeof(PagedSet&lt;Book&gt;))]<br>
-&nbsp;&nbsp;&nbsp;&nbsp;[Produces("application/hal+json", "application/hal.v1+json", MediaTypeNames.Application.Json, "application/vnd.v1+json")]<br>
-&nbsp;&nbsp;&nbsp;&nbsp;public async Task&lt;IActionResult&gt; GetBooksAsync()<br>
-&nbsp;&nbsp;&nbsp;&nbsp;{<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var node = RqlNode.Parse(Request.QueryString.Value);<br>
-<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_logger.LogInformation("{s1} {s2}", Request.Method, Request.Path);<br>
-<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var errors = new ModelStateDictionary();<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!node.ValidateMembers&lt;Book&gt;(errors))<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return BadRequest(errors);<br>
-<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var resourceCollection = await _orchestrator.GetResourceCollectionAsync&lt;Book&gt;(node);<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return Ok(resourceCollection);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;summary&gt;
+&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;Returns a collection of Books
+&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;/summary&gt;
+&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;response code="200"&gt;A collection of Books&lt;/response&gt;
+&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;response code="400"&gt;The RQL query was malformed.&lt;/response&gt;
+&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;response code="401"&gt;The user is not authorized to acquire this resource.&lt;/response&gt;
+&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;response code="403"&gt;The user is not allowed to acquire this resource.&lt;/response&gt;
+&nbsp;&nbsp;&nbsp;&nbsp;[HttpGet]
+&nbsp;&nbsp;&nbsp;&nbsp;[Route("books")]
+&nbsp;&nbsp;&nbsp;&nbsp;[SupportRQL]
+&nbsp;&nbsp;&nbsp;&nbsp;[SwaggerResponse((int)HttpStatusCode.OK, Type = typeof(PagedSet&lt;Book&gt;))]
+&nbsp;&nbsp;&nbsp;&nbsp;[Produces("application/hal+json", "application/hal.v1+json", MediaTypeNames.Application.Json, "application/vnd.v1+json")]
+&nbsp;&nbsp;&nbsp;&nbsp;public async Task&lt;IActionResult&gt; GetBooksAsync()
+&nbsp;&nbsp;&nbsp;&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var node = RqlNode.Parse(Request.QueryString.Value);
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_logger.LogInformation("{s1} {s2}", Request.Method, Request.Path);
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var errors = new ModelStateDictionary();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!node.ValidateMembers&lt;Book&gt;(errors))
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return BadRequest(errors);
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var resourceCollection = await _orchestrator.GetResourceCollectionAsync&lt;Book&gt;(node);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return Ok(resourceCollection);
 &nbsp;&nbsp;&nbsp;&nbsp;}</code></pre>
 <p>When we make our call, swagger composes the Url like so:</p>
 <pre></code>https://localhost:19704/books?publishDate&lt;1/1/1960
