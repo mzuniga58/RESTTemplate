@@ -722,15 +722,13 @@ namespace Bookstore.Controllers<br>
 &nbsp;&nbsp;&nbsp;&nbsp;[SwaggerResponse((int)HttpStatusCode.OK, Type = typeof(PagedSet&lt;Book&gt;))]<br>
 &nbsp;&nbsp;&nbsp;&nbsp;[Produces("application/hal+json", "application/hal.v1+json", MediaTypeNames.Application.Json, "application/vnd.v1+json")]<br>
 </code></pre>
-<p>The endpoint responds to the GET Verb and is located at /books. It has the <i>AllowAnonymous</i> attribute, so anyone can call this endpoint. It supports RQL and returns a <b>PagedSet\&lt;Books&gt;></b> response. It can take <i>application/hal+json</i>, <i>application/hal.v1+json</i>, <i>application/json</i> or <i>application/vnd.v1+json</i> in the accept header. If the user specifies either of the 'hal' media types, the response will include HAL syntax.</p>
-
->Note: If you try it out right now, you won't see any HAL syntax, or only very limited HAL in collection responses. This is because we haven't configured the HAL responses yet. Once they are configured, you'll be able to see the HAL responses.
-
-Let's go ahead and try it out. Just click on the Blue GET button to expand it, and the click on the "Try it out" button to enable the endpoint in swagger. Press the blue Execute button to call the endpoint.
-
-Here is the response:
-<pre><code>
-{
+<p>The endpoint responds to the GET Verb and is located at /books. It has the <i>AllowAnonymous</i> attribute, so anyone can call this endpoint. It supports RQL and returns a <b>PagedSet&lt;Books&gt;></b> response. It can take <i>application/hal+json</i>, <i>application/hal.v1+json</i>, <i>application/json</i> or <i>application/vnd.v1+json</i> in the accept header. If the user specifies either of the 'hal' media types, the response will include HAL syntax.</p>
+<blockquote>
+Note: If you try it out right now, you won't see any HAL syntax, or only very limited HAL in collection responses. This is because we haven't configured the HAL responses yet. Once they are configured, you'll be able to see the HAL responses.
+</blockquote>
+<p>Let's go ahead and try it out. Just click on the Blue GET button to expand it, and the click on the "Try it out" button to enable the endpoint in swagger. Press the blue Execute button to call the endpoint.</p>
+<p>Here is the response:</p>
+<pre><code>{
   "count": 20,
   "start": 1,
   "pageSize": 20,
@@ -752,9 +750,8 @@ Here is the response:
       }
     ]
   }
-}
-</code></pre>
-The actual response is bigger, and includes all the books in the table. We're only showing the first two here to conserve space. You will notice the "Count" field. The Count field tells you how many total resources are in the result set. If there were 10,000 books in our database, this number would be 10000. The next number tells you where in the set the first record resides. In this case, the start value is 1, so the first value in the collection is the first book in the entire set. The next value, pageSize, tells you how many books are included in this page. 
+}</code></pre>
+<p>The actual response is bigger, and includes all the books in the table. We're only showing the first two here to conserve space. You will notice the "Count" field. The Count field tells you how many total resources are in the result set. If there were 10,000 books in our database, this number would be 10000. The next number tells you where in the set the first record resides. In this case, the start value is 1, so the first value in the collection is the first book in the entire set. The next value, pageSize, tells you how many books are included in this page.</p>
 
 As it happens, there are only 20 books in our example database, and since 20 is less than the maximum batch size of 100, you get the entire set.
 
