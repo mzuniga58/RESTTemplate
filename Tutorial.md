@@ -98,13 +98,12 @@ var node = RqlNode.Parse($"Author={authorId});
 <p>Typically, we create entity model/resource model pairs. These pairs will allow us to write the functions to manipulate the data, i.e., add new items, delete or update existing items, etc. But our categories table is a bit different. It doesn't change. Categories, commonly called Literary genres, are formed by shared literary conventions. Although they do change over time, as new genres emerge and others fade, the change is usually measured in decades, and sometimes centuries.</p>
 <p>We could create an entity model/resource model pair for our categories, but it doens't really make that muuch sense. In the C# world, the categories are better represented by an <b>enum</b>. Fortunately, the REST Service makes that easy.</p>
 <p>With your Bookstore service open in Visual Studio, expand the Models folder. Under the Models folder you will see two child folders, <b>EntityModels</b> and <b>ResourceModels</b>. We want to create an entity model for the Categories table, but we want to create it as an enum, not a class model. To do that, right-click on the <b>EntityModels</b> folder. When you do, a pop-up menu will appear. On that menu, click on Add REST Entity Model... It should be 3rd on the menu, with the Blue and White MZ logo next to it.</p>
-<blockquote>><p>What are you talking about? I don't see any menu item called "Add REST Entity Model..." with a blue and white MZ logo?</p>
+<blockquote><p>What are you talking about? I don't see any menu item called "Add REST Entity Model..." with a blue and white MZ logo?</p>
 <p>Did you install the Wizard, by clicking on the RESTInstaller.vsix file as described at the beginning of this tutorial? And if so, did it run to completion?</p>
 <p>If you did that, and the menu item still isn't showing, that can sometimes happen if Visual Studio is running a bit slow. Try closing Visual Studio and running it again.</p>
 <p>If after all that, it still isn't showing, try the second method.</p>
 <blockquote>
-<p>Right click on the EntityModels menu and select "Add -> New Item...", or press Shift+Ctrl+A. On the resulting dialog, on the left-hand side, navigate to Visual C# / ASP .NET Core / Web / REST Services.
-There you should see a number of items, all with the blue and white MZ logo. REST Entity Model should be one of those options. Click on that.<p></blokquote></blockquote>
+<p>Right click on the EntityModels menu and select "Add -> New Item...", or press Shift+Ctrl+A. On the resulting dialog, on the left-hand side, navigate to Visual C# &rArr; ASP .NET Core &rArr; Web &rArr; REST Services. There you should see a number of items, all with the blue and white MZ logo. REST Entity Model should be one of those options. Click on that.<p></blockquote></blockquote>
 <p>Alright, now you should have a dialog asking for the name of your new class.</p>
 <p><img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/ChooseName.png"
      alt="Entity Model Generator"
@@ -119,15 +118,10 @@ There you should see a number of items, all with the blue and white MZ logo. RES
      alt="Add New Server"
      style="float: left; margin-right: 10px;" /></p>
 <p>Select the database technology you want to connect to. Remember, we created our database in SQL Server, so choose SQL Server here. Then type in the name of your server, and select either Windows Authority or SQL Server Authority, whichever is appropriate to your installation. If you select SQL Server Authority, you will also need to enter your username and password. Once you have it all complete, click on the "check" button to ensure the wizard can talk to your database. Once you have established a connection, hit OK.</p>
-
-Now, your database is shown at the top of the Entity Model Generator dialog, and the list of databases on that server are shown in the left-hand list box. Select the Bookstore database in that list. When you do, the list of tables for the Bookstore database should appear in the right-hand list. One of those tables should be the Categories table. Select that table.
-
-When you select that table, the "Render as Enum" checkbox becomes enabled. If you click around on the other tables, you will notice that the "Render as Enum" checkbox becomes diabled, and you can't change it. Only certain tables are candidates for enum. If the table contains a single primary key of a numeric type, and contains a sinle string member, then that table is a candidate for enum. Not all tables of this nature are good representations of an enum, but this one is, as it as an int as the primary key and a single name field. It is essentially a key/value pair table, and it has a limited number of rows. Such tables are usually good candidates for an enum. You will have to know your data and choose appropriately.
-
-We know we want Category to be an enum, so select that table, check the "Render as Enum" checkbox and hit OK.
-
-The generator will now generate an enum entity model for you. 
-
+<p>Now, your database is shown at the top of the Entity Model Generator dialog, and the list of databases on that server are shown in the left-hand list box. Select the Bookstore database in that list. When you do, the list of tables for the Bookstore database should appear in the right-hand list. One of those tables should be the Categories table. Select that table.</p>
+<p>When you select that table, the "Render as Enum" checkbox becomes enabled. If you click around on the other tables, you will notice that the "Render as Enum" checkbox becomes diabled, and you can't change it. Only certain tables are candidates for enum. If the table contains a single primary key of a numeric type, and contains a sinle string member, then that table is a candidate for enum. Not all tables of this nature are good representations of an enum, but this one is, as it as an int as the primary key and a single name field. It is essentially a key/value pair table, and it has a limited number of rows. Such tables are usually good candidates for an enum. You will have to know your data and choose appropriately.</p>
+<p>We know we want Category to be an enum, so select that table, check the "Render as Enum" checkbox and hit OK.</p>
+<p>The generator will now generate an enum entity model for you.</p>
 <details>
 <summary>The generated Category enum</Summary>
 <pre><code>using System;<br>
@@ -192,17 +186,11 @@ namespace Bookstore.Models.EntityModels<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;/summary&gt;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ScienceFiction = 10<br>
 &nbsp;&nbsp;&nbsp;&nbsp;}<br>
-}
-</code></pre>
-</details>
-You notice that the generator has added some annotations to further describe the table. The <b>Table</b> attribute tells us that this model is for the Categories table under the dbo schema on a SQL Server. That's the only annotation you will get for an enum table. Notice it is also using the <b>Tense</b> namespace. <b>Tense</b> is a nuget package that contains the definition for the <b>Table</b> attribute, and the <b>Member</b> attribute we will use later. That nuget package was already included for you when you first created the REST Service project.
-
-Okay, so now we have the <b>Category</b> enumerator defined. We needed to do that one first, because it will be used in our next set of classes. So, let's create something a bit more interesting. Let's create an entity/resource model pair for some data we do wish to manipulate. Let's create an <b>EBook</b> entity model based off the <b>Books</b> database table.
-
-Once again, right-click on the <b>EntityModels</b> folder, select <i>Add REST Entity Model</i>, enter <b>EBook</b> as the name of the class. Then, in the Entity Model Generator dialog (this time, your SQL Server you used last time is already pre-populated and selected), choose the <b>Bookstore</b> database and select the <b>Books</b> table. We don't want an enum this time, so we want to leave the "Render as Enum" checkbox blank. In this case, you couldn't select it if you tried, because the <b>Books</b> table doesn't have the structure suitable for an enum. That "Render as Enum" check box will be unchecked, and it will be disabled.
-
-Hit OK to render the new class. 
-
+}</code></pre></details>
+<p>You notice that the generator has added some annotations to further describe the table. The <b>Table</b> attribute tells us that this model is for the Categories table under the dbo schema on a SQL Server. That's the only annotation you will get for an enum table. Notice it is also using the <b>Tense</b> namespace. <b>Tense</b> is a nuget package that contains the definition for the <b>Table</b> attribute, and the <b>Member</b> attribute we will use later. That nuget package was already included for you when you first created the REST Service project.</p>
+<p>Okay, so now we have the <b>Category</b> enumerator defined. We needed to do that one first, because it will be used in our next set of classes. So, let's create something a bit more interesting. Let's create an entity/resource model pair for some data we do wish to manipulate. Let's create an <b>EBook</b> entity model based off the <b>Books</b> database table.</p>
+<p>Once again, right-click on the <b>EntityModels</b> folder, select <i>Add REST Entity Model</i>, enter <b>EBook</b> as the name of the class. Then, in the Entity Model Generator dialog (this time, your SQL Server you used last time is already pre-populated and selected), choose the <b>Bookstore</b> database and select the <b>Books</b> table. We don't want an enum this time, so we want to leave the "Render as Enum" checkbox blank. In this case, you couldn't select it if you tried, because the <b>Books</b> table doesn't have the structure suitable for an enum. That "Render as Enum" check box will be unchecked, and it will be disabled.</p>
+<p>Hit OK to render the new class. </p>
 <details>
 <summary>The generated EBook class</Summary>
 <pre><code>using System;<br>
@@ -248,19 +236,14 @@ namespace Bookstore.Models.EntityModels<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;public string? Synopsis { get; set; }<br>
 &nbsp;&nbsp;&nbsp;&nbsp;}<br>
 }
-</code></pre>
-</details>
-As you can see, it is a one-to-one mapping to the database table with annotactions. We have the <b>Table</b> annotation as we did with the <b>Category</b> enum. We also have <b>Member</b> annotations on each member, telling us if the member represents a primary key, or a foreign key. It also tells us if the member can be null, what database data type it is, and so forth.
-
+</code></pre></details>
+<p>As you can see, it is a one-to-one mapping to the database table with annotactions. We have the <b>Table</b> annotation as we did with the <b>Category</b> enum. We also have <b>Member</b> annotations on each member, telling us if the member represents a primary key, or a foreign key. It also tells us if the member can be null, what database data type it is, and so forth.</p>
 <h3>Adding a Resource Model</h3>
-Having an entity model is all well and fine, but users don't see entity models. They see resource models. So, let's do that again, this time creating a resource model for the Books table. Go back to the models folder, but this time, right-click on the <b>ResourceModels</b> folder. Once again, there should be an Add REST Resource Model... menu item. Click on that. A dialog appears where you enter the class name. Enter <b>Book</b> this time. <b>Book</b> is the resource model, and <b>EBook</b> is the entity model. This naming convention makes it easy to find the corresponding entity model or resource model, as the case may be. Press Ok to get the Resource Model Generator.
-<br><br>
-<img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateResourceModel.png"
+<p>Having an entity model is all well and fine, but users don't see entity models. They see resource models. So, let's do that again, this time creating a resource model for the Books table. Go back to the models folder, but this time, right-click on the <b>ResourceModels</b> folder. Once again, there should be an Add REST Resource Model... menu item. Click on that. A dialog appears where you enter the class name. Enter <b>Book</b> this time. <b>Book</b> is the resource model, and <b>EBook</b> is the entity model. This naming convention makes it easy to find the corresponding entity model or resource model, as the case may be. Press Ok to get the Resource Model Generator.</p>
+<p><img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateResourceModel.png"
      alt="Add New Resource"
-     style="float: left; margin-right: 10px;" />
-
-This time, a list of entity models appears. Notice that the <b>Category</b> class is conspicously absent from the list. There is never a good reason to create a reosurce model from an enum. They'd just be the same structure with a different class name. Select the entity model you wish to make a Resource model for. That's pretty easy at this point, since we only have one entity model defined. Select <b>EBook</b>, and press OK.
-
+     style="float: left; margin-right: 10px;" /></p>
+<p>This time, a list of entity models appears. Notice that the <b>Category</b> class is conspicously absent from the list. There is never a good reason to create a reosurce model from an enum. They'd just be the same structure with a different class name. Select the entity model you wish to make a Resource model for. That's pretty easy at this point, since we only have one entity model defined. Select <b>EBook</b>, and press OK.</p>
 <details>
 <summary>The generated Resource model</Summary>
 <pre><code>using Tense;<br>
@@ -380,100 +363,70 @@ namespace Bookstore.Models.ResourceModels<br>
 }
 </code></pre>
 </details>
-
-Notice that the new resource model looks pretty much like we'd expect, it has members for each column in the database. However, it has a member called CategoryId, and that member matches the CategoryId in the entity model. However, instead of an int, the CategoryId in our resource model is defined as a Category enum. And that's pretty much what we want, except for one little thing. 
-
-Inside our database model books are grouped by category, but in the real world, the world our customers live in, they prefer to think of this grouping as genres. So, to make our customers happy, let's change the name of this member from CategoryId to Genre.
-
-Change the line of code from
-
+<p>Notice that the new resource model looks pretty much like we'd expect, it has members for each column in the database. However, it has a member called CategoryId, and that member matches the CategoryId in the entity model. However, instead of an int, the CategoryId in our resource model is defined as a Category enum. And that's pretty much what we want, except for one little thing.</p>
+<p>Inside our database model books are grouped by category, but in the real world, the world our customers live in, they prefer to think of this grouping as genres. So, to make our customers happy, let's change the name of this member from CategoryId to Genre.</p>
+<p>Change the line of code from</p>
 <pre><code>public Category CategoryId { get; set; }
 </code></pre>
-to
+<p>to</p>
 <pre><code>public Category Genre { get; set; }
 </code></pre>
-There, now we are using our Category enum to represent the genre for the book. It's worth noting that this is not an uncommon exercise. Don't take the REST Wizard's word for what any resource model column should be named. Don't take the word of the database either. Make the names meaningful to your customer. Little things like this often make the difference between good software and great software.
-
-Also notice that at the bottom we have three pre-defined methods for validating a book model.
-
-- <b>CanUpdateAsync</b> - this method will be called just before we attempt to update a book in the datastore.
-- <b>CanAddAsync</b> - this method will be called just before we attempt to add a new book to the datastore.
-- <b>CanDeleteAsync</b> - this method will be called just before we attempt to delete a book from the datastore.
-
-Let's look at each of these a bit more closely.
-
-In the <b>CanUpdateAsync</b> function, we have a reference to the <b>IOrchestrator</b> interface, an <b>RqlNode</b> and a <b>ModelStateDictionary</b> list of errors. We begin by clearing the list of errors. It should be empty anyway, but it's alwasy a good practice to make sure. During the validation process, if we find anything amiss, we will add the error to the list of errors. If, at the end of the validation process, there are any errors present in our list, then the update will be abandoned and the service will return a BadRequest, listing all the errors we found.
-
-In RQL, the <b>RqlNode</b> is going to contain the information needed to create the WHERE clause in the SQL Statement that will eventually be generated. In other words, the <b>RqlNode</b> tells us which book, or books, are to be updated. The first question we have in our update validation is, does this <b>RqlNode</b> actually specify any books to be updated?
-
-To answer this question, we make this call
+<p>There, now we are using our Category enum to represent the genre for the book. It's worth noting that this is not an uncommon exercise. Don't take the REST Wizard's word for what any resource model column should be named. Don't take the word of the database either. Make the names meaningful to your customer. Little things like this often make the difference between good software and great software.</p>
+<p>Also notice that at the bottom we have three pre-defined methods for validating a book model.</p>
+<ul>
+<li><b>CanUpdateAsync</b> - this method will be called just before we attempt to update a book in the datastore.</li>
+<li><b>CanAddAsync</b> - this method will be called just before we attempt to add a new book to the datastore.</li>
+<li><b>CanDeleteAsync</b> - this method will be called just before we attempt to delete a book from the datastore.</li>
+</ul>
+<p>Let's look at each of these a bit more closely.</p>
+<p>In the <b>CanUpdateAsync</b> function, we have a reference to the <b>IOrchestrator</b> interface, an <b>RqlNode</b> and a <b>ModelStateDictionary</b> list of errors. We begin by clearing the list of errors. It should be empty anyway, but it's alwasy a good practice to make sure. During the validation process, if we find anything amiss, we will add the error to the list of errors. If, at the end of the validation process, there are any errors present in our list, then the update will be abandoned and the service will return a BadRequest, listing all the errors we found.</p>
+<p>In RQL, the <b>RqlNode</b> is going to contain the information needed to create the WHERE clause in the SQL Statement that will eventually be generated. In other words, the <b>RqlNode</b> tells us which book, or books, are to be updated. The first question we have in our update validation is, does this <b>RqlNode</b> actually specify any books to be updated?</p>
+<p>To answer this question, we make this call</p>
 <pre><code>var existingValues = await orchestrator.GetResourceCollectionAsync<Books>(node);
 </code></pre>
-This call tells the orchestrator to get the collection of books that matches the <b>RqlNode</b> specification. If no books are returned, then there are no books that match the specification, and therefore, there is nothing to update. IF the <b>Count</b> property is zero, then there are no books to update, and we record that as an error. It is a BadRequest, because the user has asked us to update books that don't exist.
-
-In RQL, an update does not have to be limited to one single resource. The update can update many resources at once. But when you update many resources, you don't want them all to be the same, you typically just want one or two columns to be the same. Now, the book design we have doesn't really lend itself to mass updates, but there are database schemas that do. We can however, for the sake of understanding the concept, conjure up a scenario where we would want to do multiple updates, albiet, not a very realistic one for books.
-
-In the <b>Books</b> table, the synopsis can be null. So, given our list of books, we might want to update all books with a null synopsis, whose publish date was before 1950, and make the synopsis say "classic literature". Not very realistic, I know. Not all books written prior to 1950 are classics. In fact, most of them are not. But we're only doing this for illustration purposes, so, as they say in the literary world, enhance you willing suspension of disbelief, and just go with it.
-
-To do this, we would first have to generate an RQL statement to select such books:
+<p>This call tells the orchestrator to get the collection of books that matches the <b>RqlNode</b> specification. If no books are returned, then there are no books that match the specification, and therefore, there is nothing to update. IF the <b>Count</b> property is zero, then there are no books to update, and we record that as an error. It is a <b>BadRequest</b>, because the user has asked us to update books that don't exist.</p>
+<p>In RQL, an update does not have to be limited to one single resource. The update can update many resources at once. But when you update many resources, you don't want them all to be the same, you typically just want one or two columns to be the same. Now, the book design we have doesn't really lend itself to mass updates, but there are database schemas that do. We can however, for the sake of understanding the concept, conjure up a scenario where we would want to do multiple updates, albiet, not a very realistic one for books.</p>
+<p>In the <b>Books</b> table, the synopsis can be null. So, given our list of books, we might want to update all books with a null synopsis, whose publish date was before 1950, and make the synopsis say "classic literature". Not very realistic, I know. Not all books written prior to 1950 are classics. In fact, most of them are not. But we're only doing this for illustration purposes, so, as they say in the literary world, enhance you willing suspension of disbelief, and just go with it.</p>
+<p>To do this, we would first have to generate an RQL statement to select such books:</p>
 <pre><code>PublishDate&lt;01/01/1950&amp;Synopsis=null
 </code></pre>
-This RQL statement will select all the books whose publish date was before January 1, 1950 (PublishDate<01/01/1950), and (&) whose Synopsis is null (Synopsis=null). In the incoming model, we would have set the Synopsis value to "classic literature". 
-
-But what about the title? We only care to update the synopsis, so the title in our model is likely to be null. But whatever value it is, we don't want to set the title of every book published before 1950 with a null synopsis to that value. We want to leave the title value alone. Likewise, we don't want to change the publish date or the category either. To accomplish our task, we add a select statement to the RQL.
-<pre><code>
-PublishDate&lt;01/01/1950&amp;Synopsis=null&amp;select(Synopsis)
+<p>This RQL statement will select all the books whose publish date was before January 1, 1950 (PublishDate&lt;01/01/1950), and (&amp;) whose Synopsis is null (Synopsis=null). In the incoming model, we would have set the Synopsis value to "classic literature".</p>
+<p>But what about the title? We only care to update the synopsis, so the title in our model is likely to be null. But whatever value it is, we don't want to set the title of every book published before 1950 with a null synopsis to that value. We want to leave the title value alone. Likewise, we don't want to change the publish date or the category either. To accomplish our task, we add a select statement to the RQL.</p>
+<pre><code>PublishDate&lt;01/01/1950&amp;Synopsis=null&amp;select(Synopsis)
 </code></pre>
-The select statement, in the case of an update, tells us we only want to update the values included in the select statement (in this case, we only update the synopsis column). All the other columns are to be left unchanged.
-
-In the end, this is the SQL statement that will be generated from this RQL statement:
-<pre><code>UPDATE [dbo].[Books]
-   SET Synopsis = @P0
- WHERE PublishDate<@P1
-   AND Synopsis IS NULL
-</code></pre>
-Where the @P0 and @P1 represent SQL parameters, where the value of @P0 is 'classic literature' and the value of @P1 is '1950-01-01T00:00:00.000-0500'.
-
-What this means for our validation routine is we don't want to inspect the values of columns that are not going to be included in the update statement. We don't care, for example, what the value of Title is in our incoming model, because in this case, the Title value will never be used and won't have any effect on the operation.
-
-So, the next thing we do in our validation code is to extract the select clause from the RQL statement. 
+<p>The select statement, in the case of an update, tells us we only want to update the values included in the select statement (in this case, we only update the synopsis column). All the other columns are to be left unchanged.</p>
+<p>In the end, this is the SQL statement that will be generated from this RQL statement:</p>
+<pre><code>UPDATE [dbo].[Books]<br>
+&nbsp;&nbsp;SET Synopsis = @P0<br>
+ WHERE PublishDate<@P1<br>
+&nbsp;&nbsp;AND Synopsis IS NULL</code></pre>
+<p>Where the @P0 and @P1 represent SQL parameters, where the value of @P0 is 'classic literature' and the value of @P1 is '1950-01-01T00:00:00.000-0500'.</p>
+<p>What this means for our validation routine is we don't want to inspect the values of columns that are not going to be included in the update statement. We don't care, for example, what the value of Title is in our incoming model, because in this case, the Title value will never be used and won't have any effect on the operation.</p>
+<p>So, the next thing we do in our validation code is to extract the select clause from the RQL statement.</p>
 <pre><code>var selectNode = node.ExtractSelectClause();
 </code></pre>
-There may not be a select clause in the statement, so the returned select clause may be null.
-
-Now, it time to check if the Title value is valid.
-<pre><code>
-if (selectNode is null || (selectNode is not null && selectNode.SelectContains(nameof(Title))))
-{
-	if (string.IsNullOrWhiteSpace(Title))
-		errors.AddModelError(nameof(Title), "Title cannot be blank or null.");
-	if (Title is not null && Title.Length > 50)
-		errors.AddModelError(nameof(Title), "Title cannot exceed 50 characters.");
-}
-</code></pre>
-If the select statement is null then all columns in the table will be updated, and so we do have to check the validity of the Title member. If the select clause is not null, then we only have to check the validity of the Title member if the Title member is included in the select clause.
-
-Finally, if we do have to check the validity of the Title, we do so in the enclosed code. We verify that the Title is not null or composed entirely of whitespace. A book must have a title. Blank titles are not allowed. Finally, we only have room for 50 characters in the title column, so the title the user gives us must be 50 characters or less.
-
-The validation routine is not intended to be considered complete. You can, and should, add your own business logic to it. For example, one bit of logic we may wish to add is to ensure that the new Title (it may, or may not have changed) does not conflict with any other books. We could implement a unique constraint on the book title member in our SQL definition, or we could ensure that uniqueness here with code. However you want to do it is up to you. In our design, the size of the synopsis is unlimited (well, limited to the maximum text size that SQL Server supports, which is 8,000 characters.) You might decide to limit it to something smaller, 2,000 characters say. 
-
-Notice that the select clause logic is missing from the <b>CanAddAsync</b> function. That is because the add function does not recognize RQL. You can put an RQL statement in there if you wish, but it will be ignored.
-
-Likewise, in the delete validation, we do use the RQL statement to generate the WHERE clause, but the select statement is ignored. When deleting, we don't care about individual columns, we're going to delete them anyway. We just want to know which records to delete.
-
-The validation routines aren't limited to just the object being validated. You can also include dependency validations. For example, you may not wish to delete any books if there are existing reviews assigned to them. You may require the user to first delete all reviews associated with a book before you delete the book. Or, in your orchestration, you can delete all reviews assigned to a book before you delete the book itself. It's up to you how you want to design your system.
-
+<p>There may not be a select clause in the statement, so the returned select clause may be null.</p>
+<p>Now, it time to check if the Title value is valid.</p>
+<pre><code>if (selectNode is null || (selectNode is not null &amp;&amp; selectNode.SelectContains(nameof(Title))))<br>
+{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if (string.IsNullOrWhiteSpace(Title))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;errors.AddModelError(nameof(Title), "Title cannot be blank or null.");<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if (Title is not null && Title.Length > 50)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;errors.AddModelError(nameof(Title), "Title cannot exceed 50 characters.");<br>
+}</code></pre>
+<p>If the select statement is null then all columns in the table will be updated, and so we do have to check the validity of the Title member. If the select clause is not null, then we only have to check the validity of the Title member if the Title member is included in the select clause.</p>
+<p>Finally, if we do have to check the validity of the Title, we do so in the enclosed code. We verify that the Title is not null or composed entirely of whitespace. A book must have a title. Blank titles are not allowed. Finally, we only have room for 50 characters in the title column, so the title the user gives us must be 50 characters or less.</p>
+<p>The validation routine is not intended to be considered complete. You can, and should, add your own business logic to it. For example, one bit of logic we may wish to add is to ensure that the new Title (it may, or may not have changed) does not conflict with any other books. We could implement a unique constraint on the book title member in our SQL definition, or we could ensure that uniqueness here with code. However you want to do it is up to you. In our design, the size of the synopsis is unlimited (well, limited to the maximum text size that SQL Server supports, which is 8,000 characters.) You might decide to limit it to something smaller, 2,000 characters say.</p>
+<p>Notice that the select clause logic is missing from the <b>CanAddAsync</b> function. That is because the add function does not recognize RQL. You can put an RQL statement in there if you wish, but it will be ignored.</p>
+<p>Likewise, in the delete validation, we do use the RQL statement to generate the WHERE clause, but the select statement is ignored. When deleting, we don't care about individual columns, we're going to delete them anyway. We just want to know which records to delete.</p>
+<p>The validation routines aren't limited to just the object being validated. You can also include dependency validations. For example, you may not wish to delete any books if there are existing reviews assigned to them. You may require the user to first delete all reviews associated with a book before you delete the book. Or, in your orchestration, you can delete all reviews assigned to a book before you delete the book itself. It's up to you how you want to design your system.</p>
 <h3>Mapping Between Resource and Entity</h3>
-When we eventually get to writing our controller, the user is going to give us a resource model. But, the repository doesn't understand resource models. It understands entity models. It goes without saying then, that we need a method to translate between entity and resource models. We need a Resource &rArr; Entity transformation, and we need an Entity &rArr; Resource translation.
-
-To do this, we use Automapper. Let's create the translation routines for Books.
-
-Right-click on the Mapping folder. When you do, you will see an entry called Add REST Mapping... Choose that entry. You will be given a dialog to enter the new class name. Call it BooksProfile. Next you'll be presented with a dialog that contains a dropdown list of all the resource models. Select <b>Books</b> and press OK.
-<br><br>
-<img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateMapping.png"
+<p>When we eventually get to writing our controller, the user is going to give us a resource model. But, the repository doesn't understand resource models. It understands entity models. It goes without saying then, that we need a method to translate between entity and resource models. We need a Resource &rArr; Entity transformation, and we need an Entity &rArr; Resource translation.</p>
+<p>To do this, we use Automapper. Let's create the translation routines for Books.</p>
+<p>Right-click on the Mapping folder. When you do, you will see an entry called Add REST Mapping... Choose that entry. You will be given a dialog to enter the new class name. Call it BooksProfile. Next you'll be presented with a dialog that contains a dropdown list of all the resource models. Select <b>Books</b> and press OK.</p>
+<p><img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateMapping.png"
      alt="Create Mapping"
-     style="float: left; margin-right: 10px;" />
-
+     style="float: left; margin-right: 10px;" /></p>
 <details>
 <summary>The generated Mapping code</Summary>
 <pre><code>using System;<br>
@@ -515,25 +468,19 @@ namespace Bookstore.Mapping<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.ForMember(destination =&gt; destination.Genre, opts =&gt; opts.MapFrom(source =&gt; (Category) source.CategoryId))<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.ForMember(destination =&gt; destination.Synopsis, opts =&gt; opts.MapFrom(source =&gt; source.Synopsis));<br>
 <br>
-		}<br>
-	}<br>
-}
-</code></pre>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+}</code></pre>
 </details>
-This is a standard Automapper mapping. The CreateMap&lt;source,destination&gt; function translates the source type to the destination type. The first translations translates a <b>Book</b> resource model to an <b>EBook</b> entity Model. The second translations does the opposite, translating an <b>EBook</b> entity model to a <b>Book</b> resource model. Notice that the <b>CategoryId</b> is mapped to the <b>Genre</b> column in both transformations.
-
-Now that we have our models, and our translations, we can finally create some endpoints.
-
+<p>This is a standard Automapper mapping. The CreateMap&lt;source,destination&gt; function translates the source type to the destination type. The first translations translates a <b>Book</b> resource model to an <b>EBook</b> entity Model. The second translations does the opposite, translating an <b>EBook</b> entity model to a <b>Book</b> resource model. Notice that the <b>CategoryId</b> is mapped to the <b>Genre</b> column in both transformations.</p>
+<p>Now that we have our models, and our translations, we can finally create some endpoints.</p>
 <h3>Creating a Controller</h3>
-Endpoints live in controllers, and the standard naming convention for a controller is resourcesController. That is to say, the plural name of the resource followed by "Controller." We have our book models so now we need to create the <b>BooksController</b>.
-
-Right-click on the <b>Controllers</b> folder, and select "Add REST Controller...". For the class name, enter <b>BooksController</b> and press OK. The Controller Generator dialog appears.
-<br><br>
-<img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateController.png"
+<p>Endpoints live in controllers, and the standard naming convention for a controller is resourcesController. That is to say, the plural name of the resource followed by "Controller." We have our book models so now we need to create the <b>BooksController</b>.</p>
+<p>Right-click on the <b>Controllers</b> folder, and select "Add REST Controller...". For the class name, enter <b>BooksController</b> and press OK. The Controller Generator dialog appears.</p>
+<p><img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateController.png"
      alt="Create Controller"
-     style="float: left; margin-right: 10px;" />
-
-The top dropdown box contains the list of resource models. Select <b>Book</b>. The second dropdown lists the set of OAuth policies that you have defined for your service. These policies are defined in the appSettings.json file.
+     style="float: left; margin-right: 10px;" /></p>
+<p>The top dropdown box contains the list of resource models. Select <b>Book</b>. The second dropdown lists the set of OAuth policies that you have defined for your service. These policies are defined in the appSettings.json file.</p>
 <pre><code>"OAuth2": {
 	"Policies": [
 		{
@@ -543,17 +490,13 @@ The top dropdown box contains the list of resource models. Select <b>Book</b>. T
 	]
 }
 </code></pre>
-The "Policy" entry defines the name of the policy. It is these names you see in the dropdown. You can create as many different policies as you need. The "Scopes" entry defines the list of scopes that this policy supports. Given an access token (which you obtain from your identity provider) that contains at least one of these scopes, then this policy will allow you to access the function. If your access token does not contain any of these scopes, you will not be allowed to access the function, and the service will return <b>Unauthorized</b>.
-
-When this wizard creates the controller, all of the endpoints will be protected with the policy you choose. Or, you can choose the default value of <b>anonymous</b>. The <b>anonymous</b> policy allows anyone to hit your endpoint. 
-
-Not all endpoints in a controller must have the same policy. You can pick and choose. For example, you might set your GET functions to <b>anonymous</b>, allowing anyone to read data from your server, while setting the PUT, POST and DELETE funtions to some other policy you define. That means, anyone can read the data, but they will need a specific access token to manipulate the data.
-
-For now, let's just leave the policy at <b>anonymous</b>, letting anyone use our service.
-
-Press OK to generate the controller. 
+<p>The "Policy" entry defines the name of the policy. It is these names you see in the dropdown. You can create as many different policies as you need. The "Scopes" entry defines the list of scopes that this policy supports. Given an access token (which you obtain from your identity provider) that contains at least one of these scopes, then this policy will allow you to access the function. If your access token does not contain any of these scopes, you will not be allowed to access the function, and the service will return <b>Unauthorized</b>.</p>
+<p>When this wizard creates the controller, all of the endpoints will be protected with the policy you choose. Or, you can choose the default value of <b>anonymous</b>. The <b>anonymous</b> policy allows anyone to hit your endpoint.</p>
+<p>Not all endpoints in a controller must have the same policy. You can pick and choose. For example, you might set your GET functions to <b>anonymous</b>, allowing anyone to read data from your server, while setting the PUT, POST and DELETE funtions to some other policy you define. That means, anyone can read the data, but they will need a specific access token to manipulate the data.</p>
+<p>For now, let's just leave the policy at <b>anonymous</b>, letting anyone use our service.</p>
+<p>Press OK to generate the controller.</p>
 <details>
-<summary>The generated Mapping code</Summary>
+<summary>The generated Controller code</Summary>
 <pre><code>using System;<br>
 using System.Collections.Generic;<br>
 using System.Linq;<br>
@@ -763,16 +706,15 @@ namespace Bookstore.Controllers<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
 &nbsp;&nbsp;&nbsp;&nbsp;}<br>
 }</code></pre></details>
-Compile and run your new service.
-
-![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/Website1.png "Create Controller")
-
-Let's take a look at what our service can do. You can see we now have five new endpoints. There are two GET endpoints, one for retrieving a single book and one for retrieving a collection of books. The collection endpoints looks like this:
+<p>Compile and run your new service<p>
+<p><img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/Website1.png"
+     alt="Running WebSite"
+     style="float: left; margin-right: 10px;" /></p>
+<p>Let's take a look at what our service can do. You can see we now have five new endpoints. There are two GET endpoints, one for retrieving a single book and one for retrieving a collection of books. The collection endpoints looks like this:</p>
 <pre><code>/books
 </code></pre>
-That endpoint is deciptively simple. Just execute it from swagger, and you will get all the books in the collection. The result is wrapped inside of a **PagedSet<>** class. What that means is, the set is paged, and it has a limit on how many resources it will deliver in a single call. The limit is configurable. It's set as the batch limit in appSettings.json for each environment.
-
-Let's look at the annotations for that endpoint:
+<p>That endpoint is deceptively simple. Just execute it from swagger, and you will get all the books in the collection. The result is wrapped inside of a <b>PagedSet&lt;&gt;</b> class. What that means is, the set is paged, and it has a limit on how many resources it will deliver in a single call. The limit is configurable. It's set as the batch limit in appSettings.json for each environment.</p>
+<p>Let's look at the annotations for that endpoint:</p>
 <pre><code>&nbsp;&nbsp;&nbsp;&nbsp;[HttpGet]<br>
 &nbsp;&nbsp;&nbsp;&nbsp;[Route("books")]<br>
 &nbsp;&nbsp;&nbsp;&nbsp;[AllowAnonymous]<br>
@@ -780,7 +722,7 @@ Let's look at the annotations for that endpoint:
 &nbsp;&nbsp;&nbsp;&nbsp;[SwaggerResponse((int)HttpStatusCode.OK, Type = typeof(PagedSet&lt;Book&gt;))]<br>
 &nbsp;&nbsp;&nbsp;&nbsp;[Produces("application/hal+json", "application/hal.v1+json", MediaTypeNames.Application.Json, "application/vnd.v1+json")]<br>
 </code></pre>
-The endpoint responds to the GET Verb and is located at /books. It has the <i>AllowAnonymous</i> attribute, so anyone can call this endpoint. It supports RQL and returns a <b>PagedSet\&lt;Books&gt;></b> response. It can take <i>application/hal+json</i>, <i>application/hal.v1+json</i>, <i>application/json</i> or <i>application/vnd.v1+json</i> in the accept header. If the user specifies either of the 'hal' media types, the response will include HAL syntax. 
+<p>The endpoint responds to the GET Verb and is located at /books. It has the <i>AllowAnonymous</i> attribute, so anyone can call this endpoint. It supports RQL and returns a <b>PagedSet\&lt;Books&gt;></b> response. It can take <i>application/hal+json</i>, <i>application/hal.v1+json</i>, <i>application/json</i> or <i>application/vnd.v1+json</i> in the accept header. If the user specifies either of the 'hal' media types, the response will include HAL syntax.</p>
 
 >Note: If you try it out right now, you won't see any HAL syntax, or only very limited HAL in collection responses. This is because we haven't configured the HAL responses yet. Once they are configured, you'll be able to see the HAL responses.
 
