@@ -1,49 +1,38 @@
 <h1>REST Service Wizard Tutorial</h1>
-Eventually, I will place this template on the Microsoft Store, so that it can be downloaded directly in Visual Studio. However, until then, you will need to download this repository and build the project. I suggest you build it in release mode, but either release or debug will work. Once compiled, using the standard windows explorer, navigate to <i>&period;\RESTTemplate\RESTInstaller\bin\Release</i>. In that folder you will find the file <b>RESTInstaller.vsix</b>. Double click on that file to install the Visual Studio extension. Note, you should shut down all instances of Visual Studio before installing.
+<p>Eventually, I will place this template on the Microsoft Store, so that it can be downloaded directly in Visual Studio. However, until then, you will need to download this repository and build the project. I suggest you build it in release mode, but either release or debug will work. Once compiled, using the standard windows explorer, navigate to <i>&period;\RESTTemplate\RESTInstaller\bin\Release</i>. In that folder you will find the file <b>RESTInstaller.vsix</b>. Double click on that file to install the Visual Studio extension. Note, you should shut down all instances of Visual Studio before installing.</p>
 
 <h2>Creating a REST Service</h2>
-Once installed, open Visual Studio and select <b>Create a new project</b> from the initial popup window. When the <i>Create a new project</i> dialog appears, select <b>WebAPI</b> in the project types dropdown on the top right side of the dialog. When you do, you will see an entry for <b>REST Service (.Net Core)</b> option, with the blue and white MZ logo next to it.
-<br><br>
-<img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateAService.png"
+<p>Once installed, open Visual Studio and select <b>Create a new project</b> from the initial popup window. When the <i>Create a new project</i> dialog appears, select <b>WebAPI</b> in the project types dropdown on the top right side of the dialog. When you do, you will see an entry for <b>REST Service (.Net Core)</b> option, with the blue and white MZ logo next to it.</p>
+<p><img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateAService.png"
      alt="Create a new Project"
-     style="float: left; margin-right: 10px;" />
-
-Selet that entry and press <b>next</b>. When you do, the standard Visual Studio <i>Create a project</i> dialog appears. We're going to create a bookstore service that will list books and their authors, so in the Project name field, enter <b>Bookstore</b> and press <b>create</b>. When you do, you will see the REST Service Wizard dialog.
-<br><br>
-<img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/RESTServiceWizard.png"
+     style="float: left; margin-right: 10px;" /></p>
+<p>Selet that entry and press <b>next</b>. When you do, the standard Visual Studio <i>Create a project</i> dialog appears. We're going to create a bookstore service that will list books and their authors, so in the Project name field, enter <b>Bookstore</b> and press <b>create</b>. When you do, you will see the REST Service Wizard dialog.</p>
+<p><img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/RESTServiceWizard.png"
      alt="REST Service Wizard dialog"
-     style="float: left; margin-right: 10px;" />
-
-When you first open this dialog, the <i>Your name</i>, <i>Email</i> and <i>Project Url</i> fields will be blank. Once you fill them in, they will be pre-populated the next time you run this wizard. All three fields contain information that will be placed in the Swagger document of your project, so do fill them in with meaningful information. In my case, I have filled them in with my name, my email address, and the Url to my GitHub home page.
-
-Next you can choose the .NET Version you wish to build your service in. At present, the only option is .NET 6.0. In the near future, I will be adding support for .NET 7.0 and as time goes on, support for any newer versions that Microsoft produces. You can also choose the database technology that your service will use. There are four options:
-
-- None
-- SQL Server
-- Postgresql
-- My SQL
-
-However, at present, I only have support for SQL Server. You have three other options, all of which are checked by default.
-
-- <b>Use OAuth Authentication</b> - this choice allows your sevice to be protected by OAuth. You will need an OAuth identity provider to take advantage of this option. In this case, I will leave it checked, but we won't really be using it. Nevertheless, you will see how it could be used. Feel free to use it if you do have access to an identity provider.
-- <b>Incorporate RQL</b> - <b>Resource Query Language (RQL)</b> is a query language designed for use in URIs with object style data structures. The language provides powerful filtering capabilities to your endpoints.
-- <b>Incorporate HAL</b> - <b>Hypertext Application Language (HAL)</b> is a simple format that gives a consistent and easy way to hyperlink between resources in your API.
-
-Now, press Ok to generate your REST Service. Once it is generated, you can compile it and run it.
-<br><br>
-<img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/StarterService.png"
+     style="float: left; margin-right: 10px;" /></p>
+<p>When you first open this dialog, the <i>Your name</i>, <i>Email</i> and <i>Project Url</i> fields will be blank. Once you fill them in, they will be pre-populated the next time you run this wizard. All three fields contain information that will be placed in the Swagger document of your project, so do fill them in with meaningful information. In my case, I have filled them in with my name, my email address, and the Url to my GitHub home page.</p>
+<p>Next you can choose the .NET Version you wish to build your service in. At present, the only option is .NET 6.0. In the near future, I will be adding support for .NET 7.0 and as time goes on, support for any newer versions that Microsoft produces. You can also choose the database technology that your service will use. There are four options:</p>
+<ul>
+<li>None</li>
+<li>SQL Server</li>
+<li>Postgresql</li>
+<li>My SQL</li>
+</ul>
+<p>However, at present, I only have support for SQL Server. You have three other options, all of which are checked by default.</p>
+<ul>
+<li><b>Use OAuth Authentication</b> - this choice allows your sevice to be protected by OAuth. You will need an OAuth identity provider to take advantage of this option. In this case, I will leave it checked, but we won't really be using it. Nevertheless, you will see how it could be used. Feel free to use it if you do have access to an identity provider.</li>
+<li><b>Incorporate RQL</b> - <b>Resource Query Language (RQL)</b> is a query language designed for use in URIs with object style data structures. The language provides powerful filtering capabilities to your endpoints.</li>
+<li><b>Incorporate HAL</b> - <b>Hypertext Application Language (HAL)</b> is a simple format that gives a consistent and easy way to hyperlink between resources in your API.</li>
+</ul>
+<p>Now, press Ok to generate your REST Service. Once it is generated, you can compile it and run it.</p>
+<p><img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/StarterService.png"
      alt="Starter Service"
-     style="float: left; margin-right: 10px;" />
-
-
-It doesn't look like much yet, as we nave not yet defined any resources or endpoints. Nevertheless, you can see the information about yourself and the project in the top-left corner under the title, and users can click on your name to send you email, or click on the website link to visit your website. You can also see the authorize button. Clicking on this button will require you to enter an access token that you get from the identity provider to authorize the user to hit the various endpoints that require it. At this time, of course, we don't have any endpoints that reqire it, so you can igore that button for the time being.
-
-There are some settings you will want to set at this point. In the <b>program.cs</b> file, on line 115, you will see this code:
-
+     style="float: left; margin-right: 10px;" /></p>
+<p>It doesn't look like much yet, as we nave not yet defined any resources or endpoints. Nevertheless, you can see the information about yourself and the project in the top-left corner under the title, and users can click on your name to send you email, or click on the website link to visit your website. You can also see the authorize button. Clicking on this button will require you to enter an access token that you get from the identity provider to authorize the user to hit the various endpoints that require it. At this time, of course, we don't have any endpoints that reqire it, so you can igore that button for the time being.</p>
+<p>There are some settings you will want to set at this point. In the <b>program.cs</b> file, on line 115, you will see this code:</p>
 <pre><code>Description = "&lt;description here&gt;",
 </code></pre>
-
-You should replace the "&lt;description here&gt;" with a detailed description of your service. The description can include HTML code and inline styles, so you can make it look very professional. A good description will make your service easier to use for your customers.
+<p>You should replace the "&lt;description here&gt;" with a detailed description of your service. The description can include HTML code and inline styles, so you can make it look very professional. A good description will make your service easier to use for your customers.</p>
 
 Also, you will notices several appSettings.json files, one for each environment your service will run in. The default implementation includes settings files for five environments:
 
@@ -576,8 +565,7 @@ Right-click on the <b>Controllers</b> folder, and select "Add REST Controller...
      style="float: left; margin-right: 10px;" />
 
 The top dropdown box contains the list of resource models. Select <b>Book</b>. The second dropdown lists the set of OAuth policies that you have defined for your service. These policies are defined in the appSettings.json file.
-<pre><code>
-"OAuth2": {
+<pre><code>"OAuth2": {
 	"Policies": [
 		{
 		"Policy": "policy",
