@@ -799,6 +799,7 @@ Note: If you try it out right now, you won't see any HAL syntax, or only very li
 <p>That is a perfectly valid RQL statement. The problem is, there is no such member as "Status" in our <b>Book</b> model, making that RQL Statement invalid for our purposes. So, to take care of that, we first create an empty <b>ModelStateDictionary</b>. The <b>ModelStateDictionary</b> will hold the collection of errors we discover during any validation. If there are any errors, we simply return <b>BadRequest</b> with the collection of errors we found and return that to the user.</p>
 <p>To see if all the members included in our <b>RqlNode</b> pertain to our model, we simply call the <b>ValidateMember&lt;T&gt;</b> function on the node. This function inspects all the PROPERTY nodes in the <b>RqlNode</b> and verifies that they are valid members of the \<T\> (in this case, \<<b>Book</b>\>) type. The function will return *true* if all the members it contains are valid members of the type; otherwise, it will return <i>false</i>. If it does return <i>false</i>, we simply return <b>BadRequest</b> with those errors.</p>
 <p>If the <b>RqlNode</b> is valid, then we call the orchestrator to do our work for us. We call the generic <b>GetResourceCollectionAsync</b> function, passing the &lt;Book&gt; type, and passing the compiled <b>RqlNode</b>. That function returns our desired collection, which we simply pass back to the user with the OK (200) HTTP status code.</p>
-
+<h3>HAL Configuration</h3>
+<p>Now that we have our endpoints, we need to configure the HAL response. To do that, right-click on the <b>Configuration</b> folder, and click on the </p>
 
 
