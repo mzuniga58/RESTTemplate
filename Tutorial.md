@@ -68,52 +68,37 @@
 <h2>Orchestration Layer</h2>
 <p>When the user calls an endpoint in your presentation layer, under the covers, the presentation layer calls the orchestration layer to accomplish the actual work. If the user asks for a parcitular resource, i.e., /books/1234, the preentation layer calls the orchestration layer to get the book whose Id is 1234. Likewise, if the user calls books/name/The%20Wrath%20of%20Isis, the user is calling the service to obtain the book called "The Wrath of Isis" (a wonderfully written book, by the way). The orchestration layer will return the desired result, and in turn, the presentation layer will pass back the result to the caller.</p>
 <p>The orchestration layer resides in the Orchestration folder. There are two files there, <b>IOrchestrator</b> and <b>Orchestrator</b>. The <b>IOrchestrator</b> defines, and the <b>Orchestrator</b> implements a set of generic CRUD (Create, Read, Update, Delete) functions that have been pre-defined for you. These generic operations are:</p>
-
-- <b>GetSingleResourceAsync</b> - retrieves a single resource of type T, using an RQL Statement to futher refine the resource.
-- <b>GetResourceCollectionAsync</b> - retrieves a collection of resources of type T, wrapped inside a <b>PagedSet</b>, using an RQL Statement to filter and refine the set.
-- <b>AddResourceAsync</b> - adds a resource of type T to the datastore
-- <b>UpdateResourceAsync</b> - updates a resource of type T in the datastore, using an RQL Statment to further refine the update
-- <b>DeleteResourceAsync</b> - deletea a resource or set of resources of type T from the datastore, using an RQL Statement to define which resources are to be deleted.
-
-These generic functions are sufficient for simple resources. However, for more complex resources (such as those that contai<b>RqlNode</b>n embedded child resources), you will need to create your own functions. To do so, simply include that function in the <b>IOrchestrator</b> interface and implement it in the <b>Orchestrator</b> object. In your new function, you can often combine (or "orchestrate") the generic functions to accomplish your task. I'll be giving an example of that later in this tutorial.
-
-One other thing about the orchestration layer is its use of RQL. The <b>RqlNode</b> is a compiled version of an RQL Statement. The RQL Statement can be provided by the user in the query portion of the Url (basically, everything after the ?), or it can be hardcoded in the presentation layer by the programmer. Here are two examples:
-
-<pre><code>var node = RqlNode.Parse(Request.QueryString.Value);
+<ul>
+<li><b>GetSingleResourceAsync</b> - retrieves a single resource of type T, using an RQL Statement to futher refine the resource.</li>
+<li><b>GetResourceCollectionAsync</b> - retrieves a collection of resources of type T, wrapped inside a <b>PagedSet</b>, using an RQL Statement to filter and refine the set.</li>
+<li><b>AddResourceAsync</b> - adds a resource of type T to the datastore.</li>
+<li><b>UpdateResourceAsync</b> - updates a resource of type T in the datastore, using an RQL Statment to further refine the update.</li>
+<li><b>DeleteResourceAsync</b> - deletea a resource or set of resources of type T from the datastore, using an RQL Statement to def.ine which resources are to be deleted.</li>
+</ul>
+<p>These generic functions are sufficient for simple resources. However, for more complex resources (such as those that contai<b>RqlNode</b>n embedded child resources), you will need to create your own functions. To do so, simply include that function in the <b>IOrchestrator</b> interface and implement it in the <b>Orchestrator</b> object. In your new function, you can often combine (or "orchestrate") the generic functions to accomplish your task. I'll be giving an example of that later in this tutorial.</p>
+<p>One other thing about the orchestration layer is its use of RQL. The <b>RqlNode</b> is a compiled version of an RQL Statement. The RQL Statement can be provided by the user in the query portion of the Url (basically, everything after the ?), or it can be hardcoded in the presentation layer by the programmer. Here are two examples:</p>
+<pre><code>var node = RqlNode.Parse(Request.QueryString.Value);<br>
 var node = RqlNode.Parse($"Author={authorId});
 </code></pre>
-The first example compiles the query string of the requested Url into an <b>RqlNode</b> object. The second takes the RQL Statement "Author=nnn", and compiles it into an <b>RqlNode</b> object. The <b>RqlNode</b> object contains a structured representation of the statement, or a statement of NOOP if there is no statement. RqlNode.Parse("") will return an <b>RqlNode</b> of NOOP, for example. RQL statments can be simple, like the one shown above, or they can become quite complex. 
-
+<p>The first example compiles the query string of the requested Url into an <b>RqlNode</b> object. The second takes the RQL Statement "Author=nnn", and compiles it into an <b>RqlNode</b> object. The <b>RqlNode</b> object contains a structured representation of the statement, or a statement of NOOP if there is no statement. RqlNode.Parse("") will return an <b>RqlNode</b> of NOOP, for example. RQL statments can be simple, like the one shown above, or they can become quite complex.</p>
 <pre><code>(in(AuthorId,{auth1},{auth2},{auth3})&category=Scifi)|(like(AuthorName,T*)&category=Fantasy)&select(bookTitle,pubishDate,AuthorName)&limit(1,20)
 </code></pre>
-This RQL statement will return the collection of books who where written by either *auth1*, *auth2* or *auth3* (these are Author Ids) and whose category is Scifi, OR any Fantasy book written by an auther whose name beings with 'T' (i.e., Thomson, Tiller, Tanner, etc.). It limits the results to include only the book title, the publish date of the book and the authorname, and it gives you only the first 20 results.
-
-For more information on RQL syntax, look here: enter link here
-
+<p>This RQL statement will return the collection of books who where written by either *auth1*, *auth2* or *auth3* (these are Author Ids) and whose category is Scifi, OR any Fantasy book written by an auther whose name beings with 'T' (i.e., Thomson, Tiller, Tanner, etc.). It limits the results to include only the book title, the publish date of the book and the authorname, and it gives you only the first 20 results.</p>
+<p>For more information on RQL syntax, look here: enter link here</p>
 <h2>Repsoitory Layer</h2>
-Under the covers, to do its work, the orchestration layer calls the repository layer to obtain and manipulate data in the underlying datastore. The repositoy layer resides under the repositories folder in the <b>IRepository</b> and <b>Repository</b> files. Likw the orchestraton layer, the repository layer comes with pre-configured generic CRUD functions. One thing to notice between the repository layer and the orchestration layer is that the orchestration layer accepts <i>Resource Models</i>, while the repository layer accepts <i>Entity Models</i>. When you think about it it makes sense. The orchestration layer is responsible for "orchestrating" bits and pieces of data (that come in the form of entity models) into a cohesive response in the form of a resource model. 
-
-The entity models are essentially a one-to-one mapping between the model and the underlying datasource. They also include information about the data (which members are primary key, which are foreign keys, whether the member is nullable, etc.).
-
-Consequently, because we have resource models and entity mModels, we need a way to translate between the two. The translations are accomplished by AutoMapper profiles residing in the Mapping folder.
-
-It is worth noting that a repository layer need not referene a database. Sometimes, a repository layer will be used to interact with a foreign service, or even interact with a file system or any other type of device. At present, the REST Service Wizard only provides support for database oriented repositories, but that doesn't mean you can't include other types of repositories in your service. Neither does it mean that the repository is limited to just the pre-configured generic functions. The author can add new functions to the repository as needed to support custom requirements. 
-
+<p>Under the covers, to do its work, the orchestration layer calls the repository layer to obtain and manipulate data in the underlying datastore. The repositoy layer resides under the repositories folder in the <b>IRepository</b> and <b>Repository</b> files. Likw the orchestraton layer, the repository layer comes with pre-configured generic CRUD functions. One thing to notice between the repository layer and the orchestration layer is that the orchestration layer accepts <i>Resource Models</i>, while the repository layer accepts <i>Entity Models</i>. When you think about it it makes sense. The orchestration layer is responsible for "orchestrating" bits and pieces of data (that come in the form of entity models) into a cohesive response in the form of a resource model.</p>
+<p>The entity models are essentially a one-to-one mapping between the model and the underlying datasource. They also include information about the data (which members are primary key, which are foreign keys, whether the member is nullable, etc.).</p>
+<p>Consequently, because we have resource models and entity mModels, we need a way to translate between the two. The translations are accomplished by AutoMapper profiles residing in the Mapping folder.</p>
+<p>It is worth noting that a repository layer need not referene a database. Sometimes, a repository layer will be used to interact with a foreign service, or even interact with a file system or any other type of device. At present, the REST Service Wizard only provides support for database oriented repositories, but that doesn't mean you can't include other types of repositories in your service. Neither does it mean that the repository is limited to just the pre-configured generic functions. The author can add new functions to the repository as needed to support custom requirements.</p>
 <h2>Extending our Service</h2>
-Before we begin to extend our service, we will need a database to hold all of our book and authors information. Since, at this time, we only support SQL Server, we have a database definition, located at <a href="https://github.com/mzuniga58/RESTTemplate/blob/main/Scripts/Bookstore.sql">Boookstore.sql</a>. 
-
-Open Microsoft SQL Server Management Studio and create a database called Bookstore. Then, open the above file in Microsoft SQL Server Management Studio while connected to that database, and run it. It will create the Bookstore database we will be using in this tutorial.
-
+<p>Before we begin to extend our service, we will need a database to hold all of our book and authors information. Since, at this time, we only support SQL Server, we have a database definition, located at <a href="https://github.com/mzuniga58/RESTTemplate/blob/main/Scripts/Bookstore.sql">Boookstore.sql</a>.</p>
+<p>Open Microsoft SQL Server Management Studio and create a database called Bookstore. Then, open the above file in Microsoft SQL Server Management Studio while connected to that database, and run it. It will create the Bookstore database we will be using in this tutorial.</p>
 <h3>Adding Entity Models</h3>
-Okay, now that we have some data, we're going to want to add our first endpoints to our service to manipulate that data. Before we can create that endpoint, we need to do a few things. First, we need to create an entity model of the data we want to manipulate. The first bit of data we want to define is the categories table. The categories table is the list of categories that a book can belong to, such as Science Fiction or Romance. 
-
-Typically, we create entity model/resource model pairs. These pairs will allow us to write the functions to manipulate the data, i.e., add new items, delete or update existing items, etc. But our categories table is a bit different. It doesn't change. Categories, commonly called Literary genres, are formed by shared literary conventions. Although they do change over time, as new genres emerge and others fade, the change is usually measured in decades, and sometimes centuries.
-
-We could create an entity model/resource model pair for our categories, but it doens't really make that muuch sense. In the C# world, the categories are better represented by an <b>enum</b>. Fortunately, the REST Service makes that easy.
-
-With your Bookstore service open in Visual Studio, expand the Models folder. Under the Models folder you will see two child folders, <b>EntityModels</b> and <b>ResourceModels</b>. We want to create an entity model for the Categories table, but we want to create it as an enum, not a class model. To do that, right-click on the <b>EntityModels</b> folder. When you do, a pop-up menu will appear. On that menu, click on Add REST Entity Model... It should be 3rd on the menu, with the Blue and White MZ logo next to it.
-
->What are you talking about? I don't see any menu item called "Add REST Entity Model..." with a blue and white MZ logo?
+<p>Okay, now that we have some data, we're going to want to add our first endpoints to our service to manipulate that data. Before we can create that endpoint, we need to do a few things. First, we need to create an entity model of the data we want to manipulate. The first bit of data we want to define is the categories table. The categories table is the list of categories that a book can belong to, such as Science Fiction or Romance.</p> 
+<p>Typically, we create entity model/resource model pairs. These pairs will allow us to write the functions to manipulate the data, i.e., add new items, delete or update existing items, etc. But our categories table is a bit different. It doesn't change. Categories, commonly called Literary genres, are formed by shared literary conventions. Although they do change over time, as new genres emerge and others fade, the change is usually measured in decades, and sometimes centuries.</p>
+<p>We could create an entity model/resource model pair for our categories, but it doens't really make that muuch sense. In the C# world, the categories are better represented by an <b>enum</b>. Fortunately, the REST Service makes that easy.</p>
+<p>With your Bookstore service open in Visual Studio, expand the Models folder. Under the Models folder you will see two child folders, <b>EntityModels</b> and <b>ResourceModels</b>. We want to create an entity model for the Categories table, but we want to create it as an enum, not a class model. To do that, right-click on the <b>EntityModels</b> folder. When you do, a pop-up menu will appear. On that menu, click on Add REST Entity Model... It should be 3rd on the menu, with the Blue and White MZ logo next to it.</p>
+<p>>What are you talking about? I don't see any menu item called "Add REST Entity Model..." with a blue and white MZ logo?</p>
 >
 >Did you install the Wizard, by clicking on the RESTInstaller.vsix file as described at the beginning of this tutorial? And if so, did it run to completion?
 >If you did that, and the menu item still isn't showing, that can sometimes happen if Visual Studio is running a bit slow. Try closing Visual Studio and running it again.
@@ -122,28 +107,20 @@ With your Bookstore service open in Visual Studio, expand the Models folder. Und
 >Right click on the EntityModels menu and select "Add -> New Item...", or press Shift+Ctrl+A. 
 >On the resulting dialog, on the left-hand side, navigate to Visual C# / ASP .NET Core / Web / REST Services.
 >There you should see a number of items, all with the blue and white MZ logo. REST Entity Model should be one of those options. Click on that.
-
-Alright, now you should have a dialog asking for the name of your new class. 
-<br><br>
-<img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/ChooseName.png"
+<p>Alright, now you should have a dialog asking for the name of your new class.</p>
+<p><img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/ChooseName.png"
      alt="Entity Model Generator"
-     style="float: left; margin-right: 10px;" />
-
-A good standard is to name models in singular form, so call your class <b>Category</b>. Normally, we prepend a prefix to entity models. I use the letter E. The E stands for "entity". So, normally we would call this the <b>ECategory</b> class. An alternative is <b>Entity_Category</b>, or <b>EntityCategory</b>. It doesn't really matter, we just need a name to differentiate it from the resource model class that we will be making later. However, in this case, we will be creating an enum, and there is no reason to create a resource model (it would simply be exactly the same as the entity model, just with a different class name). So, in this case, I will forego the "E" prefix, and just call it <b>Category.cs</b>. (P.S., if you forgot to add the trailing .cs, don't worry, Visual Studio will add it for you.)
-
-Now you will be presented with the Entity Model Generator dialog.
-<br><br>
-<img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateEntityModel.png"
+     style="float: left; margin-right: 10px;" /></p>
+<p>A good standard is to name models in singular form, so call your class <b>Category</b>. Normally, we prepend a prefix to entity models. I use the letter E. The E stands for "entity". So, normally we would call this the <b>ECategory</b> class. An alternative is <b>Entity_Category</b>, or <b>EntityCategory</b>. It doesn't really matter, we just need a name to differentiate it from the resource model class that we will be making later. However, in this case, we will be creating an enum, and there is no reason to create a resource model (it would simply be exactly the same as the entity model, just with a different class name). So, in this case, I will forego the "E" prefix, and just call it <b>Category.cs</b>. (P.S., if you forgot to add the trailing .cs, don't worry, Visual Studio will add it for you.)</p>
+<p>Now you will be presented with the Entity Model Generator dialog.</p>
+<p><img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateEntityModel.png"
      alt="Entity Model Generator"
-     style="float: left; margin-right: 10px;" />
-
-The first time you try to create an entity model, the wizard doesn't know anything about your databases, so the top part of the dialog is empty. Click on the Add New Server button.
-<br><br>
-<img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/AddNewServer.png"
+     style="float: left; margin-right: 10px;" /></p>
+<p>The first time you try to create an entity model, the wizard doesn't know anything about your databases, so the top part of the dialog is empty. Click on the Add New Server button.</p>
+<p><img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/AddNewServer.png"
      alt="Add New Server"
-     style="float: left; margin-right: 10px;" />
-
-Select the database technology you want to connect to. Remember, we created our database in SQL Server, so choose SQL Server here. Then type in the name of your server, and select either Windows Authority or SQL Server Authority, whichever is appropriate to your installation. If you select SQL Server Authority, you will also need to enter your username and password. Once you have it all complete, click on the "check" button to ensure the wizard can talk to your database. Once you have established a connection, hit OK.
+     style="float: left; margin-right: 10px;" /></p>
+<p>Select the database technology you want to connect to. Remember, we created our database in SQL Server, so choose SQL Server here. Then type in the name of your server, and select either Windows Authority or SQL Server Authority, whichever is appropriate to your installation. If you select SQL Server Authority, you will also need to enter your username and password. Once you have it all complete, click on the "check" button to ensure the wizard can talk to your database. Once you have established a connection, hit OK.</p>
 
 Now, your database is shown at the top of the Entity Model Generator dialog, and the list of databases on that server are shown in the left-hand list box. Select the Bookstore database in that list. When you do, the list of tables for the Bookstore database should appear in the right-hand list. One of those tables should be the Categories table. Select that table.
 
