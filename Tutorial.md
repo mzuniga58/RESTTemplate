@@ -5,11 +5,11 @@
 <p>Once installed, open Visual Studio and select <b>Create a new project</b> from the initial popup window. When the <i>Create a new project</i> dialog appears, select <b>WebAPI</b> in the project types dropdown on the top right side of the dialog. When you do, you will see an entry for <b>REST Service (.Net Core)</b> option, with the blue and white MZ logo next to it.</p>
 <p><img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/CreateAService.png"
      alt="Create a new Project"
-     style="float: left; margin-right: 10px;" /></p>
+     style="float: center; margin-right: 10px;" /></p>
 <p>Selet that entry and press <b>next</b>. When you do, the standard Visual Studio <i>Create a project</i> dialog appears. We're going to create a bookstore service that will list books and their authors, so in the Project name field, enter <b>Bookstore</b> and press <b>create</b>. When you do, you will see the REST Service Wizard dialog.</p>
 <p><img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/RESTServiceWizard.png"
      alt="REST Service Wizard dialog"
-     style="float: left; margin-right: 10px;" /></p>
+     style="float: center; margin-right: 10px;" /></p>
 <p>When you first open this dialog, the <i>Your name</i>, <i>Email</i> and <i>Project Url</i> fields will be blank. Once you fill them in, they will be pre-populated the next time you run this wizard. All three fields contain information that will be placed in the Swagger document of your project, so do fill them in with meaningful information. In my case, I have filled them in with my name, my email address, and the Url to my GitHub home page.</p>
 <p>Next you can choose the .NET Version you wish to build your service in. At present, the only option is .NET 6.0. In the near future, I will be adding support for .NET 7.0 and as time goes on, support for any newer versions that Microsoft produces. You can also choose the database technology that your service will use. There are four options:</p>
 <ul>
@@ -27,22 +27,21 @@
 <p>Now, press Ok to generate your REST Service. Once it is generated, you can compile it and run it.</p>
 <p><img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/StarterService.png"
      alt="Starter Service"
-     style="float: left; margin-right: 10px;" /></p>
+     style="float: center; margin-right: 10px;" /></p>
 <p>It doesn't look like much yet, as we nave not yet defined any resources or endpoints. Nevertheless, you can see the information about yourself and the project in the top-left corner under the title, and users can click on your name to send you email, or click on the website link to visit your website. You can also see the authorize button. Clicking on this button will require you to enter an access token that you get from the identity provider to authorize the user to hit the various endpoints that require it. At this time, of course, we don't have any endpoints that reqire it, so you can igore that button for the time being.</p>
 <p>There are some settings you will want to set at this point. In the <b>program.cs</b> file, on line 115, you will see this code:</p>
 <pre><code>Description = "&lt;description here&gt;",
 </code></pre>
 <p>You should replace the "&lt;description here&gt;" with a detailed description of your service. The description can include HTML code and inline styles, so you can make it look very professional. A good description will make your service easier to use for your customers.</p>
-
-Also, you will notices several appSettings.json files, one for each environment your service will run in. The default implementation includes settings files for five environments:
-
-- <b>Development</b> - despite the name, this is the local environment, the one running on your computer.
-- <b>Dev</b> - a specialized development environment
-- <b>QA</b> - the QA environment
-- <b>Staging</b> - a Staging environment
-- <b>Production</b> - the Production environment
-
-If your setup doesn't include one of these environments, you can simply delete the appSettings files that don't apply, or you could add others that do apply but aren't included in the default implementation. One of the most important settings is the ConnectionStrings setting found in all the environment specific settings files.
+<p>Also, you will notices several appSettings.json files, one for each environment your service will run in. The default implementation includes settings files for five environments:</p>
+<ul>
+<li><b>Development</b> - despite the name, this is the local environment, the one running on your computer.</li>
+<li><b>Dev</b> - a specialized development environment</li>
+<li><b>QA</b> - the QA environment</li>
+<li><b>Staging</b> - a Staging environment</li>
+<li><b>Production</b> - the Production environment</li>
+</ul>
+<p>If your setup doesn't include one of these environments, you can simply delete the appSettings files that don't apply, or you could add others that do apply but aren't included in the default implementation. One of the most important settings is the ConnectionStrings setting found in all the environment specific settings files.</p>
 <details>
 <summary>Instructions for setting the Default Conntection String</summary>
 <p>You need to change the <b>DefaultConnection</b> string in the appSettings&lt;environment&gt;.json file to the connection string appropriate to that environment.<p>
@@ -53,9 +52,7 @@ If your setup doesn't include one of these environments, you can simply delete t
   },
 </code></pre>
 </details>
-Collections are returned wrapped in a <b>PagedSet<></b> class. That <b>PagedSet</b> limits the number of records that can be returned in a single call. By default, that limit is set to the <b>BatchLimit</b> of 100 records. You can change this value to whatever you feel is appropriate to your environment. And lastly, the <b>Timeout</b> value, encoded as a <i>TimeSpan</i>, informs the service how long it will wait for a request to be fulfilled. If a request takes longer than this time limit, the request is canceled, and a timeout error is returned. The default is 5 seconds, but you can change that to whatever you feel is appropriate.
-<br>
-<br>
+<p>Collections are returned wrapped in a <b>PagedSet<></b> class. That <b>PagedSet</b> limits the number of records that can be returned in a single call. By default, that limit is set to the <b>BatchLimit</b> of 100 records. You can change this value to whatever you feel is appropriate to your environment. And lastly, the <b>Timeout</b> value, encoded as a <i>TimeSpan</i>, informs the service how long it will wait for a request to be fulfilled. If a request takes longer than this time limit, the request is canceled, and a timeout error is returned. The default is 5 seconds, but you can change that to whatever you feel is appropriate.</p>
 <details>
 <summary>Instructions for setting the <b>batchLimit</b> and <b>Timeout</b> values</summary>
 <p>These are also found in the appSettings&lt;environment&gt;.json file for each environment.</p>
@@ -65,15 +62,12 @@ Collections are returned wrapped in a <b>PagedSet<></b> class. That <b>PagedSet<
   }
 </code></pre>
 </details>
-Before we expand our service, let's take a minute to go over some of the features. This REST service is created with a layered architecture. The three main layers are the Presentation Layer (also called the Resource Layer), the Orchestration Layer and the Repository Layer.
-
+<p>Before we expand our service, let's take a minute to go over some of the features. This REST service is created with a layered architecture. The three main layers are the Presentation Layer (also called the Resource Layer), the Orchestration Layer and the Repository Layer.</p>
 <h2>Presentation Layer</h2>
-At this point, the presentation layer doesn't exist, aside from the swagger. Soon we will be adding some controllers, and it is the collection of controllers and the endpoints that they define, along with the HAL configurations, that constitute the presentation layer. This is the layer that your users see and interact with. This is the layer they use to obtain and manage the resources the service controls, hence, that is why it is also sometimes called the resource layer. Later in this tutorial, we will show how to create a controller and how to populate the HAL configurations.
-
+<p>At this point, the presentation layer doesn't exist, aside from the swagger. Soon we will be adding some controllers, and it is the collection of controllers and the endpoints that they define, along with the HAL configurations, that constitute the presentation layer. This is the layer that your users see and interact with. This is the layer they use to obtain and manage the resources the service controls, hence, that is why it is also sometimes called the resource layer. Later in this tutorial, we will show how to create a controller and how to populate the HAL configurations.</p>
 <h2>Orchestration Layer</h2>
-When the user calls an endpoint in your presentation layer, under the covers, the presentation layer calls the orchestration layer to accomplish the actual work. If the user asks for a parcitular resource, i.e., /books/1234, the preentation layer calls the orchestration layer to get the book whose Id is 1234. Likewise, if the user calls books/name/The%20Wrath%20of%20Isis, the user is calling the service to obtain the book called "The Wrath of Isis" (a wonderfully written book, by the way). The orchestration layer will return the desired result, and in turn, the presentation layer will pass back the result to the caller.
-
-The orchestration layer resides in the Orchestration folder. There are two files there, <b>IOrchestrator</b> and <b>Orchestrator</b>. The <b>IOrchestrator</b> defines, and the <b>Orchestrator</b> implements a set of generic CRUD (Create, Read, Update, Delete) functions that have been pre-defined for you. These generic operations are:
+<p>When the user calls an endpoint in your presentation layer, under the covers, the presentation layer calls the orchestration layer to accomplish the actual work. If the user asks for a parcitular resource, i.e., /books/1234, the preentation layer calls the orchestration layer to get the book whose Id is 1234. Likewise, if the user calls books/name/The%20Wrath%20of%20Isis, the user is calling the service to obtain the book called "The Wrath of Isis" (a wonderfully written book, by the way). The orchestration layer will return the desired result, and in turn, the presentation layer will pass back the result to the caller.</p>
+<p>The orchestration layer resides in the Orchestration folder. There are two files there, <b>IOrchestrator</b> and <b>Orchestrator</b>. The <b>IOrchestrator</b> defines, and the <b>Orchestrator</b> implements a set of generic CRUD (Create, Read, Update, Delete) functions that have been pre-defined for you. These generic operations are:</p>
 
 - <b>GetSingleResourceAsync</b> - retrieves a single resource of type T, using an RQL Statement to futher refine the resource.
 - <b>GetResourceCollectionAsync</b> - retrieves a collection of resources of type T, wrapped inside a <b>PagedSet</b>, using an RQL Statement to filter and refine the set.
