@@ -98,15 +98,13 @@ var node = RqlNode.Parse($"Author={authorId});
 <p>Typically, we create entity model/resource model pairs. These pairs will allow us to write the functions to manipulate the data, i.e., add new items, delete or update existing items, etc. But our categories table is a bit different. It doesn't change. Categories, commonly called Literary genres, are formed by shared literary conventions. Although they do change over time, as new genres emerge and others fade, the change is usually measured in decades, and sometimes centuries.</p>
 <p>We could create an entity model/resource model pair for our categories, but it doens't really make that muuch sense. In the C# world, the categories are better represented by an <b>enum</b>. Fortunately, the REST Service makes that easy.</p>
 <p>With your Bookstore service open in Visual Studio, expand the Models folder. Under the Models folder you will see two child folders, <b>EntityModels</b> and <b>ResourceModels</b>. We want to create an entity model for the Categories table, but we want to create it as an enum, not a class model. To do that, right-click on the <b>EntityModels</b> folder. When you do, a pop-up menu will appear. On that menu, click on Add REST Entity Model... It should be 3rd on the menu, with the Blue and White MZ logo next to it.</p>
-<p>>What are you talking about? I don't see any menu item called "Add REST Entity Model..." with a blue and white MZ logo?</p>
->
->Did you install the Wizard, by clicking on the RESTInstaller.vsix file as described at the beginning of this tutorial? And if so, did it run to completion?
->If you did that, and the menu item still isn't showing, that can sometimes happen if Visual Studio is running a bit slow. Try closing Visual Studio and running it again.
->If after all that, it still isn't showing, try the second method.
->
->Right click on the EntityModels menu and select "Add -> New Item...", or press Shift+Ctrl+A. 
->On the resulting dialog, on the left-hand side, navigate to Visual C# / ASP .NET Core / Web / REST Services.
->There you should see a number of items, all with the blue and white MZ logo. REST Entity Model should be one of those options. Click on that.
+<blockquote>><p>What are you talking about? I don't see any menu item called "Add REST Entity Model..." with a blue and white MZ logo?</p>
+<p>Did you install the Wizard, by clicking on the RESTInstaller.vsix file as described at the beginning of this tutorial? And if so, did it run to completion?</p>
+<p>If you did that, and the menu item still isn't showing, that can sometimes happen if Visual Studio is running a bit slow. Try closing Visual Studio and running it again.</p>
+<p>If after all that, it still isn't showing, try the second method.</p>
+<blockquote>
+<p>Right click on the EntityModels menu and select "Add -> New Item...", or press Shift+Ctrl+A. On the resulting dialog, on the left-hand side, navigate to Visual C# / ASP .NET Core / Web / REST Services.
+There you should see a number of items, all with the blue and white MZ logo. REST Entity Model should be one of those options. Click on that.<p></blokquote></blockquote>
 <p>Alright, now you should have a dialog asking for the name of your new class.</p>
 <p><img src="https://github.com/mzuniga58/RESTTemplate/blob/main/Images/ChooseName.png"
      alt="Entity Model Generator"
