@@ -722,7 +722,7 @@ namespace Bookstore.Controllers<br>
 &nbsp;&nbsp;&nbsp;&nbsp;[SwaggerResponse((int)HttpStatusCode.OK, Type = typeof(PagedSet&lt;Book&gt;))]<br>
 &nbsp;&nbsp;&nbsp;&nbsp;[Produces("application/hal+json", "application/hal.v1+json", MediaTypeNames.Application.Json, "application/vnd.v1+json")]<br>
 </code></pre>
-<p>The endpoint responds to the GET Verb and is located at /books. It has the <i>AllowAnonymous</i> attribute, so anyone can call this endpoint. It supports RQL and returns a <b>PagedSet&lt;Books&gt;></b> response. It can take <i>application/hal+json</i>, <i>application/hal.v1+json</i>, <i>application/json</i> or <i>application/vnd.v1+json</i> in the accept header. If the user specifies either of the 'hal' media types, the response will include HAL syntax.</p>
+<p>The endpoint responds to the GET Verb and is located at /books. It has the <i>AllowAnonymous</i> attribute, so anyone can call this endpoint. It supports RQL and returns a <b>PagedSet&lt;Book&gt;></b> response. It can take <i>application/hal+json</i>, <i>application/hal.v1+json</i>, <i>application/json</i> or <i>application/vnd.v1+json</i> in the accept header. If the user specifies either of the 'hal' media types, the response will include HAL syntax.</p>
 <blockquote>
 Note: If you try it out right now, you won't see any HAL syntax, or only very limited HAL in collection responses. This is because we haven't configured the HAL responses yet. Once they are configured, you'll be able to see the HAL responses.
 </blockquote>
@@ -752,24 +752,17 @@ Note: If you try it out right now, you won't see any HAL syntax, or only very li
   }
 }</code></pre>
 <p>The actual response is bigger, and includes all the books in the table. We're only showing the first two here to conserve space. You will notice the "Count" field. The Count field tells you how many total resources are in the result set. If there were 10,000 books in our database, this number would be 10000. The next number tells you where in the set the first record resides. In this case, the start value is 1, so the first value in the collection is the first book in the entire set. The next value, pageSize, tells you how many books are included in this page.</p>
-
-As it happens, there are only 20 books in our example database, and since 20 is less than the maximum batch size of 100, you get the entire set.
-
-But we can alter that by using some RQL. Let's try it again, only this time, in the RQL parameter, enter:
-<pre><code>
-limit(1,5)
+<p>As it happens, there are only 20 books in our example database, and since 20 is less than the maximum batch size of 100, you get the entire set.</p>
+<p>But we can alter that by using some RQL. Let's try it again, only this time, in the RQL parameter, enter:</p>
+<pre><code>limit(1,5)
 </code></pre>
-The limit clause of RQL has the syntax Limit(&lt;start&gt;,&lt;pagesize&gt;). This statement informs the service that you only want to return 5 books, starting with the first book. Run that, and you will see that the pagesize is now 5, and only the first 5 books were returned. To see the next 5 books, enter
-<pre><code>
-limit(5,5)
+<p>The limit clause of RQL has the syntax Limit(&lt;start&gt;,&lt;pagesize&gt;). This statement informs the service that you only want to return 5 books, starting with the first book. Run that, and you will see that the pagesize is now 5, and only the first 5 books were returned. To see the next 5 books, enter</p>
+<pre><code>limit(5,5)
 </code></pre>
-We can also do some other things. Suppose we want the list of books that were published prior to 1960. To do that, enter the following RQL statement:
-
-<pre><code>
-publishDate&lt;1/1/1960
+<p>We can also do some other things. Suppose we want the list of books that were published prior to 1960. To do that, enter the following RQL statement:</p>
+<pre><code>publishDate&lt;1/1/1960
 </code></pre>
-
-Now, the returned value shows only those books that were published before 1960. How does this happen, you ask? Well, let's take a closer look. Here is the endpoint for getting a collection of books.
+<p>Now, the returned value shows only those books that were published before 1960. How does this happen, you ask? Well, let's take a closer look. Here is the endpoint for getting a collection of books.</p>
 <pre></code>
 &nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;summary&gt;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;Returns a collection of Books<br>
@@ -788,281 +781,24 @@ Now, the returned value shows only those books that were published before 1960. 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var node = RqlNode.Parse(Request.QueryString.Value);<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_logger.LogInformation("{s1} {s2}", Request.Method, Request.Path);<br>
-
+<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var errors = new ModelStateDictionary();<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!node.ValidateMembers&lt;Book&gt;(errors))<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return BadRequest(errors);<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var resourceCollection = await _orchestrator.GetResourceCollectionAsync&lt;Book&gt;(node);<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return Ok(resourceCollection);<br>
-&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;}</code></pre>
+<p>When we make our call, swagger composes the Url like so:</p>
+<pre></code>https://localhost:19704/books?publishDate&lt;1/1/1960
 </code></pre>
-When we make our call, swagger composes the Url like so:
-```
-https://localhost:19704/books?publishDate%3C1%2F1%2F1960
-```
-Let's url decode that link to see it better
-```
-https://localhost:19704/books?publishDate<1/1/1960
-```
-So, that is the Url we get in our request. First, we compile the query into an <b>RqlNode</b> object. The RQL is in the Url that the user sent. It's everything after the questoin mark.
+<p>So, that is the Url we get in our request. First, we compile the query into an <b>RqlNode</b> object. The RQL is in the Url that the user sent. It's everything after the questoin mark.</p>
+<p>Now that we have an <b>RqlNode</b> representation of the RQL Statement, we want to validate it against our model. The <b>RqlNode</b>.Parse function produces an <b>RqlNode</b> that is model agnostic. For example, we could write this RQL Statement:</p>
+<pre></code>Status=Active
+</code></pre>
+<p>That is a perfectly valid RQL statement. The problem is, there is no such member as "Status" in our <b>Book</b> model, making that RQL Statement invalid for our purposes. So, to take care of that, we first create an empty <b>ModelStateDictionary</b>. The <b>ModelStateDictionary</b> will hold the collection of errors we discover during any validation. If there are any errors, we simply return <b>BadRequest</b> with the collection of errors we found and return that to the user.</p>
+<p>To see if all the members included in our <b>RqlNode</b> pertain to our model, we simply call the <b>ValidateMember&lt;T&gt;</b> function on the node. This function inspects all the PROPERTY nodes in the <b>RqlNode</b> and verifies that they are valid members of the \<T\> (in this case, \<<b>Book</b>\>) type. The function will return *true* if all the members it contains are valid members of the type; otherwise, it will return <i>false</i>. If it does return <i>false</i>, we simply return <b>BadRequest</b> with those errors.</p>
+<p>If the <b>RqlNode</b> is valid, then we call the orchestrator to do our work for us. We call the generic <b>GetResourceCollectionAsync</b> function, passing the &lt;Book&gt; type, and passing the compiled <b>RqlNode</b>. That function returns our desired collection, which we simply pass back to the user with the OK (200) HTTP status code.</p>
 
-Now that we have an <b>RqlNode</b> representation of the RQL Statement, we want to validate it against our model. The <b>RqlNode</b>.Parse function produces an <b>RqlNode</b> that is model agnostic. For example, we could write this RQL Statement:
-```
-Status=Active
-```
-That is a perfectly valid RQL statement. The problem is, there is no such member as "Status" in our <b>Book</b> model, making that RQL Statement invalid for our purposes. So, to take care of that, we first create an empty <b>ModelStateDictionary</b>. The <b>ModelStateDictionary</b> will hold the collection of errors we discover during any validation. If there are any errors, we simply return *BadRequest* with the collection of errors we found and return that to the user.
-
-To see if all the members included in our <b>RqlNode</b> pertain to our model, we simply call the <b>ValidateMember&lt;T&gt;</b> function on the node. This function inspects all the PROPERTY nodes in the <b>RqlNode</b> and verifies that they are valid members of the \<T\> (in this case, \<<b>Book</b>\>) type. The function will return *true* if all the members it contains are valid members of the type; otherwise, it will return <i>false</i>. If it does return <i>false</i>, we simply return *BadRequest* with those errors.
-
-If the <b>RqlNode</b> is valid, then we call the orchestrator to do our work for us. We call the generic <b>GetResourceCollectionAsync</b> function, passing the &lt;Book&gt; type, and passing the compiled <b>RqlNode</b>. That function returns our desired collection, which we simply pass back to the user with the OK (200) HTTP status code.
-
-Now, let's pull back the covers and see how the orchestration layer handles this request.
-```
-        /// <summary>
-        /// Retrieves a collection of resources from the datastore according to the <see cref="RqlNode"/> filter
-        /// </summary>
-        /// <typeparam name="T">The type of resources to retrieve</typeparam>
-        /// <param name="node">The <see cref="RqlNode"/> that filters the query.</param>
-        /// <returns>A collection of resources of type T</returns>
-        public async Task<PagedSet<T>> GetResourceCollectionAsync<T>(RqlNode node) where T : class
-        {
-            _logger.LogTrace("Orchestrator: GetResourceCollectionAsync");
-            var entityAttribute = (EntityAttribute?)typeof(T).GetCustomAttributes(true).FirstOrDefault(a => a.GetType() == typeof(EntityAttribute));
-
-            if (entityAttribute is not null)
-            {
-                var entityType = entityAttribute.EntityType;
-                var translatedNode = _translator.TranslateQueryR2E<T>(node);
-                var collection = await _repository.GetEntityCollectionAsync(entityType, translatedNode);
-
-                if (collection != null)
-                {
-                    var countProperty = collection.GetType().GetRuntimeField("Count");
-                    var startProperty = collection.GetType().GetRuntimeField("Start");
-                    var pageSizeProperty = collection.GetType().GetRuntimeField("PageSize");
-                    var itemsProperty = collection.GetType().GetRuntimeField("Items");
-
-                    if (countProperty is not null &&
-                         startProperty is not null &&
-                         pageSizeProperty is not null &&
-                         itemsProperty is not null)
-                    {
-                        var rset = new PagedSet<T>()
-                        {
-                            Count = Convert.ToInt32(countProperty.GetValue(collection) ?? 0),
-                            Start = Convert.ToInt32(startProperty.GetValue(collection) ?? 0),
-                            PageSize = Convert.ToInt32(pageSizeProperty.GetValue(collection) ?? 0),
-                            Items = (T[])_mapper.Map(itemsProperty.GetValue(collection), entityType.MakeArrayType(), typeof(T).MakeArrayType())
-                        };
-
-                        return rset;
-                    }
-                }
-            }
-
-            return new PagedSet<T>();
-        }
-```
-Most orchestrator functions follow one simple pattern:
-- Translate the Resource model request into an equivalent Entity model request
-- Pass the entity model request to the repository layer
-- Obtain the Entity model results from the repository layer
-- Translate the entity model result into Resource model results
-- Return the Resource model results.
-This function is no different. Since we are given a Resource model, we first need to discover what Entity model coincides with it. That's easy to do, since all Resource models have the **EntityAttribute** in them, which specifies exactly that information. So, we extrat the **EntityAttribute** from the Resource model and discover the entity type. Now that we have both the entity type and the resource type, we need to translate the <b>RqlNode</b> from a Resource model query to an Entity model query.
-
-Remember that a Resource model may have members that are named differently than their Entity model counterparts. For example, our <b>Book</b> model contains the member *Genre*, which is a <b>Category</b> enumeration, but our entity model <b>EBook</b> contains no such member. Instead, it has a member called <b>CategoryId</b> defined as an int. Our mapping model that we generated handles the translation. When it sees the member *Genre* in our Resource model, it translates that to *CategoryId* in the entity model, and transforms the enumeration value to its corresponding int value.
-
-If we had this RQL Statement
-```
-Genre=ScienceFiction
-```
-and we tried to create an SQL Statement from that, it would create
-```
-Genre='ScienceFiction'
-```
-But placing that into the WHERE clause of a SQL Statement and trying to run it against our <b>Books</b> table would result in a SQL error, because the <b>Books</b> table has no column called *Genre*. Instead we need to translate that RQL statement into:
-```
-CategoryId=10
-```
-This is the statement the SQL server instance can understand and act upon. To do this, we use the _translator to do that translation.
-```
-var translatedNode = _translator.TranslateQueryR2E<T>(node);
-```
-The **TranslateQueryR2E** function translates the node from the Resource model representation into the Entity model (R2E) representation. The *translatedNode* is now an equivalent node to the original, but using Entity model members instead of Resource model members. Now that we have our translated node, we can call the repository layer to get our result.
-```
-var collection = await _repository.GetEntityCollectionAsync(entityType, translatedNode);
-```
-We now have our collection, but it is a collection of Entity models. We want a collection of Resource models. First, we do some checking, making sure values are not null and such (if any of those fail, we simply return an empty set), and then we create a Resource model version of our **PagedSet**. At this point, that **PagedSet** is empty. We then populate the numeric values from the original Entity model set, and finally, we translate the array of Entity models into an array of Resource models.
-```
-Items = (T[])_mapper.Map(itemsProperty.GetValue(collection), entityType.MakeArrayType(), typeof(T).MakeArrayType())
-```
-This is Automapper, and it uses the **BookProfile** class that we created to do that translation. Now we have our ResourceModel PagedSet, all we need to do is to return it.
-
-Finally, let's pull back the covers once more to see how the repository does it's work.
-```
-        /// <summary>
-        /// Returns a collection of entities of type entityType
-        /// </summary>
-        /// <param name="entityType">The type of entities to retrieve.</param>
-        /// <param name="node">The <see cref="RqlNode"/> that contains the filters for the query.</param>
-        /// <returns>The collection of resources matching the query filters.</returns>
-        public async Task<object> GetEntityCollectionAsync(Type entityType, RqlNode node)
-        {
-            using var ctc = new CancellationTokenSource();
-
-            var task = Task.Run(async () =>
-            {
-				... inline task code goes here ...
-            });
-
-            if (await Task.WhenAny(task, Task.Delay(_timeout)).ConfigureAwait(false) != task)
-            {
-                ctc.Cancel();
-                throw new InvalidOperationException("Task exceeded time limit.");
-            }
-
-            var collection = task.Result;
-
-            if (collection is null)
-                throw new Exception("Internal server error");
-
-            return collection;
-        }
-```
-This one is a bit more complex. One design criterion of our REST Service is that we don't allow infinately running processes. We have a strict time limit. If a query runs past that time limit, it is canceld and a timeout error is returned. 
-
-To accomplish this goal, we first create a cancellation token. We then create an inline background task (a task that runs on its own thread) and pass that cancellation token to it. At the bottom of this function, we await the task, waiting either for task completion or time out, whichever comes first. If the timeout happens first, we cancel the running thread and throw an exception. If the task completes before the timeout, then great, we just return the results.
-
-Let's take a look at that inline task code:
-```
-	_logger.LogTrace("[REPOSITORY] GetResourceCollectionAsync");
-
-	//  Construct a paged set
-	var rxgeneric = typeof(PagedSet<>);
-	var rx = rxgeneric.MakeGenericType(entityType);
-	var results = Activator.CreateInstance(rx);
-
-	if (results is null)
-		throw new Exception("Internal Server Error");
-
-	var countProperty = results.GetType().GetRuntimeField("Count");
-	var itemsProperty = results.GetType().GetRuntimeField("Items");
-	var startProperty = results.GetType().GetRuntimeField("Start");
-	var pageSizeProperty = results.GetType().GetRuntimeField("PageSize");
-
-	if (countProperty is null || itemsProperty is null || startProperty is null || pageSizeProperty is null)
-		throw new Exception("Intenal Server Error");
-
-	//  First, get the total number of recorreds in the set
-	var sqlStatement = _sqlGenerator.GenerateCollectionCountStatement(entityType, node, out List<SqlParameter> countParameters);
-
-	_logger.BeginScope(sqlStatement.ToString());
-
-	using var connection = new SqlConnection(_connectionString);
-	connection.Open();
-	int totalRecords = 0;
-
-	using (var countcommand = new SqlCommand(sqlStatement, connection))
-	{
-		foreach (var parameter in countParameters)
-		{
-			countcommand.Parameters.Add(parameter);
-		}
-
-		using var reader = await countcommand.ExecuteReaderAsync(ctc.Token).ConfigureAwait(false);
-
-		if (await reader.ReadAsync(ctc.Token).ConfigureAwait(false))
-		{
-			totalRecords = reader.GetInt32(0);
-			countProperty.SetValue(results, totalRecords);
-		}
-	}
-
-	_logger.LogTrace("[REPOSITORY] GetResourceCollectionAsync : total records in the set = {totalRecordsInSet}", totalRecords);
-
-	sqlStatement = _sqlGenerator.GenerateResourceCollectionStatement(entityType, node, out List<SqlParameter> queryParameters);
-	_logger.BeginScope(sqlStatement.ToString());
-
-	using (var command = new SqlCommand(sqlStatement, connection))
-	{
-		foreach (var parameter in queryParameters)
-		{
-			command.Parameters.Add(parameter);
-		}
-
-		using var reader = await command.ExecuteReaderAsync(ctc.Token).ConfigureAwait(false);
-
-		var rlgeneric = typeof(List<>);
-		var rl = rlgeneric.MakeGenericType(entityType);
-		var collection = Activator.CreateInstance(rl);
-
-		if (collection is null)
-			throw new Exception("Internal server error");
-
-		var addMethod = collection.GetType().GetMethod("Add");
-		var toArrayMethod = collection.GetType().GetMethod("ToArray");
-
-		if (addMethod is null || toArrayMethod is null)
-			throw new Exception("Internal server error");
-
-		while (await reader.ReadAsync(ctc.Token).ConfigureAwait(false))
-		{
-			var obj = await reader.GetObjectAsync(entityType, node, ctc.Token).ConfigureAwait(false);
-
-			if (obj is not null)
-			{
-				var entity = Convert.ChangeType(obj, entityType);
-				addMethod.Invoke(collection, new object[] { entity });
-			}
-		}
-
-		var itemArray = toArrayMethod.Invoke(collection, null);
-
-		if (itemArray is null)
-			throw new Exception("Internal Server Error");
-
-		var itemLengthProperty = itemArray.GetType().GetProperty("Length");
-
-		if (itemLengthProperty is null)
-			throw new Exception("Internal Server Error");
-
-		itemsProperty.SetValue(results, itemArray);
-
-		RqlNode? limitClause = node.ExtractLimitClause();
-
-		if (limitClause == null)
-		{
-			startProperty.SetValue(results, 1);
-			pageSizeProperty.SetValue(results, itemLengthProperty.GetValue(itemArray));
-		}
-		else
-		{
-			if (limitClause.Count > 0)
-				startProperty.SetValue(results, limitClause.NonNullValue<int>(0));
-			else
-				startProperty.SetValue(results, 1);
-
-			if (limitClause.Count > 1)
-				pageSizeProperty.SetValue(results, limitClause.NonNullValue<int>(1));
-			else
-				pageSizeProperty.SetValue(results, _batchLimit);
-		}
-	}
-
-	return results;
-```				
-That looks pretty daunting! Let's break it down, step by step. In this function we want to return a **PagedSet** of the type of our Entity model. So the first thing we have to do is to create an empty **PagedSet\<EntityModel\>**. The problem here is we don't have a type T argument. Instead, we have the type **entityType**. While C# does allow you to create a generic class of type T, i.e., *var x = new PagedSet\<T\>()*, it does not allow you to create a generic type from just a **Type** value (i.e., *var x = new PagedSet\<entityType\>()* will give us a compile error, because entityType is not a type argument). So, we need to do some reflection magic to create our set.
-```
-	//  Construct a paged set
-	var rxgeneric = typeof(PagedSet<>);
-	var rx = rxgeneric.MakeGenericType(entityType);
-	var results = Activator.CreateInstance(rx);
-
-	if (results is null)
-		throw new Exception("Internal Server Error");
-```
-Our results variable now contains a **PagedSet\<E\>** where E is the entity model type. Next, we have to access the various members of that object. But since we don't have a type argument, we can't do it the simple way. In ohter words, if I want to set the Count value of that object, I can't simply do results.Count = 0. 
 
 
