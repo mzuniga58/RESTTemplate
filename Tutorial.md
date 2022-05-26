@@ -811,28 +811,26 @@ Compile and run your new service.
 ![alt text](https://github.com/mzuniga58/RESTTemplate/blob/main/Images/Website1.png "Create Controller")
 
 Let's take a look at what our service can do. You can see we now have five new endpoints. There are two GET endpoints, one for retrieving a single book and one for retrieving a collection of books. The collection endpoints looks like this:
-```
-/books
-```
+<pre><code>/books
+</code></pre>
 That endpoint is deciptively simple. Just execute it from swagger, and you will get all the books in the collection. The result is wrapped inside of a **PagedSet<>** class. What that means is, the set is paged, and it has a limit on how many resources it will deliver in a single call. The limit is configurable. It's set as the batch limit in appSettings.json for each environment.
 
 Let's look at the annotations for that endpoint:
-```
-		[HttpGet]
-		[Route("books")]
-		[AllowAnonymous]
-		[SupportRQL]
-		[SwaggerResponse((int)HttpStatusCode.OK, Type = typeof(PagedSet&lt;Book&gt;))]
-		[Produces("application/hal+json", "application/hal.v1+json", MediaTypeNames.Application.Json, "application/vnd.v1+json")]
-```
-The endpoint responds to the GET Verb and is located at /books. It has the *AllowAnonymous* attribute, so anyone can call this endpoint. It supports RQL and returns a **PagedSet\<Books\>** response. It can take *application/hal+json*, *application/hal.v1+json*, *application/json* or *application/vnd.v1+json* in the accept header. If the user specifies either of the 'hal' media types, the response will include HAL syntax. 
+<pre><code>&nbsp;&nbsp;&nbsp;&nbsp;[HttpGet]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[Route("books")]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[AllowAnonymous]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[SupportRQL]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[SwaggerResponse((int)HttpStatusCode.OK, Type = typeof(PagedSet&lt;Book&gt;))]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[Produces("application/hal+json", "application/hal.v1+json", MediaTypeNames.Application.Json, "application/vnd.v1+json")]<br>
+</code></pre>
+The endpoint responds to the GET Verb and is located at /books. It has the <i>AllowAnonymous</i> attribute, so anyone can call this endpoint. It supports RQL and returns a <b>PagedSet\&lt;Books&gt;></b> response. It can take <i>application/hal+json</i>, <i>application/hal.v1+json</i>, <i>application/json</i> or <i>application/vnd.v1+json</i> in the accept header. If the user specifies either of the 'hal' media types, the response will include HAL syntax. 
 
 >Note: If you try it out right now, you won't see any HAL syntax, or only very limited HAL in collection responses. This is because we haven't configured the HAL responses yet. Once they are configured, you'll be able to see the HAL responses.
 
 Let's go ahead and try it out. Just click on the Blue GET button to expand it, and the click on the "Try it out" button to enable the endpoint in swagger. Press the blue Execute button to call the endpoint.
 
 Here is the response:
-```
+<pre><code>
 {
   "count": 20,
   "start": 1,
@@ -856,54 +854,53 @@ Here is the response:
     ]
   }
 }
-```
+</code></pre>
 The actual response is bigger, and includes all the books in the table. We're only showing the first two here to conserve space. You will notice the "Count" field. The Count field tells you how many total resources are in the result set. If there were 10,000 books in our database, this number would be 10000. The next number tells you where in the set the first record resides. In this case, the start value is 1, so the first value in the collection is the first book in the entire set. The next value, pageSize, tells you how many books are included in this page. 
 
 As it happens, there are only 20 books in our example database, and since 20 is less than the maximum batch size of 100, you get the entire set.
 
 But we can alter that by using some RQL. Let's try it again, only this time, in the RQL parameter, enter:
-```
+<pre><code>
 limit(1,5)
-```
+</code></pre>
 The limit clause of RQL has the syntax Limit(&lt;start&gt;,&lt;pagesize&gt;). This statement informs the service that you only want to return 5 books, starting with the first book. Run that, and you will see that the pagesize is now 5, and only the first 5 books were returned. To see the next 5 books, enter
-```
+<pre><code>
 limit(5,5)
-```
+</code></pre>
 We can also do some other things. Suppose we want the list of books that were published prior to 1960. To do that, enter the following RQL statement:
 
-<code>
+<pre><code>
 publishDate&lt;1/1/1960
-</code>
+</code></pre>
 
 Now, the returned value shows only those books that were published before 1960. How does this happen, you ask? Well, let's take a closer look. Here is the endpoint for getting a collection of books.
-```
-		///	<summary>
-		///	Returns a collection of Books
-		///	</summary>
-		///	<response code="200">A collection of Books&lt;/response&gt;
-		///	<response code="400">The RQL query was malformed.&lt;/response&gt;
-		///	<response code="401">The user is not authorized to acquire this resource.&lt;/response&gt;
-		///	<response code="403">The user is not allowed to acquire this resource.&lt;/response&gt;
-		[HttpGet]
-		[Route("books")]
-		[AllowAnonymous]
-		[SupportRQL]
-		[SwaggerResponse((int)HttpStatusCode.OK, Type = typeof(PagedSet&lt;Book&gt;))]
-		[Produces("application/hal+json", "application/hal.v1+json", MediaTypeNames.Application.Json, "application/vnd.v1+json")]
-		public async Task&lt;IActionResult&gt; GetBooksAsync()
-		{
-			var node = RqlNode.Parse(Request.QueryString.Value);
+<pre></code>
+&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;Returns a collection of Books<br>
+&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;/summary&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;response code="200"&gt;A collection of Books&lt;/response&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;response code="400"&gt;The RQL query was malformed.&lt;/response&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;response code="401"&gt;The user is not authorized to acquire this resource.&lt;/response&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;///&nbsp;&lt;response code="403"&gt;The user is not allowed to acquire this resource.&lt;/response&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[HttpGet]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[Route("books")]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[SupportRQL]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[SwaggerResponse((int)HttpStatusCode.OK, Type = typeof(PagedSet&lt;Book&gt;))]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[Produces("application/hal+json", "application/hal.v1+json", MediaTypeNames.Application.Json, "application/vnd.v1+json")]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;public async Task&lt;IActionResult&gt; GetBooksAsync()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var node = RqlNode.Parse(Request.QueryString.Value);<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_logger.LogInformation("{s1} {s2}", Request.Method, Request.Path);<br>
 
-			_logger.LogInformation("{s1} {s2}", Request.Method, Request.Path);
-
-			var errors = new ModelStateDictionary();
-			if (!node.ValidateMembers&lt;Book&gt;(errors))
-				return BadRequest(errors);
-
-			var resourceCollection = await _orchestrator.GetResourceCollectionAsync&lt;Book&gt;(node);
-			return Ok(resourceCollection);
-		}
-```
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var errors = new ModelStateDictionary();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!node.ValidateMembers&lt;Book&gt;(errors))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return BadRequest(errors);<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;var resourceCollection = await _orchestrator.GetResourceCollectionAsync&lt;Book&gt;(node);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return Ok(resourceCollection);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}
+</code></pre>
 When we make our call, swagger composes the Url like so:
 ```
 https://localhost:19704/books?publishDate%3C1%2F1%2F1960
