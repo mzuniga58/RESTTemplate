@@ -4618,7 +4618,7 @@ namespace RESTInstaller.Services
 			return theText.ToString().Trim();
 		}
 
-		public ProfileMap GenerateProfileMap(ResourceClass resourceModel)
+		public ProfileMap GenerateProfileMap(ResourceClass resourceModel, out List<string> unmappedResources, out List<string> unmappedEntities)
 		{
 			ThreadHelper.ThrowIfNotOnUIThread();
 			var profileMap = new ProfileMap
@@ -4629,8 +4629,8 @@ namespace RESTInstaller.Services
 				EntityProfiles = new List<EntityProfile>()
 			};
 
-			profileMap.ResourceProfiles.AddRange(GenerateResourceFromEntityMapping(resourceModel));
-			profileMap.EntityProfiles.AddRange(GenerateEntityFromResourceMapping(resourceModel, profileMap));
+			profileMap.ResourceProfiles.AddRange(GenerateResourceFromEntityMapping(resourceModel, out unmappedResources));
+			profileMap.EntityProfiles.AddRange(GenerateEntityFromResourceMapping(resourceModel, profileMap, out unmappedEntities));
 
 			return profileMap;
 		}
@@ -4640,11 +4640,11 @@ namespace RESTInstaller.Services
 		/// </summary>
 		/// <param name="unmappedColumns"></param>
 		/// <param name="resourceModel"></param>
-		public static List<EntityProfile> GenerateEntityFromResourceMapping(ResourceClass resourceModel, ProfileMap profileMap)
+		public static List<EntityProfile> GenerateEntityFromResourceMapping(ResourceClass resourceModel, ProfileMap profileMap, out List<string> unmappedMembers)
 		{
 			ThreadHelper.ThrowIfNotOnUIThread();
 			var result = new List<EntityProfile>();
-			var unmappedMembers = new List<String>();
+			unmappedMembers = new List<String>();
 			var codeService = ServiceFactory.GetService<ICodeService>();
 			var entityColumns = resourceModel.Entity.Columns;
 
@@ -4781,14 +4781,14 @@ namespace RESTInstaller.Services
 			return result;
 		}
 
-		public static List<ResourceProfile> GenerateResourceFromEntityMapping(ResourceClass resourceModel)
+		public static List<ResourceProfile> GenerateResourceFromEntityMapping(ResourceClass resourceModel, out List<string> unmappedMembers)
 		{
 			ThreadHelper.ThrowIfNotOnUIThread();
 			var nn = new NameNormalizer(resourceModel.ClassName);
 			var result = new List<ResourceProfile>();
 			var codeService = ServiceFactory.GetService<ICodeService>();
 			var entityColumns = resourceModel.Entity.Columns;
-			var unmappedMembers = new List<string>();
+			unmappedMembers = new List<string>();
 
 			foreach (var column in resourceModel.Columns)
 				unmappedMembers.Add(column.ColumnName);
@@ -4809,6 +4809,7 @@ namespace RESTInstaller.Services
 
 					MapEntityDestinationFromSource(resourceMember, ref resourceProfile, entityMember);
 					result.Add(resourceProfile);
+					unmappedMembers.Remove(resourceMember.ColumnName);
 				}
 				else
 				{
@@ -4842,10 +4843,14 @@ namespace RESTInstaller.Services
 								};
 
 								var entityColumn = resourceModel.Entity.Columns.FirstOrDefault(c => !string.IsNullOrWhiteSpace(c.ForeignTableName) && c.ForeignTableName.Equals(entityModel.TableName, StringComparison.OrdinalIgnoreCase));
-								resourceProfile.EntityColumnNames = new string[] { entityColumn.ColumnName };
 
-								MapEntityDestinationFromSource(resourceMember, ref resourceProfile, entityColumn);
-								result.Add(resourceProfile);
+								if (entityColumn != null)
+								{
+									resourceProfile.EntityColumnNames = new string[] { entityColumn.ColumnName };
+
+									MapEntityDestinationFromSource(resourceMember, ref resourceProfile, entityColumn);
+									result.Add(resourceProfile);
+								}
 							}
 						}
 						else if (resourceMember.ModelDataType.Contains("[]"))

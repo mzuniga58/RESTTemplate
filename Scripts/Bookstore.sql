@@ -1,6 +1,16 @@
 ﻿
 USE [Bookstore]
 
+IF OBJECT_ID (N'BooksByAuthor', N'V') IS NOT NULL 
+BEGIN
+	DROP VIEW BooksByAuthor
+END
+
+IF OBJECT_ID (N'AuthorsByBook', N'V') IS NOT NULL 
+BEGIN
+	DROP VIEW AuthorsByBook
+END
+
 IF EXISTS (SELECT * FROM sys.foreign_keys 
            WHERE object_id = OBJECT_ID(N'[dbo].[FK_Reviews_Books]') 
              AND parent_object_id = OBJECT_ID(N'[dbo].[Books]'))
@@ -152,6 +162,40 @@ REFERENCES [dbo].[Books] ([BookId])
 GO
 ALTER TABLE [dbo].[Reviews] CHECK CONSTRAINT [FK_Reviews_Books]
 GO
+USE [Bookstore]
+GO
+
+/****** Object:  View [dbo].[AuthorsByBook]    Script Date: 5/27/2022 8:59:17 AM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE VIEW [dbo].[AuthorsByBook]
+AS
+SELECT        dbo.Authors.AuthorId, dbo.Authors.FirstName, dbo.Authors.LastName, dbo.Authors.Website, dbo.AuthorBooks.BookId
+FROM            dbo.AuthorBooks INNER JOIN
+                         dbo.Authors ON dbo.AuthorBooks.AuthorId = dbo.Authors.AuthorId;
+GO
+
+USE [Bookstore]
+GO
+
+/****** Object:  View [dbo].[BooksByAuthor]    Script Date: 5/27/2022 9:00:22 AM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE VIEW [dbo].[BooksByAuthor]
+AS
+SELECT        dbo.AuthorBooks.AuthorId, dbo.Books.BookId, dbo.Books.Title, dbo.Books.PublishDate, dbo.Books.CategoryId, dbo.Books.Synopsis
+FROM            dbo.AuthorBooks INNER JOIN
+                         dbo.Books ON dbo.AuthorBooks.BookId = dbo.Books.BookId;
+GO
+
 
 INSERT INTO [dbo].[Categories] ( Name ) values
  ( 'Action and Adventure' ),

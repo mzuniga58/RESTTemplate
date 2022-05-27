@@ -109,6 +109,7 @@
     <Compile Include="Models\ResourceProfile.cs" />
     <Compile Include="Models\ResourceType.cs" />
     <Compile Include="Models\ServerConfig.cs" />
+    <Compile Include="Models\StorageType.cs" />
     <Compile Include="Services\CodeService.cs" />
     <Compile Include="Services\ServiceFactory.cs" />
     <Compile Include="Services\DBHelper.cs" />

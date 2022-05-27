@@ -240,7 +240,7 @@ namespace RESTInstaller.Services
 
 			bool first = true;
 
-			var profileMap = codeService.GenerateProfileMap(resourceModel);
+			var profileMap = codeService.GenerateProfileMap(resourceModel, out List<string> unmappedResources, out List<string> unmappedEntities);
 
 			foreach (var resourceMap in profileMap.EntityProfiles)
 			{
@@ -252,8 +252,13 @@ namespace RESTInstaller.Services
 				results.Append($"\t\t\t\t.ForMember(destination => destination.{resourceMap.EntityColumnName}, opts => opts.MapFrom(source =>");
 				results.Append(resourceMap.MapFunction);
 			}
-
 			results.AppendLine("));");
+
+			foreach ( var resourceMember in unmappedResources)
+            {
+				results.AppendLine($"\t\t\t\t//\tTODO: Unable to dereference {resourceMember}. No mapping was generated for this member.");
+            }
+
 			results.AppendLine();
 
 			#endregion
@@ -295,8 +300,13 @@ namespace RESTInstaller.Services
 					}
 				}
 			}
-
 			results.AppendLine("));");
+
+			foreach (var resourceMember in unmappedEntities)
+			{
+				results.AppendLine($"\t\t\t\t//\tTODO: Unable to dereference {resourceMember}. No mapping was generated for this member.");
+			}
+
 			results.AppendLine();
 
 			#endregion

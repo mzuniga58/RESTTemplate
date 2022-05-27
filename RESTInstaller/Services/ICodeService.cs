@@ -62,7 +62,7 @@ namespace RESTInstaller.Services
 
         string GetRelativeFolder(ProjectFolder folder);
         string FindOrchestrationNamespace();
-        ProfileMap GenerateProfileMap(ResourceClass resourceModel);
+        ProfileMap GenerateProfileMap(ResourceClass resourceModel, out List<string> unmappedResources, out List<string> unmappedEntities);
 
 
         Project GetProject(string projectName);

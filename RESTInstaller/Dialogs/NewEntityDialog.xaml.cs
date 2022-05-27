@@ -200,10 +200,17 @@ SELECT TABLE_SCHEMA, TABLE_NAME FROM information_schema.tables
 						connection.Open();
 
 						var query = @"
-select s.name, t.name
+select [Schema], [Table], [Type]
+from (
+select s.name as [Schema], t.name as [Table], 1 as [Type]
   from sys.tables as t with(nolock)
  inner join sys.schemas as s with(nolock) on s.schema_id = t.schema_id
-  order by s.name, t.name";
+union all
+select s.name as [Schema], t.name as [Table], 2 as [Type]
+  from sys.views as t with(nolock)
+ inner join sys.schemas as s with(nolock) on s.schema_id = t.schema_id
+ ) as x 
+    order by [Schema], [Table]";
 
 						using (var command = new SqlCommand(query, connection))
 						{
@@ -213,8 +220,9 @@ select s.name, t.name
 								{
 									var dbTable = new DBTable
 									{
-										Schema = reader.GetString(0),
-										Table = reader.GetString(1)
+										Schema = reader.GetString(reader.GetOrdinal("Schema")),
+										Table = reader.GetString(reader.GetOrdinal("Table")),
+										StorageType = (StorageType) reader.GetInt32(reader.GetOrdinal("Type"))
 									};
 									Listbox_Tables.Items.Add(dbTable);
 								}
@@ -522,7 +530,11 @@ ORDER BY c.ORDINAL_POSITION;
 					{
 						connection.Open();
 
-						var query = @"
+						string query = string.Empty;
+
+						if (table.StorageType == StorageType.Table)
+						{
+							query = @"
 select c.name as column_name, 
        x.name as datatype, 
 	   case when x.name = 'nchar' then c.max_length / 2
@@ -554,6 +566,42 @@ select c.name as column_name,
    and x.name != 'sysname'
  order by t.name, c.column_id
 ";
+						}
+						else
+                        {
+							query = @"
+select c.name as column_name, 
+       x.name as datatype, 
+	   case when x.name = 'nchar' then c.max_length / 2
+	        when x.name = 'nvarchar' then c.max_length / 2
+			when x.name = 'text' then -1
+			when x.name = 'ntext' then -1
+			else c.max_length 
+			end as max_length,
+       case when c.precision is null then 0 else c.precision end as precision,
+       case when c.scale is null then 0 else c.scale end as scale,
+	   c.is_nullable, 
+	   c.is_computed, 
+	   c.is_identity,
+	   case when ( select i.is_primary_key from sys.indexes as i inner join sys.index_columns as ic on ic.object_id = i.object_id and ic.index_id = i.index_id and i.is_primary_key = 1 where i.object_id = t.object_id and ic.column_id = c.column_id ) is not null  
+	        then 1 
+			else 0
+			end as is_primary_key,
+       case when ( select count(*) from sys.index_columns as ix where ix.object_id = c.object_id and ix.column_id = c.column_id ) > 0 then 1 else 0 end as is_indexed,
+	   case when ( select count(*) from sys.foreign_key_columns as f where f.parent_object_id = c.object_id and f.parent_column_id = c.column_id ) > 0 then 1 else 0 end as is_foreignkey,
+	   ( select t.name from sys.foreign_key_columns as f inner join sys.tables as t on t.object_id = f.referenced_object_id where f.parent_object_id = c.object_id and f.parent_column_id = c.column_id ) as foreigntablename,
+	   d.text as defaultvalue
+  from sys.columns as c
+ inner join sys.views as t on t.object_id = c.object_id
+ inner join sys.schemas as s on s.schema_id = t.schema_id
+ inner join sys.types as x on x.system_type_id = c.system_type_id and x.user_type_id = c.user_type_id
+ left outer join sys.syscomments as d on d.id = c.default_object_id
+ where t.name = @tablename
+   and s.name = @schema
+   and x.name != 'sysname'
+ order by t.name, c.column_id
+";
+						}
 
 						using (var command = new SqlCommand(query, connection))
 						{
