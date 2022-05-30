@@ -29,7 +29,7 @@ namespace RESTInstaller.Services
 			code.AppendLine($"\tpublic class {replacementsDictionary["$safeitemname$"]} : BaseConfiguration");
 			code.AppendLine("\t{");
 			code.AppendLine("\t\t///\t<summary>");
-			code.AppendLine($"\t///\tConfigure Hal for the {controllerName}.");
+			code.AppendLine($"\t\t///\tConfigure Hal for the {controllerName}.");
 			code.AppendLine("\t\t///\t</summary>");
 			code.AppendLine($"\t\tpublic {replacementsDictionary["$safeitemname$"]}()");
 			code.AppendLine("\t\t{");
