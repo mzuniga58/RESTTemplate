@@ -24,12 +24,12 @@ namespace RESTInstaller.Services
 			StringBuilder code = new StringBuilder();
 
 			code.AppendLine("\t///\t<summary>");
-			code.AppendLine($"\t///\t///Hal Configuration for the {controllerName}.");
+			code.AppendLine($"\t///\tHal Configuration for the {controllerName}.");
 			code.AppendLine("\t///\t</summary>");
 			code.AppendLine($"\tpublic class {replacementsDictionary["$safeitemname$"]} : BaseConfiguration");
 			code.AppendLine("\t{");
 			code.AppendLine("\t\t///\t<summary>");
-			code.AppendLine($"\t///\t///Configure Hal for the {controllerName}.");
+			code.AppendLine($"\t///\tConfigure Hal for the {controllerName}.");
 			code.AppendLine("\t\t///\t</summary>");
 			code.AppendLine($"\t\tpublic {replacementsDictionary["$safeitemname$"]}()");
 			code.AppendLine("\t\t{");
@@ -1245,7 +1245,7 @@ namespace RESTInstaller.Services
 			if (useRql)
 			{
 				results.AppendLine("\t\t\tvar errors = new ModelStateDictionary();");
-				results.AppendLine("\t\t\tif (!node.ValidateMembers<Book>(errors))");
+				results.AppendLine($"\t\t\tif (!node.ValidateMembers<{resourceClass.ClassName}>(errors))");
 				results.AppendLine("\t\t\t\treturn BadRequest(errors);");
 				results.AppendLine();
 				results.AppendLine($"\t\t\tvar resourceCollection = await _orchestrator.GetResourceCollectionAsync<{resourceClass.ClassName}>(node);");
@@ -1330,7 +1330,7 @@ namespace RESTInstaller.Services
 				if (useRql)
 				{
 					results.AppendLine("\t\t\tvar errors = new ModelStateDictionary();");
-					results.AppendLine("\t\t\tif (!node.ValidateMembers<Book>(errors))");
+					results.AppendLine($"\t\t\tif (!node.ValidateMembers<{resourceClass.ClassName}>(errors))");
 					results.AppendLine("\t\t\t\treturn BadRequest(errors);");
 					results.AppendLine();
 					results.AppendLine($"\t\t\tvar resource = await _orchestrator.GetSingleResourceAsync<{resourceClass.ClassName}>(node);");
@@ -1479,7 +1479,7 @@ namespace RESTInstaller.Services
 
 			if (useRql)
 			{
-				results.AppendLine("\t\t\tif (node.ValidateMembers<Book>(errors))");
+				results.AppendLine($"\t\t\tif (node.ValidateMembers<{resourceClass.ClassName}>(errors))");
 				results.AppendLine("\t\t\t{");
 				results.AppendLine("\t\t\t\tif (await resource.CanUpdateAsync(_orchestrator, node, errors))");
 				results.AppendLine("\t\t\t\t{");
@@ -1491,7 +1491,7 @@ namespace RESTInstaller.Services
 			else
             {
 				results.AppendLine("\t\t\tvar errors = new ModelStateDictionary();");
-				results.AppendLine("\t\t\tif (node.ValidateMembers<Book>(errors))");
+				results.AppendLine($"\t\t\tif (node.ValidateMembers<{resourceClass.ClassName}>(errors))");
 				results.AppendLine("\t\t\t{");
 				results.AppendLine("\t\t\t\tif (await resource.CanUpdateAsync(_orchestrator, node, errors))");
 				results.AppendLine("\t\t\t\t{");
@@ -1573,7 +1573,7 @@ namespace RESTInstaller.Services
 
 				if ( useRql)
                 {
-					results.AppendLine("\t\t\tif (!node.ValidateMembers<Book>(errors))");
+					results.AppendLine($"\t\t\tif (!node.ValidateMembers<{resourceClass.ClassName}>(errors))");
 					results.AppendLine("\t\t\t\treturn BadRequest(errors);");
 					results.AppendLine();
 					results.AppendLine($"\t\t\tif (await {resourceClass.ClassName}.CanDeleteAsync(_orchestrator, node, errors))");
