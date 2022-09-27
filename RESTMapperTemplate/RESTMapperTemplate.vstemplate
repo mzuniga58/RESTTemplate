@@ -20,7 +20,7 @@
     <ProjectItem ReplaceParameters="true" OpenInEditor="true" TargetFileName="$safeitemname$.cs">Profile.cs</ProjectItem>
   </TemplateContent>
   <WizardExtension>
-    <Assembly>RESTInstaller, Version=1.0.0.0, Culture=neutral, PublicKeyToken=c9a91afd72f2c20b</Assembly>
+    <Assembly>RESTInstaller, Version=1.0.0.0, Culture=neutral, PublicKeyToken=b243c01d0622660a</Assembly>
     <FullClassName>RESTInstaller.Wizards.ProfileWizard</FullClassName>
   </WizardExtension>
 </VSTemplate>

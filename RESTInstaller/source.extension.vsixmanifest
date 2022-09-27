@@ -9,6 +9,7 @@
         <Icon>`Resources\MZ.ico</Icon>
         <PreviewImage>Resources\preview.png</PreviewImage>
         <Tags>REST Service Web API</Tags>
+        <Preview>true</Preview>
     </Metadata>
     <Installation AllUsers="true">
         <InstallationTarget Version="[16.0,18.0)" Id="Microsoft.VisualStudio.Community">
